@@ -17,7 +17,7 @@ public class UserEntity {
     private String cpf;
 
     @Column(nullable = false)
-    private String adress;
+    private String address;
 
     public UserEntity() {
     }
@@ -26,7 +26,7 @@ public class UserEntity {
         this.id = id;
         this.username = username;
         this.cpf = cpf;
-        this.adress = adress;
+        this.address = adress;
     }
 
     public Long getId() {
@@ -53,11 +53,11 @@ public class UserEntity {
         this.cpf = cpf;
     }
 
-    public String getAdress() {
-        return adress;
+    public String getAddress() {
+        return address;
     }
 
-    public void setAdress(String adress) {
-        this.adress = adress;
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
