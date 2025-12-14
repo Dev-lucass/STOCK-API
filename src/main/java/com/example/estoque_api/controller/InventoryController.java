@@ -55,4 +55,21 @@ public class InventoryController {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/takeFromInventory")
+    public ResponseEntity<InventoryEntityResponseDTO> takeFromInventory(@RequestBody @Valid InventoryEntityDTO dto) {
+        InventoryEntity mapperEntity = mapper.toEntity(dto);
+        InventoryEntity takeFromInventory = service.takeFromInventory(mapperEntity);
+        InventoryEntityResponseDTO response = responseMapper.toResponse(takeFromInventory);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/returnFromInventory")
+    public ResponseEntity<InventoryEntityResponseDTO> returnFromInventory(@RequestBody @Valid InventoryEntityDTO dto) {
+        InventoryEntity mapperEntity = mapper.toEntity(dto);
+        InventoryEntity returnFromInventory = service.returnFromInventory(mapperEntity);
+        InventoryEntityResponseDTO response = responseMapper.toResponse(returnFromInventory);
+        return ResponseEntity.ok(response);
+    }
+
 }
