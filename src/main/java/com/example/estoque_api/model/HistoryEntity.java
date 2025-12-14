@@ -24,13 +24,24 @@ public class HistoryEntity {
 
     @PrePersist
     public void prePersist() {
-        if (id.getCreatedAt() == null) id.setCreatedAt(LocalDateTime.now());
+        if (id == null) {
+            id = new HistoryId();
+        }
+
+        if (id.getCreatedAt() == null) {
+            id.setCreatedAt(LocalDateTime.now());
+        }
     }
 
     public HistoryEntity(UserEntity user, ProductEntity product) {
         this.user = user;
         this.product = product;
-        this.id = new HistoryId(user.getId(), product.getId(), LocalDateTime.now());
+        this.id = new HistoryId(
+                user.getId(),
+                product.getId(),
+                LocalDateTime.now()
+        );
     }
+
 
 }
