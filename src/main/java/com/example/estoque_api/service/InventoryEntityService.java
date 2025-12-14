@@ -1,6 +1,5 @@
 package com.example.estoque_api.service;
 
-import com.example.estoque_api.dto.response.InventoryEntityResponseDTO;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
@@ -8,7 +7,6 @@ import com.example.estoque_api.validation.InventoryEntityValidation;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -51,36 +49,23 @@ public class InventoryEntityService {
     }
 
     @Transactional
-    public InventoryEntityResponseDTO takeFromInventory(Long productId, Integer quantity) {
+    public InventoryEntity takeFromInventory(InventoryEntity order) {
 
-        InventoryEntity inventory = repository.findByProduct_Id(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+        InventoryEntity inventory = repository.findByProduct_Id(order.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
 
-        if (inventory.getQuantity() < quantity) throw new IllegalArgumentException("Not enough stock available");
+        if (inventory.getQuantity() < order.getQuantity())
+            throw new IllegalArgumentException("Not enough stock available");
 
-        inventory.setQuantity(inventory.getQuantity() - quantity);
-        InventoryEntity updatedInventory = repository.save(inventory);
-
-        return new InventoryEntityResponseDTO(
-                updatedInventory.getQuantity(),
-                updatedInventory.getProduct().getId(),
-                LocalDateTime.now()
-        );
+        inventory.setQuantity(inventory.getQuantity() - order.getQuantity());
+        return inventory;
     }
 
 
     @Transactional
-    public InventoryEntityResponseDTO returnFromInventory(Long productId, Integer quantity) {
-
-        InventoryEntity inventory = repository.findByProduct_Id(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
-
-        inventory.setQuantity(inventory.getQuantity() + quantity);
-        InventoryEntity updatedInventory = repository.save(inventory);
-
-        return new InventoryEntityResponseDTO(
-                updatedInventory.getQuantity(),
-                updatedInventory.getProduct().getId(),
-                LocalDateTime.now()
-        );
+    public InventoryEntity returnFromInventory(InventoryEntity returnOrder) {
+        InventoryEntity inventory = repository.findByProduct_Id(returnOrder.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+        inventory.setQuantity(inventory.getQuantity() + returnOrder.getQuantity());
+        return inventory;
     }
 
 }
