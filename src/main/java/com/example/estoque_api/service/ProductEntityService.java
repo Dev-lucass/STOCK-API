@@ -1,7 +1,6 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.model.ProductEntity;
-import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.ProductEntityRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
