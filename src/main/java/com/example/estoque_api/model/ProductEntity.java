@@ -38,7 +38,7 @@ public class ProductEntity {
         this.id = id;
     }
 
-    public boolean isActive() {
+    public boolean getActive() {
         return active;
     }
 
