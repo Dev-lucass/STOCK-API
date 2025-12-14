@@ -1,4 +1,4 @@
-package com.example.estoque_api.mapper;
+package com.example.estoque_api.mapper.persistenceMapper;
 
 import com.example.estoque_api.dto.request.InventoryEntityDTO;
 import com.example.estoque_api.model.InventoryEntity;
