@@ -1,0 +1,40 @@
+package com.example.estoque_api.model;
+
+import com.example.estoque_api.enums.InventoryAction;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class HistoryEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private ToolEntity tool;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private InventoryAction action;
+
+    @Column(nullable = false)
+    private UUID inventoryId;
+
+    @Column(nullable = false)
+    private int quantityTaken;
+}

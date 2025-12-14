@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: estoque-api
+  main:
+    banner-mode: OFF
+  profiles:
+    active:
+        test
