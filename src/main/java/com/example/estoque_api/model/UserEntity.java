@@ -22,11 +22,11 @@ public class UserEntity {
     public UserEntity() {
     }
 
-    public UserEntity(Long id, String username, String cpf, String adress) {
+    public UserEntity(Long id, String username, String cpf, String address) {
         this.id = id;
         this.username = username;
         this.cpf = cpf;
-        this.address = adress;
+        this.address = address;
     }
 
     public Long getId() {

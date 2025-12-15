@@ -1,7 +1,9 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.InventoryEntity;
+import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import com.example.estoque_api.validation.InventoryEntityValidation;
 import jakarta.transaction.Transactional;
@@ -14,10 +16,12 @@ public class InventoryEntityService {
 
     private final InventoryEntityRepository repository;
     private final InventoryEntityValidation validation;
+    private final HistoryEntityService historyService;
 
-    public InventoryEntityService(InventoryEntityRepository repository, InventoryEntityValidation validation) {
+    public InventoryEntityService(InventoryEntityRepository repository, InventoryEntityValidation validation, HistoryEntityService historyService) {
         this.repository = repository;
         this.validation = validation;
+        this.historyService = historyService;
     }
 
     @Transactional
@@ -43,23 +47,42 @@ public class InventoryEntityService {
         repository.delete(inventoryEntityFounded);
     }
 
+
     @Transactional
-    public InventoryEntity takeFromInventory(InventoryEntity order) {
-        InventoryEntity inventory = repository.findByProduct_Id(order.getProduct().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+    public InventoryEntity takeFromInventory(UserEntity user, InventoryEntity order) {
+
+        InventoryEntity inventory = repository.findByProduct(order.getProduct()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
 
         if (inventory.getQuantity() < order.getQuantity())
             throw new IllegalArgumentException("Not enough stock available");
 
         inventory.setQuantity(inventory.getQuantity() - order.getQuantity());
+
+        historyService.save(
+                user,
+                inventory.getProduct(),
+                InventoryAction.TAKE,
+                order.getQuantity()
+        );
+
         return repository.save(inventory);
     }
 
     @Transactional
-    public InventoryEntity returnFromInventory(InventoryEntity returnOrder) {
-        InventoryEntity inventory = repository.findByProduct_Id(returnOrder.getProduct().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+    public InventoryEntity returnFromInventory(UserEntity user, InventoryEntity returnOrder) {
+
+        InventoryEntity inventory = repository.findByProduct(returnOrder.getProduct()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
         inventory.setQuantity(inventory.getQuantity() + returnOrder.getQuantity());
+
+
+        // crjar takeInventoryDTO e returnInventoryDTO
+        historyService.save(
+                user,
+                inventory.getProduct(),
+                InventoryAction.RETURN,
+                returnOrder.getQuantity()
+        );
+
         return repository.save(inventory);
     }
 }

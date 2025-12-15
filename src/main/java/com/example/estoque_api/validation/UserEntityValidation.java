@@ -30,7 +30,7 @@ public class UserEntityValidation {
     }
 
     public UserEntity validationUserEntityIdIsValid(Long id) {
-        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Invalid ID"));
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Invalid user ID"));
     }
 
 }
