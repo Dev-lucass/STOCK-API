@@ -74,8 +74,6 @@ public class InventoryEntityService {
         InventoryEntity inventory = repository.findByProduct(returnOrder.getProduct()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
         inventory.setQuantity(inventory.getQuantity() + returnOrder.getQuantity());
 
-
-        // crjar takeInventoryDTO e returnInventoryDTO
         historyService.save(
                 user,
                 inventory.getProduct(),
