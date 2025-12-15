@@ -8,11 +8,8 @@ import java.util.Optional;
 
 public interface InventoryEntityRepository extends JpaRepository<InventoryEntity, Long> {
 
-    Optional<InventoryEntity> findByProduct (
+    Optional<InventoryEntity> findByProduct(
             ProductEntity product
     );
 
-    Optional<InventoryEntity> findByProduct_Id(
-            Long productId
-    );
 }

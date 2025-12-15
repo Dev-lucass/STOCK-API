@@ -6,8 +6,10 @@ import com.example.estoque_api.mapper.persistenceMapper.InventoryEntityMapper;
 import com.example.estoque_api.mapper.responseMapper.InventoryEntityResponseMapper;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.service.InventoryEntityService;
-import com.example.estoque_api.validation.ValidationProductId;
+import com.example.estoque_api.validation.ProductEntityValidation;
+import com.example.estoque_api.validation.UserEntityValidation;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,23 +19,26 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/inventory")
-public class InventoryController {
+public class InventoryEntityController {
 
     private final InventoryEntityService service;
     private final InventoryEntityMapper mapper;
     private final InventoryEntityResponseMapper responseMapper;
-    private final ValidationProductId validationProductId;
+    private final ProductEntityValidation validationProductId;
+    private final UserEntityValidation userValidation;
 
-    public InventoryController(InventoryEntityService service, InventoryEntityMapper mapper, InventoryEntityResponseMapper responseMapper, ValidationProductId validationProductId) {
+
+    public InventoryEntityController(InventoryEntityService service, InventoryEntityMapper mapper, InventoryEntityResponseMapper responseMapper, ProductEntityValidation validationProductId, UserEntityValidation userValidation) {
         this.service = service;
         this.mapper = mapper;
         this.responseMapper = responseMapper;
         this.validationProductId = validationProductId;
+        this.userValidation = userValidation;
     }
 
     @PostMapping
     public ResponseEntity<InventoryEntityResponseDTO> save(@RequestBody @Valid InventoryEntityDTO dto) {
-        ProductEntity product = validationProductId.validationIsValidId(dto.productId());
+        ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
         InventoryEntity mapperEntity = mapper.toEntity(dto);
         mapperEntity.setProduct(product);
         InventoryEntity saved = service.save(mapperEntity);
@@ -50,7 +55,7 @@ public class InventoryController {
 
     @PutMapping("/{id}")
     public ResponseEntity<InventoryEntityResponseDTO> update(@PathVariable("id") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
-        ProductEntity product = validationProductId.validationIsValidId(dto.productId());
+        ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
         InventoryEntity mapperEntity = mapper.toEntity(dto);
         mapperEntity.setProduct(product);
         InventoryEntity updated = service.update(id, mapperEntity);
@@ -64,18 +69,32 @@ public class InventoryController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/takeFromInventory")
-    public ResponseEntity<InventoryEntityResponseDTO> takeFromInventory(@RequestBody @Valid InventoryEntityDTO dto) {
+    @PostMapping("/takeFromInventory/{userId}")
+    public ResponseEntity<InventoryEntityResponseDTO> takeFromInventory(@PathVariable("userId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
+
+        ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
+        UserEntity user = userValidation.validationUserEntityIdIsValid(id);
+
         InventoryEntity mapperEntity = mapper.toEntity(dto);
-        InventoryEntity takeFromInventory = service.takeFromInventory(mapperEntity);
+        mapperEntity.setProduct(product);
+
+        InventoryEntity takeFromInventory = service.takeFromInventory(user, mapperEntity);
         InventoryEntityResponseDTO response = responseMapper.toResponse(takeFromInventory);
+
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/returnFromInventory")
-    public ResponseEntity<InventoryEntityResponseDTO> returnFromInventory(@RequestBody @Valid InventoryEntityDTO dto) {
+    @PostMapping("/returnFromInventory/{userId}")
+    public ResponseEntity<InventoryEntityResponseDTO> returnFromInventory(@PathVariable("userId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
+
+        ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
+        UserEntity user = userValidation.validationUserEntityIdIsValid(id);
+
         InventoryEntity mapperEntity = mapper.toEntity(dto);
-        InventoryEntity returnFromInventory = service.returnFromInventory(mapperEntity);
+        mapperEntity.setProduct(product);
+
+
+        InventoryEntity returnFromInventory = service.returnFromInventory(user, mapperEntity);
         InventoryEntityResponseDTO response = responseMapper.toResponse(returnFromInventory);
         return ResponseEntity.ok(response);
     }

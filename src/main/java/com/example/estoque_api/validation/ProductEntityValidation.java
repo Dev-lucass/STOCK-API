@@ -30,6 +30,6 @@ public class ProductEntityValidation {
     }
 
     public ProductEntity validationProductEntityIdIsValid(Long id) {
-        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Invalid ID"));
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Invalid product ID"));
     }
 }

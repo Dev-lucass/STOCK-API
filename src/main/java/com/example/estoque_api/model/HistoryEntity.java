@@ -1,6 +1,8 @@
 package com.example.estoque_api.model;
 
+import com.example.estoque_api.enums.InventoryAction;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,22 +22,25 @@ public class HistoryEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
 
-    public HistoryEntity() {}
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private InventoryAction action;
 
-    @PrePersist
-    public void prePersist() {
-        if (id == null) {
-            id = new HistoryId();
-        }
+    @Column(nullable = false)
+    private int quantity;
 
-        if (id.getCreatedAt() == null) {
-            id.setCreatedAt(LocalDateTime.now());
-        }
+    protected HistoryEntity() {
     }
 
-    public HistoryEntity(UserEntity user, ProductEntity product) {
+    public HistoryEntity(UserEntity user,
+                         ProductEntity product,
+                         InventoryAction action,
+                         int quantity) {
+
         this.user = user;
         this.product = product;
+        this.action = action;
+        this.quantity = quantity;
         this.id = new HistoryId(
                 user.getId(),
                 product.getId(),
@@ -43,5 +48,33 @@ public class HistoryEntity {
         );
     }
 
+    public HistoryId getId() {
+        return id;
+    }
 
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public ProductEntity getProduct() {
+        return product;
+    }
+
+    public InventoryAction getAction() {
+        return action;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (id == null) {
+            id = new HistoryId();
+        }
+        if (id.getCreatedAt() == null) {
+            id.setCreatedAt(LocalDateTime.now());
+        }
+    }
 }

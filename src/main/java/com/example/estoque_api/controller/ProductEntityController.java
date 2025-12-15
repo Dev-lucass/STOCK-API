@@ -15,13 +15,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/product")
-public class ProductController {
+public class ProductEntityController {
 
     private final ProductEntityService service;
     private final ProductEntityMapper mapper;
     private final ProductEntityResponseMapper responseMapper;
 
-    public ProductController(ProductEntityService service, ProductEntityMapper mapper, ProductEntityResponseMapper responseMapper) {
+    public ProductEntityController(ProductEntityService service, ProductEntityMapper mapper, ProductEntityResponseMapper responseMapper) {
         this.service = service;
         this.mapper = mapper;
         this.responseMapper = responseMapper;
