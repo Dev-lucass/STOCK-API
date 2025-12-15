@@ -53,8 +53,7 @@ public class InventoryEntityService {
 
         InventoryEntity inventory = repository.findByProduct(order.getProduct()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
 
-        if (inventory.getQuantity() < order.getQuantity())
-            throw new IllegalArgumentException("Not enough stock available");
+        if (inventory.getQuantity() < order.getQuantity()) throw new ResourceNotFoundException("Not enough stock available");
 
         inventory.setQuantity(inventory.getQuantity() - order.getQuantity());
 
