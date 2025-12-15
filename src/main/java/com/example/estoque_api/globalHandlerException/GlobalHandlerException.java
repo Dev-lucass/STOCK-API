@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,16 +18,23 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseErrorInvalidArguments invalidArguments (MethodArgumentNotValidException ex) {
+    public ResponseErrorInvalidArguments invalidArguments(MethodArgumentNotValidException ex) {
 
-        List<ResponseErrorInvalidFields> responseErrorInvalidFields = ex.getFieldErrors().stream().map(fields -> new ResponseErrorInvalidFields(
-                fields.getDefaultMessage(),
-                fields.getField()
-        )).toList();
+        List<ResponseErrorInvalidFields> responseErrorInvalidFields = ex.getFieldErrors()
+                .stream()
+                .map(field -> new ResponseErrorInvalidFields(
+                        field.getDefaultMessage(),
+                        field.getField()
+                ))
+                .toList();
+
+        String message = responseErrorInvalidFields.isEmpty()
+                ? "Invalid request"
+                : responseErrorInvalidFields.getFirst().defaultMessage();
 
         return new ResponseErrorInvalidArguments(
                 HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
+                message,
                 LocalDateTime.now(),
                 responseErrorInvalidFields
         );
@@ -35,7 +43,7 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseErrorInvalidArguments resourceNotFound (ResourceNotFoundException ex) {
+    public ResponseErrorInvalidArguments resourceNotFound(ResourceNotFoundException ex) {
         return new ResponseErrorInvalidArguments(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
@@ -46,7 +54,7 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(DuplicateResouceException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseErrorInvalidArguments duplicateResouce (DuplicateResouceException ex) {
+    public ResponseErrorInvalidArguments duplicateResouce(DuplicateResouceException ex) {
         return new ResponseErrorInvalidArguments(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
@@ -54,7 +62,6 @@ public class GlobalHandlerException {
                 List.of()
         );
     }
-
 
 
 }

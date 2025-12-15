@@ -32,14 +32,11 @@ public class InventoryEntityService {
 
     @Transactional
     public InventoryEntity update(Long id, InventoryEntity inventoryUpdated) {
-
-        InventoryEntity inventoryEntityFounded = validation.validationInventoryEntityIdIsValid(id);
+        InventoryEntity existingInventory = validation.validationInventoryEntityIdIsValid(id);
         validation.validationInventoryEntityIsDuplicatedOnUpdate(inventoryUpdated);
 
-        inventoryEntityFounded.setProduct(inventoryUpdated.getProduct());
-        inventoryEntityFounded.setQuantity(inventoryUpdated.getQuantity());
-
-        return inventoryEntityFounded;
+        existingInventory.setQuantity(inventoryUpdated.getQuantity());
+        return repository.save(existingInventory);
     }
 
     @Transactional
@@ -50,22 +47,21 @@ public class InventoryEntityService {
 
     @Transactional
     public InventoryEntity takeFromInventory(InventoryEntity order) {
-
-        InventoryEntity inventory = repository.findByProduct_Id(order.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+        InventoryEntity inventory = repository.findByProduct_Id(order.getProduct().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
 
         if (inventory.getQuantity() < order.getQuantity())
             throw new IllegalArgumentException("Not enough stock available");
 
         inventory.setQuantity(inventory.getQuantity() - order.getQuantity());
-        return inventory;
+        return repository.save(inventory);
     }
-
 
     @Transactional
     public InventoryEntity returnFromInventory(InventoryEntity returnOrder) {
-        InventoryEntity inventory = repository.findByProduct_Id(returnOrder.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+        InventoryEntity inventory = repository.findByProduct_Id(returnOrder.getProduct().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
         inventory.setQuantity(inventory.getQuantity() + returnOrder.getQuantity());
-        return inventory;
+        return repository.save(inventory);
     }
-
 }
