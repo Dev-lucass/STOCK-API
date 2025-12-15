@@ -5,7 +5,9 @@ import com.example.estoque_api.dto.response.InventoryEntityResponseDTO;
 import com.example.estoque_api.mapper.persistenceMapper.InventoryEntityMapper;
 import com.example.estoque_api.mapper.responseMapper.InventoryEntityResponseMapper;
 import com.example.estoque_api.model.InventoryEntity;
+import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.service.InventoryEntityService;
+import com.example.estoque_api.validation.ValidationProductId;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +22,24 @@ public class InventoryController {
     private final InventoryEntityService service;
     private final InventoryEntityMapper mapper;
     private final InventoryEntityResponseMapper responseMapper;
+    private final ValidationProductId validationProductId;
 
-    public InventoryController(InventoryEntityService service, InventoryEntityMapper mapper, InventoryEntityResponseMapper responseMapper) {
+    public InventoryController(InventoryEntityService service, InventoryEntityMapper mapper, InventoryEntityResponseMapper responseMapper, ValidationProductId validationProductId) {
         this.service = service;
         this.mapper = mapper;
         this.responseMapper = responseMapper;
+        this.validationProductId = validationProductId;
     }
 
     @PostMapping
     public ResponseEntity<InventoryEntityResponseDTO> save(@RequestBody @Valid InventoryEntityDTO dto) {
+
+        ProductEntity product = validationProductId.validationIsValidId(dto.productId());
+
         InventoryEntity mapperEntity = mapper.toEntity(dto);
+
+        mapperEntity.setProduct(product);
+
         InventoryEntity saved = service.save(mapperEntity);
         InventoryEntityResponseDTO response = responseMapper.toResponse(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

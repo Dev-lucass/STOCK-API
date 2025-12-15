@@ -14,12 +14,16 @@ public class ProductEntity {
     @Column(nullable = false)
     private String name;
 
-    private boolean active;
+    @Column
+    private Boolean active;
 
     @PrePersist
     private void prePersist() {
-        this.active = false;
+        if (this.active == null) {
+            this.active = false;
+        }
     }
+
 
     public ProductEntity() {
     }
@@ -38,11 +42,11 @@ public class ProductEntity {
         this.id = id;
     }
 
-    public boolean getActive() {
+    public Boolean getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 

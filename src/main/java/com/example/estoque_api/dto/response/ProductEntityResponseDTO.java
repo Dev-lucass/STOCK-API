@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record ProductEntityResponseDTO(
         String name,
-        Boolean isActive,
+        Boolean active,
         LocalDateTime createdAt
 )
 
