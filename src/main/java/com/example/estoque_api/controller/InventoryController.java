@@ -33,13 +33,9 @@ public class InventoryController {
 
     @PostMapping
     public ResponseEntity<InventoryEntityResponseDTO> save(@RequestBody @Valid InventoryEntityDTO dto) {
-
         ProductEntity product = validationProductId.validationIsValidId(dto.productId());
-
         InventoryEntity mapperEntity = mapper.toEntity(dto);
-
         mapperEntity.setProduct(product);
-
         InventoryEntity saved = service.save(mapperEntity);
         InventoryEntityResponseDTO response = responseMapper.toResponse(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -54,7 +50,9 @@ public class InventoryController {
 
     @PutMapping("/{id}")
     public ResponseEntity<InventoryEntityResponseDTO> update(@PathVariable("id") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
+        ProductEntity product = validationProductId.validationIsValidId(dto.productId());
         InventoryEntity mapperEntity = mapper.toEntity(dto);
+        mapperEntity.setProduct(product);
         InventoryEntity updated = service.update(id, mapperEntity);
         InventoryEntityResponseDTO response = responseMapper.toResponse(updated);
         return ResponseEntity.ok(response);

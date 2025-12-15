@@ -33,8 +33,6 @@ public class InventoryEntityService {
     @Transactional
     public InventoryEntity update(Long id, InventoryEntity inventoryUpdated) {
         InventoryEntity existingInventory = validation.validationInventoryEntityIdIsValid(id);
-        validation.validationInventoryEntityIsDuplicatedOnUpdate(inventoryUpdated);
-
         existingInventory.setQuantity(inventoryUpdated.getQuantity());
         return repository.save(existingInventory);
     }
