@@ -154,7 +154,7 @@ class InventoryEntityServiceTest {
         order.setQuantity(300);
         when(repository.findByProduct(product)).thenReturn(Optional.of(inventory));
 
-        assertThrows(IllegalArgumentException.class, () -> service.takeFromInventory(user, order));
+        assertThrows(ResourceNotFoundException.class, () -> service.takeFromInventory(user, order));
 
         verify(repository, never()).save(any());
         verify(historyService, never()).save(any(), any(), any(), anyInt());
