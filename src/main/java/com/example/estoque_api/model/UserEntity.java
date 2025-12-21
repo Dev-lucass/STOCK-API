@@ -1,9 +1,16 @@
 package com.example.estoque_api.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tb_user")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class UserEntity {
 
     @Id
@@ -18,46 +25,4 @@ public class UserEntity {
 
     @Column(nullable = false)
     private String address;
-
-    public UserEntity() {
-    }
-
-    public UserEntity(Long id, String username, String cpf, String address) {
-        this.id = id;
-        this.username = username;
-        this.cpf = cpf;
-        this.address = address;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getCpf() {
-        return cpf;
-    }
-
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 }

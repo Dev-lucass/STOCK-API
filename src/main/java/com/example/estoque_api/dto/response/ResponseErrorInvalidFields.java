@@ -1,7 +1,7 @@
 package com.example.estoque_api.dto.response;
 
-public record ResponseErrorInvalidFields(
-        String defaultMessage,
-        String field
-)
-{}
+import lombok.Builder;
+
+@Builder
+public record ResponseErrorInvalidFields(String message,
+                                                                            String field){}

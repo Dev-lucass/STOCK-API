@@ -1,11 +1,17 @@
 package com.example.estoque_api.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tb_product")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class ProductEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,39 +28,5 @@ public class ProductEntity {
         if (this.active == null) {
             this.active = false;
         }
-    }
-
-
-    public ProductEntity() {
-    }
-
-    public ProductEntity(Long id, String name, boolean active) {
-        this.id = id;
-        this.name = name;
-        this.active = active;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }

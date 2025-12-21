@@ -1,11 +1,12 @@
 package com.example.estoque_api.dto.response;
 
-import java.time.LocalDateTime;
+import lombok.Builder;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
-public record ProductEntityResponseDTO(
-        String name,
-        Boolean active,
-        LocalDateTime createdAt
-)
-
-{}
+@Builder
+public record ProductEntityResponseDTO(Long id,
+                                                                             String name,
+                                                                             Boolean active,
+                                                                             @DateTimeFormat(pattern = "dd/MM/yyyy")
+                                                                             LocalDate createdAt) {}

@@ -1,7 +1,9 @@
 package com.example.estoque_api.globalHandlerException;
 
+import com.example.estoque_api.dto.response.ResponseErrorConflictValue;
 import com.example.estoque_api.dto.response.ResponseErrorInvalidArguments;
 import com.example.estoque_api.dto.response.ResponseErrorInvalidFields;
+import com.example.estoque_api.dto.response.ResponseErrorResouceNotFound;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -9,8 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestControllerAdvice
@@ -30,38 +31,32 @@ public class GlobalHandlerException {
 
         String message = responseErrorInvalidFields.isEmpty()
                 ? "Invalid request"
-                : responseErrorInvalidFields.getFirst().defaultMessage();
+                : responseErrorInvalidFields.getFirst().message();
 
         return new ResponseErrorInvalidArguments(
                 HttpStatus.BAD_REQUEST.value(),
-                message,
-                LocalDateTime.now(),
+                LocalDate.now(),
                 responseErrorInvalidFields
         );
     }
 
-
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseErrorInvalidArguments resourceNotFound(ResourceNotFoundException ex) {
-        return new ResponseErrorInvalidArguments(
+    public ResponseErrorResouceNotFound resourceNotFound(ResourceNotFoundException ex) {
+        return new ResponseErrorResouceNotFound(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
-                LocalDateTime.now(),
-                List.of()
+                LocalDate.now()
         );
     }
 
     @ExceptionHandler(DuplicateResouceException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseErrorInvalidArguments duplicateResouce(DuplicateResouceException ex) {
-        return new ResponseErrorInvalidArguments(
+    public ResponseErrorConflictValue duplicateResouce(DuplicateResouceException ex) {
+        return new ResponseErrorConflictValue(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
-                LocalDateTime.now(),
-                List.of()
+                LocalDate.now()
         );
     }
-
-
 }
