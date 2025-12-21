@@ -42,16 +42,16 @@ public class ProductEntityController {
         return ResponseEntity.ok(responseList);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductEntityResponseDTO> update(@PathVariable("id") Long id, @RequestBody @Valid ProductEntityDTO dto) {
+    @PutMapping("/{productId}")
+    public ResponseEntity<ProductEntityResponseDTO> update(@PathVariable("productId") Long id, @RequestBody @Valid ProductEntityDTO dto) {
         ProductEntity mapperEntity = mapper.toEntity(dto);
         ProductEntity updated = service.update(id, mapperEntity);
         ProductEntityResponseDTO response = responseMapper.toResponse(updated);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> delete(@PathVariable("productId") Long id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }

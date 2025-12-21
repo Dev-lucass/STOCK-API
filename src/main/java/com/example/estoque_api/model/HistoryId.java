@@ -9,7 +9,6 @@ import java.util.Objects;
 @Embeddable
 public class HistoryId implements Serializable {
 
-
     private Long userId;
     private Long productId;
     private LocalDateTime createdAt;

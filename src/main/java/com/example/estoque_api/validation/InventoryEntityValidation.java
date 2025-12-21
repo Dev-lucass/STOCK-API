@@ -5,7 +5,6 @@ import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import com.example.estoque_api.repository.ProductEntityRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,7 +18,6 @@ public class InventoryEntityValidation {
         this.productEntityRepository = productEntityRepository;
     }
 
-    @Transactional
     public void validationInventoryEntityIsDuplicatedOnCreate(InventoryEntity inventory) {
 
         var productFound = productEntityRepository.findById(inventory.getProduct().getId()).get();

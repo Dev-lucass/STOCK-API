@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -41,16 +42,16 @@ public class UserEntityController {
         return ResponseEntity.ok(responseList);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserEntityResponseDTO> update(@PathVariable("id") Long id, @RequestBody @Valid UserEntityDTO dto) {
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserEntityResponseDTO> update(@PathVariable("userId") Long id, @RequestBody @Valid UserEntityDTO dto) {
         UserEntity mapperEntity = mapper.toEntity(dto);
         UserEntity updated = service.update(id, mapperEntity);
         UserEntityResponseDTO response = responseMapper.toResponse(updated);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> delete(@PathVariable("userId") Long id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }

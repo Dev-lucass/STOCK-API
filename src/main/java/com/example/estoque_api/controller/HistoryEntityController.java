@@ -15,7 +15,6 @@ public class HistoryEntityController {
     private final HistoryEntityService service;
     private final HistoryEntityMapper mapper;
 
-
     public HistoryEntityController(HistoryEntityService service, HistoryEntityMapper mapper) {
         this.service = service;
         this.mapper = mapper;

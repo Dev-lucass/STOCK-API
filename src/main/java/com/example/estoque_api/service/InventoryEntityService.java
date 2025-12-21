@@ -53,9 +53,12 @@ public class InventoryEntityService {
 
         InventoryEntity inventory = repository.findByProduct(order.getProduct()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
 
-        if (inventory.getQuantity() < order.getQuantity()) throw new ResourceNotFoundException("Not enough stock available");
+        if (inventory.getQuantity() < order.getQuantity())
+            throw new ResourceNotFoundException("Not enough stock available");
 
         inventory.setQuantity(inventory.getQuantity() - order.getQuantity());
+
+        var result = repository.save(inventory);
 
         historyService.save(
                 user,
@@ -64,14 +67,18 @@ public class InventoryEntityService {
                 order.getQuantity()
         );
 
-        return repository.save(inventory);
+        return result;
     }
 
     @Transactional
     public InventoryEntity returnFromInventory(UserEntity user, InventoryEntity returnOrder) {
 
-        InventoryEntity inventory = repository.findByProduct(returnOrder.getProduct()).orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+        InventoryEntity inventory = repository.findByProduct(returnOrder.getProduct())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+
         inventory.setQuantity(inventory.getQuantity() + returnOrder.getQuantity());
+
+        var result = repository.save(inventory);
 
         historyService.save(
                 user,
@@ -80,6 +87,6 @@ public class InventoryEntityService {
                 returnOrder.getQuantity()
         );
 
-        return repository.save(inventory);
+        return result;
     }
 }

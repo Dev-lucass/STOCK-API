@@ -27,7 +27,6 @@ public class InventoryEntityController {
     private final ProductEntityValidation validationProductId;
     private final UserEntityValidation userValidation;
 
-
     public InventoryEntityController(InventoryEntityService service, InventoryEntityMapper mapper, InventoryEntityResponseMapper responseMapper, ProductEntityValidation validationProductId, UserEntityValidation userValidation) {
         this.service = service;
         this.mapper = mapper;
@@ -53,8 +52,8 @@ public class InventoryEntityController {
         return ResponseEntity.ok(responseList);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<InventoryEntityResponseDTO> update(@PathVariable("id") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
+    @PutMapping("/{invenvoryId}")
+    public ResponseEntity<InventoryEntityResponseDTO> update(@PathVariable("invenvoryId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
         ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
         InventoryEntity mapperEntity = mapper.toEntity(dto);
         mapperEntity.setProduct(product);
@@ -63,13 +62,13 @@ public class InventoryEntityController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    @DeleteMapping("/{invenvoryId}")
+    public ResponseEntity<Void> delete(@PathVariable("invenvoryId") Long id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/takeFromInventory/{userId}")
+    @PutMapping("takeFromInventory/{userId}")
     public ResponseEntity<InventoryEntityResponseDTO> takeFromInventory(@PathVariable("userId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
 
         ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
@@ -84,7 +83,7 @@ public class InventoryEntityController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/returnFromInventory/{userId}")
+    @PutMapping("returnFromInventory/{userId}")
     public ResponseEntity<InventoryEntityResponseDTO> returnFromInventory(@PathVariable("userId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
 
         ProductEntity product = validationProductId.validationProductEntityIdIsValid(dto.productId());
