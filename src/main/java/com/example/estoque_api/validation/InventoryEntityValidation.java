@@ -5,18 +5,15 @@ import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import com.example.estoque_api.repository.ProductEntityRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class InventoryEntityValidation {
 
     private final InventoryEntityRepository repository;
     private final ProductEntityRepository productEntityRepository;
-
-    public InventoryEntityValidation(InventoryEntityRepository repository, ProductEntityRepository productEntityRepository) {
-        this.repository = repository;
-        this.productEntityRepository = productEntityRepository;
-    }
 
     public void validationInventoryEntityIsDuplicatedOnCreate(InventoryEntity inventory) {
 

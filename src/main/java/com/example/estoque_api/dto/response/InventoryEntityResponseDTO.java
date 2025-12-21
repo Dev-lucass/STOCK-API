@@ -1,10 +1,12 @@
 package com.example.estoque_api.dto.response;
 
-import java.time.LocalDateTime;
+import lombok.Builder;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
-public record InventoryEntityResponseDTO(
-        Integer quantity,
-        Long productId,
-        LocalDateTime createdAt
-) {
-}
+@Builder
+public record InventoryEntityResponseDTO(Long id,
+                                                                                Integer quantity,
+                                                                                Long productId,
+                                                                               @DateTimeFormat(pattern = "dd/MM/yyyy")
+                                                                                LocalDate createdAt) {}
