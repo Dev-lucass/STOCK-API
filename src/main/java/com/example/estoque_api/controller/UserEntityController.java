@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -20,24 +19,24 @@ public class UserEntityController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserEntityResponseDTO save(@RequestBody @Valid UserEntityDTO dto) {
-        return null;
+        return service.save(dto);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UserEntityResponseDTO> findAll() {
-        return null;
+        return service.findAll();
     }
 
     @PutMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public UserEntityResponseDTO update(@PathVariable("userId") Long id, @RequestBody @Valid UserEntityDTO dto) {
-        return null;
+        return service.update(id, dto);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Void delete(@PathVariable("userId") Long id) {
-        return null;
+    public void delete(@PathVariable("userId") Long id) {
+        service.disableById(id);
     }
 }
