@@ -1,7 +1,7 @@
 package com.example.estoque_api.controller;
 
 import com.example.estoque_api.dto.request.InventoryEntityDTO;
-import com.example.estoque_api.dto.response.InventoryEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
 import com.example.estoque_api.service.InventoryEntityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

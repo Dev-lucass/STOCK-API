@@ -1,9 +1,14 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.dto.request.InventoryEntityDTO;
+import com.example.estoque_api.dto.request.TakeFromInventory;
+import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.InvalidQuantityException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.mapper.InventoryEntityMapper;
 import com.example.estoque_api.model.InventoryEntity;
-import com.example.estoque_api.model.UserEntity;
+import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,43 +19,118 @@ import java.util.List;
 public class InventoryEntityService {
 
     private final InventoryEntityRepository repository;
-    private final HistoryEntityService historyService;
+    private final InventoryEntityMapper mapper;
     private final ProductEntityService productService;
+    private final UserEntityService userService;
+    private final HistoryEntityService historyService;
 
-    public InventoryEntity save(InventoryEntity inventory) {
-        return null;
+    public InventoryEntityResponseDTO save(InventoryEntityDTO dto) {
+        var product = productService.findProductByIdOrElseThrow(dto.productId());
+        validationInventoryProductIsDuplicatedOnCreate(product);
+
+        var inventoryEntityMapped = mapper
+                .toEntityInventory(dto, product);
+
+        repository.save(inventoryEntityMapped);
+        return mapper.toResponseEntityInventory(inventoryEntityMapped);
     }
 
-    public List<InventoryEntity> findAll() {
-        return null;
+    public List<InventoryEntityResponseDTO> findAllByProductIsActive() {
+        return repository.findAllByProductActiveTrue()
+                .stream()
+                .map(mapper::toResponseEntityInventory)
+                .toList();
     }
 
-    public InventoryEntity update(Long id, InventoryEntity inventoryUpdated) {
-        return null;
+    public InventoryEntityResponseDTO update(Long id, InventoryEntityDTO dto) {
+        var inventory = findInventoryByIdOrElseThrow(id);
+
+        var product = productService
+                .findProductByIdOrElseThrow(dto.productId());
+
+        validateInventoryProductIsDuplicatedOnUpdate(product, id);
+        mapper.updateEntity(inventory, dto, product);
+        return mapper.toResponseEntityInventory(inventory);
     }
 
-    public void deleteById(Long id) {
+    public InventoryEntityResponseDTO takeFromInventory(TakeFromInventory fromInventory) {
 
+        var user = userService
+                .findUserByIdOrElseThrow(fromInventory.userId());
+
+        var product = productService
+                .findProductByIdOrElseThrow(fromInventory.productId());
+
+        var inventory = findInventoryByProductOrElseThrow(product);
+
+        int quantityUpdated = subtractingQuantity(
+                inventory.getQuantity(),
+                fromInventory.quantity());
+
+        validationQuantityTakedIsValid(quantityUpdated);
+
+        inventory.setQuantity(quantityUpdated);
+
+        return mapper.toResponseEntityInventory(inventory);
     }
 
-    public InventoryEntity takeFromInventory(UserEntity user, InventoryEntity order) {
-        return null;
+    public InventoryEntityResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
+
+        var user = userService
+                .findUserByIdOrElseThrow(fromInventory.userId());
+
+        var product = productService
+                .findProductByIdOrElseThrow(fromInventory.productId());
+
+        var inventory = findInventoryByProductOrElseThrow(product);
+
+        var historyByUser = historyService.findByUser(user);
+
+        int quantityUpdated = sumQuantity(
+                inventory.getQuantity(),
+                fromInventory.quantity());
+
+
+        validationReturnQuantityIsValid(
+                historyByUser.getQuantity(),
+                quantityUpdated
+        );
+
+        inventory.setQuantity(quantityUpdated);
+
+        return mapper.toResponseEntityInventory(inventory);
     }
 
-    public InventoryEntity returnFromInventory(UserEntity user, InventoryEntity returnOrder) {
-        return null;
+    private InventoryEntity findInventoryByProductOrElseThrow(ProductEntity product) {
+        return repository.findByProduct(product)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
     }
 
-    private void validationInventoryProductIsDuplicatedOnCreate(InventoryEntity inventory) {
-        if (repository.existsByProduct(inventory.getProduct()))
+    private int subtractingQuantity(int quantity, int takeQuantity) {
+        return quantity - takeQuantity;
+    }
+
+    private int sumQuantity(int quantity, int takeQuantity) {
+        return quantity + takeQuantity;
+    }
+
+    private void validationReturnQuantityIsValid(int quantityTaked, int quantityReturned) {
+        if (quantityReturned > quantityTaked)
+            throw new InvalidQuantityException("Quantity returned  is invalid, you took a smaller quantity");
+    }
+
+    private void validationQuantityTakedIsValid(int quantity) {
+        if (quantity < 0) throw new InvalidQuantityException("Quantity taked is invalid, The quantity you want should be less.");
+    }
+
+    private void validationInventoryProductIsDuplicatedOnCreate(ProductEntity product) {
+        if (repository.existsByProduct(product))
             throw new DuplicateResouceException("Product already registered in inventory");
     }
 
-    private void validateInventoryProductIsDuplicatedOnUpdate(InventoryEntity inventory) {
-        if (repository.existsByProductAndNot(
-                inventory.getProduct(),
-                inventory.getId())
-        ) throw new DuplicateResouceException("Product already registered in inventory");
+    private void validateInventoryProductIsDuplicatedOnUpdate(ProductEntity product, Long id) {
+        if (repository.existsByProductAndNot(product, id))
+            throw new DuplicateResouceException("Product already registered in inventory");
     }
 
     private InventoryEntity findInventoryByIdOrElseThrow(Long id) {

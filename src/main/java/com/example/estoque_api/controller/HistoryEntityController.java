@@ -1,6 +1,6 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.response.HistoryResponseDTO;
+import com.example.estoque_api.dto.response.entity.HistoryResponseDTO;
 import com.example.estoque_api.service.HistoryEntityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

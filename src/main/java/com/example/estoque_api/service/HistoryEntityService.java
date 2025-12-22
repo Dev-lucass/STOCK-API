@@ -1,7 +1,9 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.internal.HistoryEntityDTO;
+import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.HistoryEntity;
+import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.HistoryEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,5 +20,10 @@ public class HistoryEntityService {
 
     public List<HistoryEntity> findAll() {
         return null;
+    }
+
+    public HistoryEntity findByUser (UserEntity user) {
+        return repository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found in history"));
     }
 }

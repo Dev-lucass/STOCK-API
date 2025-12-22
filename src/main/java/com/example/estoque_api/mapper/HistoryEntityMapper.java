@@ -1,7 +1,7 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.internal.HistoryEntityDTO;
-import com.example.estoque_api.dto.response.HistoryResponseDTO;
+import com.example.estoque_api.dto.response.entity.HistoryResponseDTO;
 import com.example.estoque_api.model.HistoryEntity;
 import java.time.LocalDate;
 

@@ -1,4 +1,4 @@
-package com.example.estoque_api.dto.response;
+package com.example.estoque_api.dto.response.error;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
