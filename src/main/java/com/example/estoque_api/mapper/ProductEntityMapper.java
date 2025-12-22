@@ -22,4 +22,8 @@ public class ProductEntityMapper {
                 .createdAt(LocalDate.now())
                 .build();
     }
+
+    public void updateEntity(ProductEntity entity, ProductEntityDTO dto) {
+        entity.setName(dto.name());
+    }
 }
