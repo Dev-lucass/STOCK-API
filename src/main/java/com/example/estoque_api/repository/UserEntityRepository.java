@@ -3,8 +3,7 @@ package com.example.estoque_api.repository;
 import com.example.estoque_api.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
-
 public interface UserEntityRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByCpf (String cpf);
+    Boolean existsByCpf(String cpf);
+    Boolean existsByCpfAndNot(String cpf, Long id);
 }

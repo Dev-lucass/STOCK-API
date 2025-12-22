@@ -1,5 +1,7 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
@@ -13,6 +15,7 @@ public class InventoryEntityService {
 
     private final InventoryEntityRepository repository;
     private final HistoryEntityService historyService;
+    private final ProductEntityService productService;
 
     public InventoryEntity save(InventoryEntity inventory) {
         return null;
@@ -36,5 +39,22 @@ public class InventoryEntityService {
 
     public InventoryEntity returnFromInventory(UserEntity user, InventoryEntity returnOrder) {
         return null;
+    }
+
+    public void validationInventoryProductIsDuplicatedOnCreate(InventoryEntity inventory) {
+        if (repository.existsByProduct(inventory.getProduct()))
+            throw new DuplicateResouceException("Product already registered in inventory");
+    }
+
+    public void validateInventoryProductIsDuplicatedOnUpdate(InventoryEntity inventory) {
+        if (repository.existsByProductAndNot(
+                inventory.getProduct(),
+                inventory.getId())
+        ) throw new DuplicateResouceException("Product already registered in inventory");
+    }
+
+    public InventoryEntity validationInventoryEntityIdIsValid(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid ID"));
     }
 }
