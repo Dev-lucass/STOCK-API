@@ -1,7 +1,7 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.request.ProductEntityDTO;
-import com.example.estoque_api.dto.response.ProductEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.ProductEntityResponseDTO;
 import com.example.estoque_api.model.ProductEntity;
 import java.time.LocalDate;
 

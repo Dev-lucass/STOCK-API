@@ -1,10 +1,8 @@
 package com.example.estoque_api.globalHandlerException;
 
-import com.example.estoque_api.dto.response.ResponseErrorConflictValue;
-import com.example.estoque_api.dto.response.ResponseErrorInvalidArguments;
-import com.example.estoque_api.dto.response.ResponseErrorInvalidFields;
-import com.example.estoque_api.dto.response.ResponseErrorResouceNotFound;
+import com.example.estoque_api.dto.response.error.*;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.InvalidQuantityException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -55,6 +53,16 @@ public class GlobalHandlerException {
     public ResponseErrorConflictValue duplicateResouce(DuplicateResouceException ex) {
         return new ResponseErrorConflictValue(
                 HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                LocalDate.now()
+        );
+    }
+
+    @ExceptionHandler(InvalidQuantityException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseErrorInvalidQuantity invalildQuantity(InvalidQuantityException ex) {
+        return new ResponseErrorInvalidQuantity(
+                HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 LocalDate.now()
         );

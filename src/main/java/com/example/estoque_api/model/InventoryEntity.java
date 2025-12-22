@@ -18,10 +18,9 @@ public class InventoryEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private int quantity;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false, unique = true)
     private ProductEntity product;
-
 }

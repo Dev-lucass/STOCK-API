@@ -1,7 +1,7 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.request.UserEntityDTO;
-import com.example.estoque_api.dto.response.UserEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.UserEntityMapper;
@@ -57,7 +57,7 @@ public class UserEntityService {
             throw new DuplicateResouceException("User already registered");
     }
 
-    private UserEntity findUserByIdOrElseThrow(Long id) {
+    public UserEntity findUserByIdOrElseThrow(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid user id"));
     }

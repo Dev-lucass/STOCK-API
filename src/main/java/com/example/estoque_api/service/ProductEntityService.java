@@ -1,7 +1,7 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.request.ProductEntityDTO;
-import com.example.estoque_api.dto.response.ProductEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.ProductEntityResponseDTO;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.ProductEntityMapper;
@@ -57,7 +57,7 @@ public class ProductEntityService {
             throw new DuplicateResouceException("Product already registered");
     }
 
-    private ProductEntity findProductByIdOrElseThrow(Long id) {
+    public ProductEntity findProductByIdOrElseThrow(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid product id"));
     }

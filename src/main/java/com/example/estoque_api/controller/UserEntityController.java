@@ -1,7 +1,7 @@
 package com.example.estoque_api.controller;
 
 import com.example.estoque_api.dto.request.UserEntityDTO;
-import com.example.estoque_api.dto.response.UserEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
 import com.example.estoque_api.service.UserEntityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,5 +40,4 @@ public class UserEntityController {
     public Void delete(@PathVariable("userId") Long id) {
         return null;
     }
-
 }

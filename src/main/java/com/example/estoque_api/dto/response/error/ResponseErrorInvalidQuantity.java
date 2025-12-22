@@ -1,0 +1,9 @@
+package com.example.estoque_api.dto.response.error;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
+
+public record ResponseErrorInvalidQuantity(int statusCode,
+                                                                                String message,
+                                                                                @DateTimeFormat(pattern = "dd/MM/yyyy")
+                                                                                LocalDate dateError){}
