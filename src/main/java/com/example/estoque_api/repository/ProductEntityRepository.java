@@ -8,4 +8,5 @@ public interface ProductEntityRepository extends JpaRepository<ProductEntity, Lo
     Boolean existsByName(String name);
     Boolean existsByNameAndIdNot(String name, Long id);
     List<ProductEntity> findAllByActiveTrue();
+    List<ProductEntity> findAllByActiveFalse();
 }

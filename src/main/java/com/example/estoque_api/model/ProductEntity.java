@@ -20,6 +20,13 @@ public class ProductEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column
-    private Boolean active = true;
+    @Column(nullable = false)
+    private Boolean active;
+
+    @PrePersist
+    public void prePersist() {
+        if (active == null) {
+            active = true;
+        }
+    }
 }

@@ -4,13 +4,18 @@ import com.example.estoque_api.dto.internal.HistoryEntityDTO;
 import com.example.estoque_api.dto.request.InventoryEntityDTO;
 import com.example.estoque_api.dto.request.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.ErrorReturnToInventoryResponseException;
 import com.example.estoque_api.exceptions.InvalidQuantityException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.InventoryEntityMapper;
+import com.example.estoque_api.model.HistoryEntity;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,10 +57,12 @@ public class InventoryEntityService {
 
         validateInventoryProductIsDuplicatedOnUpdate(product, id);
         mapper.updateEntity(inventory, dto, product);
-        return mapper.toResponseEntityInventory(inventory);
+
+        var inventoryUpdated = repository.save(inventory);
+        return mapper.toResponseEntityInventory(inventoryUpdated);
     }
 
-    public InventoryEntityResponseDTO takeFromInventory(TakeFromInventory fromInventory) {
+    public InventoryEntityTakeResponseDTO takeFromInventory(TakeFromInventory fromInventory) {
 
         var user = userService
                 .findUserByIdOrElseThrow(fromInventory.userId());
@@ -74,16 +81,16 @@ public class InventoryEntityService {
         inventory.setQuantity(quantityUpdated);
 
         var historyDto = mapper.toHistoryEntityDTO(
-                quantityUpdated,
+                fromInventory.quantity(),
                 user,
                 product,
                 InventoryAction.TAKE);
 
         historyService.save(historyDto);
-        return mapper.toResponseEntityInventory(inventory);
+        return mapper.toTakeInventoryResponse(inventory, fromInventory.quantity());
     }
 
-    public InventoryEntityResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
+    public List<InventoryEntityReturnResponseDTO> returnFromInventory(TakeFromInventory fromInventory) {
 
         var user = userService
                 .findUserByIdOrElseThrow(fromInventory.userId());
@@ -93,30 +100,42 @@ public class InventoryEntityService {
 
         var inventory = findInventoryByProductOrElseThrow(product);
 
-        var historyByUser = historyService.findByUser(user);
+        validationReturnToInventory(
+                user,
+                product
+        );
+
+        validationReturnQuantityIsValid(
+                inventory.getQuantity(),
+                fromInventory.quantity()
+        );
 
         int quantityUpdated = sumQuantity(
                 inventory.getQuantity(),
                 fromInventory.quantity());
 
-
-        validationReturnQuantityIsValid(
-                historyByUser.getQuantity(),
-                quantityUpdated
-        );
-
         inventory.setQuantity(quantityUpdated);
 
         var historyDto = mapper.toHistoryEntityDTO(
-                quantityUpdated,
+                fromInventory.quantity(),
                 user,
                 product,
                 InventoryAction.RETURN);
 
-
         saveHistory(historyDto);
+        return mapper.toReturnedInventoryResponse(inventory, fromInventory.quantity());
+    }
 
-        return mapper.toResponseEntityInventory(inventory);
+    private void validationReturnToInventory(UserEntity user, ProductEntity product) {
+        var totalTaken = historyService.findByUser(user)
+                .stream()
+                .filter(h -> h.getProduct().equals(product))
+                .filter(h -> h.getAction() == InventoryAction.TAKE)
+                .mapToInt(HistoryEntity::getQuantity)
+                .sum();
+
+        if (totalTaken == 0)
+            throw new ErrorReturnToInventoryResponseException("The user did not pick up this product, it cannot be returned.");
     }
 
     private InventoryEntity findInventoryByProductOrElseThrow(ProductEntity product) {
@@ -143,7 +162,7 @@ public class InventoryEntityService {
 
     private void validationQuantityTakedIsValid(int quantity) {
         if (quantity < 0)
-            throw new InvalidQuantityException("Quantity taked is invalid, The quantity you want should be less.");
+            throw new InvalidQuantityException("Quantity sold out");
     }
 
     private void validationInventoryProductIsDuplicatedOnCreate(ProductEntity product) {

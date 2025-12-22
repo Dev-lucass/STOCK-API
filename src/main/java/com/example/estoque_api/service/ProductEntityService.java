@@ -33,6 +33,13 @@ public class ProductEntityService {
                 .toList();
     }
 
+    public List<ProductEntityResponseDTO> findAllIsNotActive() {
+        return repository.findAllByActiveFalse()
+                .stream()
+                .map(mapper::toResponseEntityProduct)
+                .toList();
+    }
+
     public ProductEntityResponseDTO update(Long id, ProductEntityDTO dto) {
         var entity = findProductByIdOrElseThrow(id);
         validateDuplicateOnUpdate(dto.name(), id);

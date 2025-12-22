@@ -28,6 +28,12 @@ public class ProductEntityController {
         return service.findAllIsActive();
     }
 
+    @GetMapping("findAllIsNotActive")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ProductEntityResponseDTO> findAllIsNotActive() {
+        return service.findAllIsNotActive();
+    }
+
     @PutMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ProductEntityResponseDTO update(@PathVariable("productId") Long id, @RequestBody @Valid ProductEntityDTO dto) {

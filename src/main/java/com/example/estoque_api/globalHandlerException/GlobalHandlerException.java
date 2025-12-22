@@ -2,6 +2,7 @@ package com.example.estoque_api.globalHandlerException;
 
 import com.example.estoque_api.dto.response.error.*;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.ErrorReturnToInventoryResponseException;
 import com.example.estoque_api.exceptions.InvalidQuantityException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -62,6 +63,16 @@ public class GlobalHandlerException {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseErrorInvalidQuantity invalildQuantity(InvalidQuantityException ex) {
         return new ResponseErrorInvalidQuantity(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDate.now()
+        );
+    }
+
+    @ExceptionHandler(ErrorReturnToInventoryResponseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseErrorReturnToInventory returnToInventory(ErrorReturnToInventoryResponseException ex) {
+        return new ResponseErrorReturnToInventory(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 LocalDate.now()

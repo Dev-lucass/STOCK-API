@@ -3,6 +3,8 @@ package com.example.estoque_api.controller;
 import com.example.estoque_api.dto.request.InventoryEntityDTO;
 import com.example.estoque_api.dto.request.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.service.InventoryEntityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +39,13 @@ public class InventoryEntityController {
 
     @PutMapping("takeFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityResponseDTO takeFromInventory(@RequestBody @Valid TakeFromInventory takeFromInventory) {
+    public InventoryEntityTakeResponseDTO takeFromInventory(@RequestBody @Valid TakeFromInventory takeFromInventory) {
         return service.takeFromInventory(takeFromInventory);
     }
 
     @PutMapping("returnFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityResponseDTO returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
+    public List<InventoryEntityReturnResponseDTO> returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
         return service.returnFromInventory(returneFromInventory);
     }
 }

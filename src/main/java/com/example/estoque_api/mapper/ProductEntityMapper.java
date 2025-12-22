@@ -27,5 +27,6 @@ public class ProductEntityMapper {
 
     public void updateEntity(ProductEntity entity, ProductEntityDTO dto) {
         entity.setName(dto.name());
+        entity.setActive(dto.active());
     }
 }
