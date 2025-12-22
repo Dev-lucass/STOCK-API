@@ -1,5 +1,7 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.repository.ProductEntityRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +28,22 @@ public class ProductEntityService {
 
     public void deleteById(Long id) {
 
+    }
+
+    public void validationProductEntityIsDuplicatedOnCreate(ProductEntity product) {
+        if (repository.existsByName(product.getName()))
+            throw new DuplicateResouceException("Product already registered");
+    }
+
+    public void validationProductEntityIsDuplicatedOnUpdate(ProductEntity product) {
+        if (repository.existsByNameAndNot(
+                product.getName(),
+                product.getId())
+        ) throw new DuplicateResouceException("Product already registered");
+    }
+
+    public ProductEntity validationProductEntityIdIsValid(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid product ID"));
     }
 }
