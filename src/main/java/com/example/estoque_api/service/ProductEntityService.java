@@ -22,8 +22,8 @@ public class ProductEntityService {
     public ProductEntityResponseDTO save(ProductEntityDTO dto) {
         validateDuplicateOnCreate(dto.name());
         var userEntityMapped = mapper.toEntityProduct(dto);
-        repository.save(userEntityMapped);
-        return mapper.toResponseEntityProduct(userEntityMapped);
+        var productSaved = repository.save(userEntityMapped);
+        return mapper.toResponseEntityProduct(productSaved);
     }
 
     public List<ProductEntityResponseDTO> findAllByActive() {
@@ -37,8 +37,8 @@ public class ProductEntityService {
         var entity = findProductByIdOrElseThrow(id);
         validateDuplicateOnUpdate(dto.name(), id);
         mapper.updateEntity(entity, dto);
-        repository.save(entity);
-        return mapper.toResponseEntityProduct(entity);
+        var productUpdated = repository.save(entity);
+        return mapper.toResponseEntityProduct(productUpdated);
     }
 
     @Transactional

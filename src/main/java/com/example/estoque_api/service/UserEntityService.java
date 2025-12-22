@@ -22,8 +22,8 @@ public class UserEntityService {
     public UserEntityResponseDTO save(UserEntityDTO dto) {
         validateDuplicateOnCreate(dto.cpf());
         var userEntityMapped = mapper.toEntityUser(dto);
-        repository.save(userEntityMapped);
-        return mapper.toResponseEntityUser(userEntityMapped);
+        var userSaved = repository.save(userEntityMapped);
+        return mapper.toResponseEntityUser(userSaved);
     }
 
     public List<UserEntityResponseDTO> findAll() {
@@ -37,8 +37,8 @@ public class UserEntityService {
         var entity = findUserByIdOrElseThrow(id);
         validateDuplicateOnUpdate(dto.cpf(), id);
         mapper.updateEntity(entity, dto);
-        repository.save(entity);
-        return mapper.toResponseEntityUser(entity);
+        var userUpdated = repository.save(entity);
+        return mapper.toResponseEntityUser(userUpdated);
     }
 
     @Transactional

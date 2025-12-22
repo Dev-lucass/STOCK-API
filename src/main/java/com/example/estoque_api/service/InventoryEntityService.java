@@ -1,8 +1,10 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.dto.internal.HistoryEntityDTO;
 import com.example.estoque_api.dto.request.InventoryEntityDTO;
 import com.example.estoque_api.dto.request.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
+import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.InvalidQuantityException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
@@ -31,8 +33,8 @@ public class InventoryEntityService {
         var inventoryEntityMapped = mapper
                 .toEntityInventory(dto, product);
 
-        repository.save(inventoryEntityMapped);
-        return mapper.toResponseEntityInventory(inventoryEntityMapped);
+        var inventorySaved = repository.save(inventoryEntityMapped);
+        return mapper.toResponseEntityInventory(inventorySaved);
     }
 
     public List<InventoryEntityResponseDTO> findAllByProductIsActive() {
@@ -71,6 +73,13 @@ public class InventoryEntityService {
 
         inventory.setQuantity(quantityUpdated);
 
+        var historyDto = mapper.toHistoryEntityDTO(
+                quantityUpdated,
+                user,
+                product,
+                InventoryAction.TAKE);
+
+        historyService.save(historyDto);
         return mapper.toResponseEntityInventory(inventory);
     }
 
@@ -98,12 +107,25 @@ public class InventoryEntityService {
 
         inventory.setQuantity(quantityUpdated);
 
+        var historyDto = mapper.toHistoryEntityDTO(
+                quantityUpdated,
+                user,
+                product,
+                InventoryAction.RETURN);
+
+
+        saveHistory(historyDto);
+
         return mapper.toResponseEntityInventory(inventory);
     }
 
     private InventoryEntity findInventoryByProductOrElseThrow(ProductEntity product) {
         return repository.findByProduct(product)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
+    }
+
+    private void saveHistory(HistoryEntityDTO dto) {
+        historyService.save(dto);
     }
 
     private int subtractingQuantity(int quantity, int takeQuantity) {
@@ -120,7 +142,8 @@ public class InventoryEntityService {
     }
 
     private void validationQuantityTakedIsValid(int quantity) {
-        if (quantity < 0) throw new InvalidQuantityException("Quantity taked is invalid, The quantity you want should be less.");
+        if (quantity < 0)
+            throw new InvalidQuantityException("Quantity taked is invalid, The quantity you want should be less.");
     }
 
     private void validationInventoryProductIsDuplicatedOnCreate(ProductEntity product) {

@@ -1,7 +1,7 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.internal.HistoryEntityDTO;
-import com.example.estoque_api.dto.response.entity.HistoryResponseDTO;
+import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
 import com.example.estoque_api.model.HistoryEntity;
 import java.time.LocalDate;
 
@@ -16,8 +16,8 @@ public class HistoryEntityMapper {
                 .build();
     }
 
-    public HistoryResponseDTO toResponseEntityHistory(HistoryEntity entity) {
-        return HistoryResponseDTO.builder()
+    public HistoryEntityResponseDTO toResponseEntityHistory(HistoryEntity entity) {
+        return HistoryEntityResponseDTO.builder()
                 .id(entity.getId())
                 .quantity(entity.getQuantity())
                 .productId(entity.getProduct().getId())
