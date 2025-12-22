@@ -8,6 +8,7 @@ import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.HistoryEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -18,10 +19,9 @@ public class HistoryEntityService {
     private final HistoryEntityRepository repository;
     private final HistoryEntityMapper mapper;
 
-    public HistoryEntityResponseDTO save(HistoryEntityDTO dto) {
+    public void save(HistoryEntityDTO dto) {
         var historyEntityMapped = mapper.toEntityHistory(dto);
-        var historySaved = repository.save(historyEntityMapped);
-        return mapper.toResponseEntityHistory(historySaved);
+        repository.save(historyEntityMapped);
     }
 
     public List<HistoryEntityResponseDTO> findAll() {

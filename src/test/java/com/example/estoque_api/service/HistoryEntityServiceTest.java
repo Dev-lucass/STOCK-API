@@ -1,78 +1,107 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.dto.internal.HistoryEntityDTO;
+import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
+import com.example.estoque_api.mapper.HistoryEntityMapper;
 import com.example.estoque_api.model.HistoryEntity;
+import com.example.estoque_api.model.HistoryId;
 import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.HistoryEntityRepository;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import java.time.LocalDate;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HistoryEntityServiceTest {
-/*
 
     @Mock
     HistoryEntityRepository repository;
 
+    @Mock
+    HistoryEntityMapper mapper;
+
     @InjectMocks
     HistoryEntityService service;
 
+    HistoryEntity history;
+    HistoryEntityDTO dto;
     UserEntity user;
     ProductEntity product;
+    HistoryEntityResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
         user = new UserEntity();
         user.setId(1L);
 
+        responseDTO = HistoryEntityResponseDTO.builder()
+                .quantity(20)
+                .productId(1L)
+                .userId(1L)
+                .createdAt(LocalDate.now())
+                .build();
+
         product = new ProductEntity();
         product.setId(1L);
+
+        var historyId = HistoryId.builder()
+                .productId(1L)
+                .userId(1L)
+                .createdAt(LocalDate.now())
+                .build();
+
+        history = HistoryEntity.builder()
+                .id(historyId)
+                .user(user)
+                .product(product)
+                .action(InventoryAction.TAKE)
+                .build();
+
+        dto = HistoryEntityDTO.builder()
+                .user(user)
+                .product(product)
+                .action(InventoryAction.TAKE)
+                .build();
     }
 
     @Test
     void should_save_history() {
-        ArgumentCaptor<HistoryEntity> captor = ArgumentCaptor.forClass(HistoryEntity.class);
+        when(mapper.toEntityHistory(Mockito.any()))
+                .thenReturn(history);
 
-        service.save();
+        when(repository.save(Mockito.any(HistoryEntity.class)))
+                .thenReturn(history);
 
-        verify(repository).save(captor.capture());
-
-        HistoryEntity history = captor.getValue();
-
-        assertEquals(user, history.getUser());
-        assertEquals(product, history.getProduct());
-        assertEquals(InventoryAction.TAKE, history.getAction());
-        assertEquals(10, history.getQuantity());
-        assertNotNull(history.getId());
+        service.save(dto);
+        verify(repository, times(1)).save(history);
     }
 
     @Test
     void should_find_all_history() {
-        HistoryEntity history = new HistoryEntity(
-                user,
-                product,
-                InventoryAction.RETURN,
-                5
-        );
+        when(mapper.toResponseEntityHistory(Mockito.any()))
+                .thenReturn(responseDTO);
 
-        when(repository.findAll()).thenReturn(List.of(history));
+        when(repository.findAll())
+                .thenReturn(List.of(history));
 
-        List<HistoryEntity> result = service.findAll();
+        var result = service.findAll();
 
-        assertEquals(1, result.size());
-        verify(repository).findAll();
+        assertEquals(1,result.size());
+        assertNotNull(result);
+        verify(repository, times(1)).findAll();
     }
-
- */
 }

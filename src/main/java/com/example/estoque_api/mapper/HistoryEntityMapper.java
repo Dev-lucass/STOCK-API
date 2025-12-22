@@ -6,7 +6,6 @@ import com.example.estoque_api.model.HistoryEntity;
 import com.example.estoque_api.model.HistoryId;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Component
 public class HistoryEntityMapper {
@@ -15,7 +14,7 @@ public class HistoryEntityMapper {
         var historyId = new HistoryId();
         historyId.setUserId(dto.user().getId());
         historyId.setProductId(dto.product().getId());
-        historyId.setCreatedAt(LocalDateTime.now());
+        historyId.setCreatedAt(LocalDate.now());
 
         return HistoryEntity.builder()
                 .id(historyId)

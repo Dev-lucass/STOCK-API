@@ -3,9 +3,6 @@ spring:
     name: estoque-api
   main:
     banner-mode: OFF
-
-  datasource:
-    url: jdbc:h2:mem:stock_db
-    username: sa
-    password:
-
+  profiles:
+    active:
+        test

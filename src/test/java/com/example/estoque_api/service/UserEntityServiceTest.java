@@ -1,7 +1,10 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.dto.request.UserEntityDTO;
+import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.mapper.UserEntityMapper;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.UserEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,115 +15,139 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
 class UserEntityServiceTest {
-/*
 
     @Mock
     private UserEntityRepository repository;
 
     @Mock
-    private UserEntityValidation validation;
+    private UserEntityMapper mapper;
 
     @InjectMocks
     private UserEntityService service;
 
-    private UserEntity user;
-    private UserEntity userUpdated;
+    private UserEntity entity;
+    private UserEntityDTO dto;
+    private UserEntityResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
-        user = new UserEntity();
-        user.setId(1L);
-        user.setUsername("Lucas");
-        user.setCpf("123");
-        user.setAddress("Rua A");
+        entity = new UserEntity();
+        entity.setId(1L);
+        entity.setUsername("Lucas");
+        entity.setCpf("123");
+        entity.setAddress("Rua A");
+        entity.setActive(true);
 
-        userUpdated = new UserEntity();
-        userUpdated.setId(1L);
-        userUpdated.setUsername("Lucas Updated");
-        userUpdated.setCpf("456");
-        userUpdated.setAddress("Rua B");
+        dto = new UserEntityDTO(
+                "Lucas",
+                "123",
+                "Rua A");
+
+        responseDTO = new UserEntityResponseDTO(
+                1L,
+                "Lucas",
+                LocalDate.now());
     }
 
     @Test
     void should_save_user_successfully() {
-        doNothing().when(validation).validationUserEntityIsDuplicatedOnCreate(user);
-        when(repository.save(user)).thenReturn(user);
+        when(repository.existsByCpf(dto.cpf()))
+                .thenReturn(false);
 
-        UserEntity result = service.save(user);
+        when(mapper.toEntityUser(dto))
+                .thenReturn(entity);
+
+        when(repository.save(entity))
+                .thenReturn(entity);
+
+        when(mapper.toResponseEntityUser(entity))
+                .thenReturn(responseDTO);
+
+        var result = service.save(dto);
 
         assertNotNull(result);
-        assertEquals(user, result);
-
-        verify(validation).validationUserEntityIsDuplicatedOnCreate(user);
-        verify(repository).save(user);
+        assertEquals(responseDTO, result);
+        verify(repository).existsByCpf(dto.cpf());
+        verify(repository).save(entity);
     }
 
     @Test
     void should_throw_exception_when_saving_duplicated_cpf() {
-        doThrow(new DuplicateResouceException("CPF already registered"))
-                .when(validation)
-                .validationUserEntityIsDuplicatedOnCreate(user);
+        when(repository.existsByCpf(dto.cpf()))
+                .thenReturn(true);
 
-        assertThrows(DuplicateResouceException.class, () -> service.save(user));
+        assertThrows(DuplicateResouceException.class, () -> service.save(dto));
 
-        verify(validation).validationUserEntityIsDuplicatedOnCreate(user);
+        verify(repository).existsByCpf(dto.cpf());
         verify(repository, never()).save(any());
     }
 
     @Test
-    void should_return_all_users() {
-        when(repository.findAll()).thenReturn(List.of(user));
-
-        List<UserEntity> result = service.findAll();
-
+    void should_return_all_active_users() {
+        when(repository.findAllByActiveTrue()).thenReturn(List.of(entity));
+        when(mapper.toResponseEntityUser(entity)).thenReturn(responseDTO);
+        var result = service.findAll();
         assertEquals(1, result.size());
-        verify(repository).findAll();
+        verify(repository).findAllByActiveTrue();
     }
 
     @Test
     void should_update_user_successfully() {
-        when(validation.validationUserEntityIdIsValid(1L)).thenReturn(user);
-        doNothing().when(validation).validationUserEntityIsDuplicatedOnUpdate(userUpdated);
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(entity));
 
-        UserEntity result = service.update(1L, userUpdated);
+        when(repository.existsByCpfAndIdNot(dto.cpf(), 1L))
+                .thenReturn(false);
 
-        assertEquals("Lucas Updated", result.getUsername());
-        assertEquals("456", result.getCpf());
-        assertEquals("Rua B", result.getAddress());
+        when(repository.save(entity)).thenReturn(entity);
 
-        verify(validation).validationUserEntityIdIsValid(1L);
-        verify(validation).validationUserEntityIsDuplicatedOnUpdate(userUpdated);
+        when(mapper.toResponseEntityUser(entity))
+                .thenReturn(responseDTO);
+
+        var result = service.update(1L, dto);
+
+        assertNotNull(result);
+
+        verify(repository).findById(1L);
+        verify(repository).existsByCpfAndIdNot(dto.cpf(), 1L);
+        verify(mapper).updateEntity(entity, dto);
+        verify(repository).save(entity);
     }
 
     @Test
     void should_throw_exception_when_updating_invalid_id() {
-        when(validation.validationUserEntityIdIsValid(1L)).thenThrow(new ResourceNotFoundException("Invalid user ID"));
-        assertThrows(ResourceNotFoundException.class, () -> service.update(1L, userUpdated));
+        when(repository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.update(1L, dto));
     }
 
     @Test
-    void should_delete_user_successfully() {
-        when(validation.validationUserEntityIdIsValid(1L)).thenReturn(user);
-        doNothing().when(repository).delete(user);
-        service.deleteById(1L);
-        verify(repository).delete(user);
+    void should_disable_user_successfully() {
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(entity));
+
+        service.disableById(1L);
+
+        assertFalse(entity.getActive());
+        verify(repository).findById(1L);
     }
 
     @Test
-    void should_throw_exception_when_deleting_invalid_id() {
-        when(validation.validationUserEntityIdIsValid(1L)).thenThrow(new ResourceNotFoundException("Invalid user ID"));
-        assertThrows(ResourceNotFoundException.class, () -> service.deleteById(1L));
-        verify(repository, never()).delete(any());
-    }
+    void should_throw_exception_when_disabling_invalid_id() {
+        when(repository.findById(1L))
+                .thenReturn(Optional.empty());
 
- */
+        assertThrows(ResourceNotFoundException.class, () -> service.disableById(1L));
+    }
 }
-
