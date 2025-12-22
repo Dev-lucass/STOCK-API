@@ -27,7 +27,7 @@ public class UserEntityService {
     }
 
     public List<UserEntityResponseDTO> findAll() {
-        return repository.findAll()
+        return repository.findAllByActiveTrue()
                 .stream()
                 .map(mapper::toResponseEntityUser)
                 .toList();
@@ -53,7 +53,7 @@ public class UserEntityService {
     }
 
     private void validateDuplicateOnUpdate(String cpf, Long id) {
-        if (repository.existsByCpfAndNot(cpf, id))
+        if (repository.existsByCpfAndIdNot(cpf, id))
             throw new DuplicateResouceException("User already registered");
     }
 

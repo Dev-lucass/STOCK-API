@@ -152,7 +152,7 @@ public class InventoryEntityService {
     }
 
     private void validateInventoryProductIsDuplicatedOnUpdate(ProductEntity product, Long id) {
-        if (repository.existsByProductAndNot(product, id))
+        if (repository.existsByProductAndIdNot(product, id))
             throw new DuplicateResouceException("Product already registered in inventory");
     }
 

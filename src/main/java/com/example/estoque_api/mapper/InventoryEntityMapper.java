@@ -7,8 +7,11 @@ import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.model.UserEntity;
+import org.springframework.stereotype.Component;
+
 import java.time.LocalDate;
 
+@Component
 public class InventoryEntityMapper {
 
     public InventoryEntity toEntityInventory(InventoryEntityDTO dto, ProductEntity product) {

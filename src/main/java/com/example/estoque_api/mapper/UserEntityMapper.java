@@ -3,8 +3,10 @@ package com.example.estoque_api.mapper;
 import com.example.estoque_api.dto.request.UserEntityDTO;
 import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
 import com.example.estoque_api.model.UserEntity;
+import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
+@Component
 public class UserEntityMapper {
 
     public UserEntity toEntityUser (UserEntityDTO dto) {
@@ -17,6 +19,7 @@ public class UserEntityMapper {
 
     public UserEntityResponseDTO toResponseEntityUser (UserEntity entity) {
         return UserEntityResponseDTO.builder()
+                .id(entity.getId())
                 .username(entity.getUsername())
                 .createdAt(LocalDate.now())
                 .build();

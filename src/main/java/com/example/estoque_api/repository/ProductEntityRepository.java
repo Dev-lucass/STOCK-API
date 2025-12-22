@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface ProductEntityRepository extends JpaRepository<ProductEntity, Long> {
     Boolean existsByName(String name);
-    Boolean existsByNameAndNot(String name, Long id);
+    Boolean existsByNameAndIdNot(String name, Long id);
     List<ProductEntity> findAllByActiveTrue();
 }

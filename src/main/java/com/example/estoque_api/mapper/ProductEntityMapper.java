@@ -3,8 +3,10 @@ package com.example.estoque_api.mapper;
 import com.example.estoque_api.dto.request.ProductEntityDTO;
 import com.example.estoque_api.dto.response.entity.ProductEntityResponseDTO;
 import com.example.estoque_api.model.ProductEntity;
+import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
+@Component
 public class ProductEntityMapper {
 
     public ProductEntity toEntityProduct(ProductEntityDTO dto) {

@@ -27,5 +27,12 @@ public class UserEntity {
     private String address;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private Boolean active;
+
+    @PrePersist
+    public void prePersist() {
+        if (active == null) {
+            active = true;
+        }
+    }
 }

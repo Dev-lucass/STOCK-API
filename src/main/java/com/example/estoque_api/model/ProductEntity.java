@@ -21,5 +21,5 @@ public class ProductEntity {
     private String name;
 
     @Column
-    private boolean active = true;
+    private Boolean active = true;
 }

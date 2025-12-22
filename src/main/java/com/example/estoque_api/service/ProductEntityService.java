@@ -53,7 +53,7 @@ public class ProductEntityService {
     }
 
     private void validateDuplicateOnUpdate(String name, Long id) {
-        if (repository.existsByNameAndNot(name, id))
+        if (repository.existsByNameAndIdNot(name, id))
             throw new DuplicateResouceException("Product already registered");
     }
 
