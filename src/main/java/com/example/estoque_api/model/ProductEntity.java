@@ -21,12 +21,5 @@ public class ProductEntity {
     private String name;
 
     @Column
-    private Boolean active;
-
-    @PrePersist
-    private void prePersist() {
-        if (this.active == null) {
-            this.active = false;
-        }
-    }
+    private boolean active = true;
 }

@@ -27,5 +27,5 @@ public class UserEntity {
     private String address;
 
     @Column(nullable = false)
-    private Boolean active = true;
+    private boolean active = true;
 }
