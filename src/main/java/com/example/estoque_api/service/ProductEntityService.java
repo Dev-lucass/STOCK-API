@@ -26,7 +26,7 @@ public class ProductEntityService {
         return mapper.toResponseEntityProduct(productSaved);
     }
 
-    public List<ProductEntityResponseDTO> findAllByActive() {
+    public List<ProductEntityResponseDTO> findAllIsActive() {
         return repository.findAllByActiveTrue()
                 .stream()
                 .map(mapper::toResponseEntityProduct)
@@ -42,7 +42,7 @@ public class ProductEntityService {
     }
 
     @Transactional
-    public void deleteById(Long id) {
+    public void disableById(Long id) {
         var entity = findProductByIdOrElseThrow(id);
         entity.setActive(false);
     }

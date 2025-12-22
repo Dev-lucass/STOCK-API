@@ -19,24 +19,24 @@ public class ProductEntityController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProductEntityResponseDTO save(@RequestBody @Valid ProductEntityDTO dto) {
-        return null;
+        return service.save(dto);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ProductEntityResponseDTO> findAll() {
-        return null;
+    public List<ProductEntityResponseDTO> findAllIsActive() {
+        return service.findAllIsActive();
     }
 
     @PutMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ProductEntityResponseDTO update(@PathVariable("productId") Long id, @RequestBody @Valid ProductEntityDTO dto) {
-        return null;
+        return service.update(id, dto);
     }
 
     @DeleteMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Void delete(@PathVariable("productId") Long id) {
-        return null;
+    public void delete(@PathVariable("productId") Long id) {
+        service.disableById(id);
     }
 }
