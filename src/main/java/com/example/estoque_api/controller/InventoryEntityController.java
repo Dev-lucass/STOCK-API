@@ -35,15 +35,15 @@ public class InventoryEntityController {
         return service.update(id, dto);
     }
 
-    @PutMapping("takeFromInventory/{userId}")
+    @PutMapping("takeFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityResponseDTO takeFromInventory(@PathVariable("userId") Long id, @RequestBody @Valid TakeFromInventory takeFromInventory) {
+    public InventoryEntityResponseDTO takeFromInventory(@RequestBody @Valid TakeFromInventory takeFromInventory) {
         return service.takeFromInventory(takeFromInventory);
     }
 
-    @PutMapping("returnFromInventory/{userId}")
+    @PutMapping("returnFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityResponseDTO returnFromInventory(@PathVariable("userId") Long id, @RequestBody @Valid TakeFromInventory returneFromInventory) {
+    public InventoryEntityResponseDTO returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
         return service.returnFromInventory(returneFromInventory);
     }
 }
