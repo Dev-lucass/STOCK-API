@@ -41,20 +41,20 @@ public class InventoryEntityService {
         return null;
     }
 
-    public void validationInventoryProductIsDuplicatedOnCreate(InventoryEntity inventory) {
+    private void validationInventoryProductIsDuplicatedOnCreate(InventoryEntity inventory) {
         if (repository.existsByProduct(inventory.getProduct()))
             throw new DuplicateResouceException("Product already registered in inventory");
     }
 
-    public void validateInventoryProductIsDuplicatedOnUpdate(InventoryEntity inventory) {
+    private void validateInventoryProductIsDuplicatedOnUpdate(InventoryEntity inventory) {
         if (repository.existsByProductAndNot(
                 inventory.getProduct(),
                 inventory.getId())
         ) throw new DuplicateResouceException("Product already registered in inventory");
     }
 
-    public InventoryEntity validationInventoryEntityIdIsValid(Long id) {
+    private InventoryEntity findInventoryByIdOrElseThrow(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid ID"));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid inventory id"));
     }
 }
