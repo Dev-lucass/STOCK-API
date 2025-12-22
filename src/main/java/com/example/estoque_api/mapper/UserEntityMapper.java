@@ -21,4 +21,10 @@ public class UserEntityMapper {
                 .createdAt(LocalDate.now())
                 .build();
     }
+
+    public void updateEntity(UserEntity entity, UserEntityDTO dto) {
+        entity.setUsername(dto.username());
+        entity.setCpf(dto.cpf());
+        entity.setAddress(dto.address());
+    }
 }

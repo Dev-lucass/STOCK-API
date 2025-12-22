@@ -1,9 +1,13 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.dto.request.UserEntityDTO;
+import com.example.estoque_api.dto.response.UserEntityResponseDTO;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.mapper.UserEntityMapper;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.UserEntityRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -13,37 +17,48 @@ import java.util.List;
 public class UserEntityService {
 
     private final UserEntityRepository repository;
+    private final UserEntityMapper mapper;
 
-    public UserEntity save(UserEntity user) {
-        return null;
+    public UserEntityResponseDTO save(UserEntityDTO dto) {
+        validateDuplicateOnCreate(dto.cpf());
+        var userEntityMapped = mapper.toEntityUser(dto);
+        repository.save(userEntityMapped);
+        return mapper.toResponseEntityUser(userEntityMapped);
     }
 
-    public List<UserEntity> findAll() {
-        return null;
+    public List<UserEntityResponseDTO> findAll() {
+        return repository.findAll()
+                .stream()
+                .map(mapper::toResponseEntityUser)
+                .toList();
     }
 
-    public UserEntity update(Long id, UserEntity userUpdated) {
-        return null;
+    public UserEntityResponseDTO update(Long id, UserEntityDTO dto) {
+        var entity = findUserByIdOrElseThrow(id);
+        validateDuplicateOnUpdate(dto.cpf(), id);
+        mapper.updateEntity(entity, dto);
+        repository.save(entity);
+        return mapper.toResponseEntityUser(entity);
     }
 
-    public void deleteById(Long id) {
-
+    @Transactional
+    public void disableById(Long id) {
+        var entity = findUserByIdOrElseThrow(id);
+        entity.setActive(false);
     }
 
-    public void validationUserEntityIsDuplicatedOnCreate(UserEntity user) {
-       if (repository.existsByCpf(user.getCpf()))
-           throw  new DuplicateResouceException("User already registered");
+    private void validateDuplicateOnCreate(String cpf) {
+        if (repository.existsByCpf(cpf))
+            throw new DuplicateResouceException("User already registered");
     }
 
-    public void validationUserEntityIsDuplicatedOnUpdate(UserEntity user) {
-        if (repository.existsByCpfAndNot(
-                user.getCpf(),
-                user.getId())
-        ) throw  new DuplicateResouceException("User already registered");
+    private void validateDuplicateOnUpdate(String cpf, Long id) {
+        if (repository.existsByCpfAndNot(cpf, id))
+            throw new DuplicateResouceException("User already registered");
     }
 
-    public UserEntity validationUserEntityIdIsValid(Long id) {
+    private UserEntity findUserByIdOrElseThrow(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid user ID"));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid user id"));
     }
 }

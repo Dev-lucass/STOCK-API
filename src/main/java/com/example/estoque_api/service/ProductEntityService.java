@@ -30,20 +30,20 @@ public class ProductEntityService {
 
     }
 
-    public void validationProductEntityIsDuplicatedOnCreate(ProductEntity product) {
+    private void validationProductEntityIsDuplicatedOnCreate(ProductEntity product) {
         if (repository.existsByName(product.getName()))
             throw new DuplicateResouceException("Product already registered");
     }
 
-    public void validationProductEntityIsDuplicatedOnUpdate(ProductEntity product) {
+    private void validationProductEntityIsDuplicatedOnUpdate(ProductEntity product) {
         if (repository.existsByNameAndNot(
                 product.getName(),
                 product.getId())
         ) throw new DuplicateResouceException("Product already registered");
     }
 
-    public ProductEntity validationProductEntityIdIsValid(Long id) {
+    private ProductEntity findProductByIdOrElseThrow(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid product ID"));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid product id"));
     }
 }
