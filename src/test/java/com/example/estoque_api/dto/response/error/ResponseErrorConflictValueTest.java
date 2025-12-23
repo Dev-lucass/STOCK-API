@@ -16,7 +16,7 @@ class ResponseErrorConflictValueTest {
                 date
         );
 
-        assertEquals(409, dto.StatusCode());
+        assertEquals(409, dto.statusCode());
         assertEquals("CPF already exists", dto.message());
         assertEquals(date, dto.dateError());
     }

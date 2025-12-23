@@ -16,7 +16,7 @@ class ResponseErrorResouceNotFoundTest {
                 date
         );
 
-        assertEquals(404, dto.StatusCode());
+        assertEquals(404, dto.statusCode());
         assertEquals("Resource not found", dto.message());
         assertEquals(date, dto.dateError());
     }

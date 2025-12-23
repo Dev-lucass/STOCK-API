@@ -22,7 +22,7 @@ class ResponseErrorInvalidArgumentsTest {
                 List.of(field)
         );
 
-        assertEquals(400, dto.StatusCode());
+        assertEquals(400, dto.statusCode());
         assertEquals(date, dto.dateError());
         assertEquals(1, dto.invalidFields().size());
         assertEquals("must not be blank", dto.invalidFields().getFirst().field());
