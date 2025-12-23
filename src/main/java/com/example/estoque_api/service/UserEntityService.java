@@ -9,8 +9,16 @@ import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.UserEntityRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
+
+import static com.example.estoque_api.repository.specs.UserEntitySpec.likeUsername;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +53,21 @@ public class UserEntityService {
     public void disableById(Long id) {
         var entity = findUserByIdOrElseThrow(id);
         entity.setActive(false);
+    }
+
+    public Page<UserEntity> filterByUsernamePageable(String username, int pageNumber , int pageSize) {
+        Specification<UserEntity> specification  = null;
+
+        if (username != null) {
+            specification = likeUsername(username);
+        }
+
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by("username").ascending());
+
+        return repository.findAll(specification,pageable);
     }
 
     private void validateDuplicateOnCreate(String cpf) {
