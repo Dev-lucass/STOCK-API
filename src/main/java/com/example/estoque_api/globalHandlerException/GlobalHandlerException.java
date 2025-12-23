@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestControllerAdvice
 public class GlobalHandlerException {
@@ -20,7 +19,7 @@ public class GlobalHandlerException {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseErrorInvalidArguments invalidArguments(MethodArgumentNotValidException ex) {
 
-        List<ResponseErrorInvalidFields> responseErrorInvalidFields = ex.getFieldErrors()
+        var responseErrorInvalidFields = ex.getFieldErrors()
                 .stream()
                 .map(field -> new ResponseErrorInvalidFields(
                         field.getDefaultMessage(),
@@ -28,7 +27,7 @@ public class GlobalHandlerException {
                 ))
                 .toList();
 
-        String message = responseErrorInvalidFields.isEmpty()
+        var message = responseErrorInvalidFields.isEmpty()
                 ? "Invalid request"
                 : responseErrorInvalidFields.getFirst().message();
 
