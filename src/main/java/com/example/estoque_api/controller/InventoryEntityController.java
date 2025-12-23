@@ -32,7 +32,7 @@ public class InventoryEntityController {
     }
 
     @PutMapping("/{invenvoryId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public InventoryEntityResponseDTO update(@PathVariable("invenvoryId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
         return service.update(id, dto);
     }

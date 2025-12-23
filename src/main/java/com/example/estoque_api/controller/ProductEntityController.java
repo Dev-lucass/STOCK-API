@@ -35,7 +35,7 @@ public class ProductEntityController {
     }
 
     @PutMapping("/{productId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public ProductEntityResponseDTO update(@PathVariable("productId") Long id, @RequestBody @Valid ProductEntityDTO dto) {
         return service.update(id, dto);
     }
