@@ -27,8 +27,8 @@ public class InventoryEntity {
     private String inventoryId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false, unique = true)
-    private ProductEntity product;
+    @JoinColumn(name = "tool_id", nullable = false, unique = true)
+    private ToolEntity tool;
 
     @PrePersist
     public void prePersist() {

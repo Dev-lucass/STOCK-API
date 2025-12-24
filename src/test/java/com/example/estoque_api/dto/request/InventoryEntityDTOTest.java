@@ -14,13 +14,13 @@ class InventoryEntityDTOTest {
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateInventoryEntityDTOAndReturnCorrectValues() {
         int expectedQuantity = 100;
-        Long expectedProductId = 500L;
+        Long expectedIdTool = 500L;
 
-        InventoryEntityDTO dto = new InventoryEntityDTO(expectedQuantity, expectedProductId);
+        InventoryEntityDTO dto = new InventoryEntityDTO(expectedQuantity, expectedIdTool);
 
         assertAll(
                 () -> assertEquals(expectedQuantity, dto.quantityInitial()),
-                () -> assertEquals(expectedProductId, dto.productId())
+                () -> assertEquals(expectedIdTool, dto.idTool())
         );
     }
 
@@ -46,7 +46,7 @@ class InventoryEntityDTOTest {
 
         assertAll(
                 () -> assertTrue(toString.contains("quantityInitial=10")),
-                () -> assertTrue(toString.contains("productId=1"))
+                () -> assertTrue(toString.contains("idTool=1"))
         );
     }
 }

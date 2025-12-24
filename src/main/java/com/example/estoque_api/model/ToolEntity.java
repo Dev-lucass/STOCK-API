@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ProductEntity {
+public class ToolEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

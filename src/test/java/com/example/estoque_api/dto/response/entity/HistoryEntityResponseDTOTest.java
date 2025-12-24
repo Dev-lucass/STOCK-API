@@ -17,7 +17,7 @@ class HistoryEntityResponseDTOTest {
     private Long historyId;
     private String inventoryId;
     private Long userId;
-    private Long productId;
+    private Long idTool;
     private InventoryAction takeAction;
     private InventoryAction returnAction;
     private int quantity;
@@ -28,7 +28,7 @@ class HistoryEntityResponseDTOTest {
         historyId = 1L;
         inventoryId = "INV-123";
         userId = 10L;
-        productId = 50L;
+        idTool = 50L;
         takeAction = InventoryAction.TAKE;
         returnAction = InventoryAction.RETURN;
         quantity = 5;
@@ -42,7 +42,7 @@ class HistoryEntityResponseDTOTest {
                 .historyId(historyId)
                 .inventoryId(inventoryId)
                 .userId(userId)
-                .productId(productId)
+                .idTool(idTool)
                 .action(takeAction)
                 .quantityTaken(quantity)
                 .createdAt(createdAt)
@@ -52,7 +52,7 @@ class HistoryEntityResponseDTOTest {
                 () -> assertEquals(historyId, dto.historyId()),
                 () -> assertEquals(inventoryId, dto.inventoryId()),
                 () -> assertEquals(userId, dto.userId()),
-                () -> assertEquals(productId, dto.productId()),
+                () -> assertEquals(idTool, dto.idTool()),
                 () -> assertEquals(takeAction, dto.action()),
                 () -> assertEquals(quantity, dto.quantityTaken()),
                 () -> assertEquals(createdAt, dto.createdAt())
@@ -62,8 +62,8 @@ class HistoryEntityResponseDTOTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        HistoryEntityResponseDTO dto1 = new HistoryEntityResponseDTO(historyId, inventoryId, userId, productId, returnAction, quantity, createdAt);
-        HistoryEntityResponseDTO dto2 = new HistoryEntityResponseDTO(historyId, inventoryId, userId, productId, returnAction, quantity, createdAt);
+        HistoryEntityResponseDTO dto1 = new HistoryEntityResponseDTO(historyId, inventoryId, userId, idTool, returnAction, quantity, createdAt);
+        HistoryEntityResponseDTO dto2 = new HistoryEntityResponseDTO(historyId, inventoryId, userId, idTool, returnAction, quantity, createdAt);
         HistoryEntityResponseDTO dto3 = new HistoryEntityResponseDTO(99L, "OTHER", 2L, 2L, takeAction, 10, createdAt);
 
         assertAll(
@@ -76,7 +76,7 @@ class HistoryEntityResponseDTOTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        HistoryEntityResponseDTO dto = new HistoryEntityResponseDTO(historyId, inventoryId, userId, productId, takeAction, quantity, createdAt);
+        HistoryEntityResponseDTO dto = new HistoryEntityResponseDTO(historyId, inventoryId, userId, idTool, takeAction, quantity, createdAt);
         String toString = dto.toString();
 
         assertAll(

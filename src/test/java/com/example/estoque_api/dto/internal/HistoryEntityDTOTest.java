@@ -1,7 +1,7 @@
 package com.example.estoque_api.dto.internal;
 
 import com.example.estoque_api.enums.InventoryAction;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class HistoryEntityDTOTest {
 
     private UserEntity user;
-    private ProductEntity product;
+    private ToolEntity tool;
     private String inventoryId;
     private InventoryAction action;
     private int quantity;
@@ -21,7 +21,7 @@ class HistoryEntityDTOTest {
     @BeforeEach
     void setUp() {
         user = new UserEntity();
-        product = new ProductEntity();
+        tool = new ToolEntity();
         inventoryId = "INV-001";
         action = InventoryAction.RETURN;
         quantity = 50;
@@ -33,7 +33,7 @@ class HistoryEntityDTOTest {
         HistoryEntityDTO dto = HistoryEntityDTO.builder()
                 .user(user)
                 .inventoryId(inventoryId)
-                .product(product)
+                .tool(tool)
                 .action(action)
                 .quantityTaken(quantity)
                 .build();
@@ -41,7 +41,7 @@ class HistoryEntityDTOTest {
         assertAll(
                 () -> assertEquals(user, dto.user()),
                 () -> assertEquals(inventoryId, dto.inventoryId()),
-                () -> assertEquals(product, dto.product()),
+                () -> assertEquals(tool, dto.tool()),
                 () -> assertEquals(action, dto.action()),
                 () -> assertEquals(quantity, dto.quantityTaken())
         );
@@ -53,7 +53,7 @@ class HistoryEntityDTOTest {
         HistoryEntityDTO dto = new HistoryEntityDTO(
                 user,
                 inventoryId,
-                product,
+                tool,
                 action,
                 quantity
         );

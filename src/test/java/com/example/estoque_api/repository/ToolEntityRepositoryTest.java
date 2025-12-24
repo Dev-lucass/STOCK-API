@@ -1,6 +1,6 @@
 package com.example.estoque_api.repository;
 
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,77 +16,77 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-class ProductEntityRepositoryTest {
+class ToolEntityRepositoryTest {
 
     @Autowired
-    private ProductEntityRepository repository;
+    private ToolEntityRepository repository;
 
     @Autowired
     private TestEntityManager entityManager;
 
-    private ProductEntity activeProduct;
-    private ProductEntity inactiveProduct;
+    private ToolEntity activeTool;
+    private ToolEntity inactiveTool;
 
     @BeforeEach
     void setUp() {
-        activeProduct = ProductEntity.builder()
+        activeTool = ToolEntity.builder()
                 .name("Smartphone")
                 .active(true)
                 .build();
 
-        inactiveProduct = ProductEntity.builder()
+        inactiveTool = ToolEntity.builder()
                 .name("Notebook")
                 .active(false)
                 .build();
 
-        entityManager.persist(activeProduct);
-        entityManager.persist(inactiveProduct);
+        entityManager.persist(activeTool);
+        entityManager.persist(inactiveTool);
         entityManager.flush();
     }
 
     @Test
-    @DisplayName("Should return true when a product exists with the given name")
+    @DisplayName("Should return true when a tool exists with the given name")
     void shouldReturnTrueWhenNameExists() {
         Boolean exists = repository.existsByName("Smartphone");
         assertTrue(exists);
     }
 
     @Test
-    @DisplayName("Should return true when another product exists with the same name excluding current ID")
+    @DisplayName("Should return true when another tool exists with the same name excluding current ID")
     void shouldReturnTrueWhenNameExistsAndIdNot() {
-        ProductEntity anotherProduct = ProductEntity.builder()
+        ToolEntity anotherTool = ToolEntity.builder()
                 .name("Monitor")
                 .active(true)
                 .build();
-        entityManager.persist(anotherProduct);
+        entityManager.persist(anotherTool);
 
-        Boolean exists = repository.existsByNameAndIdNot("Smartphone", anotherProduct.getId());
+        Boolean exists = repository.existsByNameAndIdNot("Smartphone", anotherTool.getId());
         assertTrue(exists);
     }
 
     @Test
     @DisplayName("Should return false when checking name existence against its own ID")
     void shouldReturnFalseWhenNameExistsButIsTheSameId() {
-        Boolean exists = repository.existsByNameAndIdNot("Smartphone", activeProduct.getId());
+        Boolean exists = repository.existsByNameAndIdNot("Smartphone", activeTool.getId());
         assertFalse(exists);
     }
 
     @Test
-    @DisplayName("Should return a list of all active products")
+    @DisplayName("Should return a list of all active tools")
     void shouldFindAllByActiveTrue() {
-        List<ProductEntity> actives = repository.findAllByActiveTrue();
+        List<ToolEntity> actives = repository.findAllByActiveTrue();
 
         assertAll(
                 () -> assertEquals(1, actives.size()),
-                () -> assertEquals("Smartphone", actives.get(0).getName()),
-                () -> assertTrue(actives.get(0).getActive())
+                () -> assertEquals("Smartphone", actives.getFirst().getName()),
+                () -> assertTrue(actives.getFirst().getActive())
         );
     }
 
     @Test
-    @DisplayName("Should return a list of all inactive products")
+    @DisplayName("Should return a list of all inactive tools")
     void shouldFindAllByActiveFalse() {
-        List<ProductEntity> inactives = repository.findAllByActiveFalse();
+        List<ToolEntity> inactives = repository.findAllByActiveFalse();
 
         assertAll(
                 () -> assertEquals(1, inactives.size()),

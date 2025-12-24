@@ -4,7 +4,6 @@ import com.example.estoque_api.dto.internal.HistoryEntityDTO;
 import com.example.estoque_api.dto.request.InventoryEntityDTO;
 import com.example.estoque_api.dto.request.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
@@ -13,7 +12,7 @@ import com.example.estoque_api.exceptions.QuantitySoldOutException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.InventoryEntityMapper;
 import com.example.estoque_api.model.InventoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +37,7 @@ class InventoryEntityServiceTest {
     @Mock
     private InventoryEntityMapper mapper;
     @Mock
-    private ProductEntityService productService;
+    private ToolEntityService toolService;
     @Mock
     private UserEntityService userService;
     @Mock
@@ -48,19 +47,19 @@ class InventoryEntityServiceTest {
     private InventoryEntityService service;
 
     private InventoryEntity inventory;
-    private ProductEntity product;
+    private ToolEntity tool;
     private UserEntity user;
     private InventoryEntityDTO inventoryDTO;
 
     @BeforeEach
     void setUp() {
-        product = ProductEntity.builder().id(1L).name("Laptop").active(true).build();
+        tool = ToolEntity.builder().id(1L).name("Laptop").active(true).build();
         user = UserEntity.builder().id(1L).username("worker").build();
         
         inventory = InventoryEntity.builder()
                 .id(1L)
                 .inventoryId("uuid-123")
-                .product(product)
+                .tool(tool)
                 .quantityInitial(100)
                 .quantityCurrent(100)
                 .build();
@@ -69,10 +68,10 @@ class InventoryEntityServiceTest {
     }
 
     @Test
-    @DisplayName("Should save inventory successfully when product is not duplicated")
+    @DisplayName("Should save inventory successfully when tool is not duplicated")
     void shouldSaveInventorySuccessfully() {
-        when(productService.findProductByIdOrElseThrow(1L)).thenReturn(product);
-        when(repository.existsByProduct(product)).thenReturn(false);
+        when(toolService.findToolByIdOrElseThrow(1L)).thenReturn(tool);
+        when(repository.existsByTool(tool)).thenReturn(false);
         when(mapper.toEntityInventory(any(), any())).thenReturn(inventory);
         when(repository.save(any())).thenReturn(inventory);
         when(mapper.toResponseEntityInventory(any())).thenReturn(mock(InventoryEntityResponseDTO.class));
@@ -83,10 +82,10 @@ class InventoryEntityServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw DuplicateResouceException when product already has inventory")
-    void shouldThrowExceptionWhenProductAlreadyInInventory() {
-        when(productService.findProductByIdOrElseThrow(1L)).thenReturn(product);
-        when(repository.existsByProduct(product)).thenReturn(true);
+    @DisplayName("Should throw DuplicateResouceException when tool already has inventory")
+    void shouldThrowExceptionWhenToolAlreadyInInventory() {
+        when(toolService.findToolByIdOrElseThrow(1L)).thenReturn(tool);
+        when(repository.existsByTool(tool)).thenReturn(true);
 
         assertThrows(DuplicateResouceException.class, () -> service.save(inventoryDTO));
         verify(repository, never()).save(any());

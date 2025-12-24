@@ -18,7 +18,7 @@ class InventoryEntityTakeResponseDTOTest {
     private int quantityTaked;
     private int quantityCurrent;
     private int quantityInitial;
-    private Long productId;
+    private Long idTool;
     private LocalDate createdAt;
 
     @BeforeEach
@@ -28,7 +28,7 @@ class InventoryEntityTakeResponseDTOTest {
         quantityTaked = 20;
         quantityCurrent = 80;
         quantityInitial = 100;
-        productId = 500L;
+        idTool = 500L;
         createdAt = LocalDate.now();
     }
 
@@ -41,7 +41,7 @@ class InventoryEntityTakeResponseDTOTest {
                 .quantityTaked(quantityTaked)
                 .quantityCurrent(quantityCurrent)
                 .quantityInitial(quantityInitial)
-                .productId(productId)
+                .idTool(idTool)
                 .createdAt(createdAt)
                 .build();
 
@@ -51,7 +51,7 @@ class InventoryEntityTakeResponseDTOTest {
                 () -> assertEquals(quantityTaked, dto.quantityTaked()),
                 () -> assertEquals(quantityCurrent, dto.quantityCurrent()),
                 () -> assertEquals(quantityInitial, dto.quantityInitial()),
-                () -> assertEquals(productId, dto.productId()),
+                () -> assertEquals(idTool, dto.idTool()),
                 () -> assertEquals(createdAt, dto.createdAt())
         );
     }
@@ -59,8 +59,8 @@ class InventoryEntityTakeResponseDTOTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        InventoryEntityTakeResponseDTO dto1 = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, productId, createdAt);
-        InventoryEntityTakeResponseDTO dto2 = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, productId, createdAt);
+        InventoryEntityTakeResponseDTO dto1 = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, idTool, createdAt);
+        InventoryEntityTakeResponseDTO dto2 = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, idTool, createdAt);
         InventoryEntityTakeResponseDTO dto3 = new InventoryEntityTakeResponseDTO(2L, "OTHER-ID", 5, 45, 50, 600L, createdAt);
 
         assertAll(
@@ -73,7 +73,7 @@ class InventoryEntityTakeResponseDTOTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        InventoryEntityTakeResponseDTO dto = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, productId, createdAt);
+        InventoryEntityTakeResponseDTO dto = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, idTool, createdAt);
         String toString = dto.toString();
 
         assertAll(
@@ -81,7 +81,7 @@ class InventoryEntityTakeResponseDTOTest {
                 () -> assertTrue(toString.contains("inventoryId=" + inventoryId)),
                 () -> assertTrue(toString.contains("quantityTaked=" + quantityTaked)),
                 () -> assertTrue(toString.contains("quantityCurrent=" + quantityCurrent)),
-                () -> assertTrue(toString.contains("productId=" + productId))
+                () -> assertTrue(toString.contains("idTool=" + idTool))
         );
     }
 }

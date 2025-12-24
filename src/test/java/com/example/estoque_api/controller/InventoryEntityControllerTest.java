@@ -51,7 +51,7 @@ class InventoryEntityControllerTest {
                 .inventoryId("INV-001")
                 .quantityInitial(100)
                 .quantityCurrent(100)
-                .productId(1L)
+                .idTool(1L)
                 .build();
 
         takeDTO = new TakeFromInventory(10L, "INV-001", 10, 10);
@@ -72,7 +72,7 @@ class InventoryEntityControllerTest {
     @Test
     @DisplayName("Should return all active inventories")
     void shouldReturnAllActiveInventories() throws Exception {
-        when(service.findAllByProductIsActive()).thenReturn(List.of(responseDTO));
+        when(service.findAllByToolIsActive()).thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/inventory"))
                 .andExpect(status().isOk())

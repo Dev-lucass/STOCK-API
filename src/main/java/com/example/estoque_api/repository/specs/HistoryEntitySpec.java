@@ -8,7 +8,7 @@ public class HistoryEntitySpec {
 
     public static Specification<HistoryEntity> likeProductName(String productName) {
         return (r, q, cb) ->
-                cb.like(cb.lower(r.get("product").get("name")), productName.toLowerCase() + "%");
+                cb.like(cb.lower(r.get("tool").get("name")), productName.toLowerCase() + "%");
     }
 
     public static Specification<HistoryEntity> hasAction(InventoryAction action) {

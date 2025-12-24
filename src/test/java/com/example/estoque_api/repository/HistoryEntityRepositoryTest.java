@@ -2,7 +2,7 @@ package com.example.estoque_api.repository;
 
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.HistoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ class HistoryEntityRepositoryTest {
     private TestEntityManager entityManager;
 
     private UserEntity user;
-    private ProductEntity product;
+    private ToolEntity tool;
 
     @BeforeEach
     void setUp() {
@@ -35,11 +35,11 @@ class HistoryEntityRepositoryTest {
                 .build();
         entityManager.persist(user);
 
-        product = ProductEntity.builder()
-                .name("Test Product")
+        tool = ToolEntity.builder()
+                .name("Test Tool")
                 .active(true)
                 .build();
-        entityManager.persist(product);
+        entityManager.persist(tool);
     }
 
     @Test
@@ -47,7 +47,7 @@ class HistoryEntityRepositoryTest {
     void shouldReturnTrueWhenHistoryExists() {
         HistoryEntity history = HistoryEntity.builder()
                 .user(user)
-                .product(product)
+                .tool(tool)
                 .inventoryId("INV-001")
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
@@ -73,7 +73,7 @@ class HistoryEntityRepositoryTest {
     void shouldReturnFalseWhenActionDiffers() {
         HistoryEntity history = HistoryEntity.builder()
                 .user(user)
-                .product(product)
+                .tool(tool)
                 .inventoryId("INV-001")
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)

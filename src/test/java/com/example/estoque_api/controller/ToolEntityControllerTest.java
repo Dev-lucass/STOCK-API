@@ -1,9 +1,9 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.ProductEntityDTO;
-import com.example.estoque_api.dto.response.entity.ProductEntityResponseDTO;
-import com.example.estoque_api.model.ProductEntity;
-import com.example.estoque_api.service.ProductEntityService;
+import com.example.estoque_api.dto.request.ToolEntityDTO;
+import com.example.estoque_api.dto.response.entity.ToolEntityResponseDTO;
+import com.example.estoque_api.model.ToolEntity;
+import com.example.estoque_api.service.ToolEntityService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ProductEntityController.class)
-class ProductEntityControllerTest {
+@WebMvcTest(ToolEntityController.class)
+class ToolEntityControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,24 +34,24 @@ class ProductEntityControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private ProductEntityService service;
+    private ToolEntityService service;
 
-    private ProductEntityDTO productDTO;
-    private ProductEntityResponseDTO responseDTO;
-    private ProductEntity productEntity;
+    private ToolEntityDTO toolDTO;
+    private ToolEntityResponseDTO responseDTO;
+    private ToolEntity toolEntity;
 
     @BeforeEach
     void setUp() {
-        productDTO = new ProductEntityDTO("Teclado Mecânico", true);
+        toolDTO = new ToolEntityDTO("Teclado Mecânico", true);
 
-        responseDTO = ProductEntityResponseDTO.builder()
+        responseDTO = ToolEntityResponseDTO.builder()
                 .id(1L)
                 .name("Teclado Mecânico")
                 .active(true)
                 .createdAt(LocalDate.now())
                 .build();
 
-        productEntity = ProductEntity.builder()
+        toolEntity = ToolEntity.builder()
                 .id(1L)
                 .name("Teclado Mecânico")
                 .active(true)
@@ -60,12 +60,12 @@ class ProductEntityControllerTest {
 
     @Test
     @DisplayName("Deve salvar um produto e retornar status 201")
-    void shouldSaveProductSuccessfully() throws Exception {
-        when(service.save(any(ProductEntityDTO.class))).thenReturn(responseDTO);
+    void shouldSaveToolSuccessfully() throws Exception {
+        when(service.save(any(ToolEntityDTO.class))).thenReturn(responseDTO);
 
-        mockMvc.perform(post("/api/v1/product")
+        mockMvc.perform(post("/api/v1/tool")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productDTO)))
+                        .content(objectMapper.writeValueAsString(toolDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Teclado Mecânico"));
@@ -73,52 +73,52 @@ class ProductEntityControllerTest {
 
     @Test
     @DisplayName("Deve retornar todos os produtos ativos")
-    void shouldReturnAllActiveProducts() throws Exception {
+    void shouldReturnAllActiveTools() throws Exception {
         when(service.findAllIsActive()).thenReturn(List.of(responseDTO));
 
-        mockMvc.perform(get("/api/v1/product"))
+        mockMvc.perform(get("/api/v1/tool"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].active").value(true));
     }
 
     @Test
     @DisplayName("Deve retornar todos os produtos inativos")
-    void shouldReturnAllInactiveProducts() throws Exception {
+    void shouldReturnAllInactiveTools() throws Exception {
         when(service.findAllIsNotActive()).thenReturn(List.of(responseDTO));
 
-        mockMvc.perform(get("/api/v1/product/findAllIsNotActive"))
+        mockMvc.perform(get("/api/v1/tool/findAllIsNotActive"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
     @DisplayName("Deve atualizar um produto e retornar status 200")
-    void shouldUpdateProductSuccessfully() throws Exception {
-        when(service.update(eq(1L), any(ProductEntityDTO.class))).thenReturn(responseDTO);
+    void shouldUpdateToolSuccessfully() throws Exception {
+        when(service.update(eq(1L), any(ToolEntityDTO.class))).thenReturn(responseDTO);
 
-        mockMvc.perform(put("/api/v1/product/{productId}", 1L)
+        mockMvc.perform(put("/api/v1/tool/{idTool}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productDTO)))
+                        .content(objectMapper.writeValueAsString(toolDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Teclado Mecânico"));
     }
 
     @Test
     @DisplayName("Deve desativar um produto (delete lógico) e retornar 204")
-    void shouldDisableProductSuccessfully() throws Exception {
+    void shouldDisableToolSuccessfully() throws Exception {
         doNothing().when(service).disableById(1L);
 
-        mockMvc.perform(delete("/api/v1/product/{productId}", 1L))
+        mockMvc.perform(delete("/api/v1/tool/{idTool}", 1L))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("Deve filtrar produtos por nome e retornar resultado paginado")
-    void shouldFilterProductsByName() throws Exception {
-        var page = new PageImpl<>(List.of(productEntity));
+    void shouldFilterToolsByName() throws Exception {
+        var page = new PageImpl<>(List.of(toolEntity));
         when(service.filterByNamePageable(anyString(), anyInt(), anyInt())).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/product/filterByName")
+        mockMvc.perform(get("/api/v1/tool/filterByName")
                         .param("name", "Teclado")
                         .param("pageNumber", "0")
                         .param("pageSize", "10"))

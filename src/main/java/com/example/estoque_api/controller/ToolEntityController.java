@@ -1,9 +1,9 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.ProductEntityDTO;
-import com.example.estoque_api.dto.response.entity.ProductEntityResponseDTO;
-import com.example.estoque_api.model.ProductEntity;
-import com.example.estoque_api.service.ProductEntityService;
+import com.example.estoque_api.dto.request.ToolEntityDTO;
+import com.example.estoque_api.dto.response.entity.ToolEntityResponseDTO;
+import com.example.estoque_api.model.ToolEntity;
+import com.example.estoque_api.service.ToolEntityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,44 +14,44 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/product")
-public class ProductEntityController {
+@RequestMapping("api/v1/tool")
+public class ToolEntityController {
 
-    private final ProductEntityService service;
+    private final ToolEntityService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductEntityResponseDTO save(@RequestBody @Valid ProductEntityDTO dto) {
+    public ToolEntityResponseDTO save(@RequestBody @Valid ToolEntityDTO dto) {
         return service.save(dto);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ProductEntityResponseDTO> findAllIsActive() {
+    public List<ToolEntityResponseDTO> findAllIsActive() {
         return service.findAllIsActive();
     }
 
     @GetMapping("findAllIsNotActive")
     @ResponseStatus(HttpStatus.OK)
-    public List<ProductEntityResponseDTO> findAllIsNotActive() {
+    public List<ToolEntityResponseDTO> findAllIsNotActive() {
         return service.findAllIsNotActive();
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping("/{idTool}")
     @ResponseStatus(HttpStatus.OK)
-    public ProductEntityResponseDTO update(@PathVariable("productId") Long id, @RequestBody @Valid ProductEntityDTO dto) {
+    public ToolEntityResponseDTO update(@PathVariable("idTool") Long id, @RequestBody @Valid ToolEntityDTO dto) {
         return service.update(id, dto);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/{idTool}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("productId") Long id) {
+    public void delete(@PathVariable("idTool") Long id) {
         service.disableById(id);
     }
 
     @GetMapping("filterByName")
     @ResponseStatus(HttpStatus.OK)
-    public Page<ProductEntity> filterByUsername(
+    public Page<ToolEntity> filterByUsername(
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize
