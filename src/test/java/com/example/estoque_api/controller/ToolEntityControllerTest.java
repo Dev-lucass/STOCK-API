@@ -10,19 +10,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDate;
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ToolEntityController.class)
 class ToolEntityControllerTest {
@@ -36,76 +35,77 @@ class ToolEntityControllerTest {
     @MockitoBean
     private ToolEntityService service;
 
-    private ToolEntityDTO toolDTO;
     private ToolEntityResponseDTO responseDTO;
-    private ToolEntity toolEntity;
+    private ToolEntityDTO requestDTO;
+    private ToolEntity tool;
 
     @BeforeEach
     void setUp() {
-        toolDTO = new ToolEntityDTO("Teclado Mecânico", true);
-
+        requestDTO = new ToolEntityDTO("Martelo", true);
         responseDTO = ToolEntityResponseDTO.builder()
                 .id(1L)
-                .name("Teclado Mecânico")
+                .name("Martelo")
                 .active(true)
-                .createdAt(LocalDate.now())
                 .build();
-
-        toolEntity = ToolEntity.builder()
+        tool = ToolEntity.builder()
                 .id(1L)
-                .name("Teclado Mecânico")
+                .name("Martelo")
                 .active(true)
                 .build();
     }
 
     @Test
-    @DisplayName("Deve salvar um produto e retornar status 201")
-    void shouldSaveToolSuccessfully() throws Exception {
+    @DisplayName("Save tool returns 201 created")
+    void save_Success() throws Exception {
         when(service.save(any(ToolEntityDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/tool")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(toolDTO)))
+                        .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("Teclado Mecânico"));
+                .andExpect(jsonPath("$.name").value("Martelo"));
     }
 
     @Test
-    @DisplayName("Deve retornar todos os produtos ativos")
-    void shouldReturnAllActiveTools() throws Exception {
+    @DisplayName("Find all active tools returns 200 OK")
+    void findAllIsActive_Success() throws Exception {
         when(service.findAllIsActive()).thenReturn(List.of(responseDTO));
 
-        mockMvc.perform(get("/api/v1/tool"))
+        mockMvc.perform(get("/api/v1/tool")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].active").value(true));
     }
 
     @Test
-    @DisplayName("Deve retornar todos os produtos inativos")
-    void shouldReturnAllInactiveTools() throws Exception {
+    @DisplayName("Find all inactive tools returns 200 OK")
+    void findAllIsNotActive_Success() throws Exception {
+        responseDTO = ToolEntityResponseDTO.builder().id(2L).name("Serra").active(false).build();
         when(service.findAllIsNotActive()).thenReturn(List.of(responseDTO));
 
-        mockMvc.perform(get("/api/v1/tool/findAllIsNotActive"))
+        mockMvc.perform(get("/api/v1/tool/findAllIsNotActive")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].active").value(false));
     }
 
     @Test
-    @DisplayName("Deve atualizar um produto e retornar status 200")
-    void shouldUpdateToolSuccessfully() throws Exception {
-        when(service.update(eq(1L), any(ToolEntityDTO.class))).thenReturn(responseDTO);
+    @DisplayName("Update tool returns 200 OK")
+    void update_Success() throws Exception {
+        when(service.update(anyLong(), any(ToolEntityDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(put("/api/v1/tool/{idTool}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(toolDTO)))
+                        .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Teclado Mecânico"));
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
-    @DisplayName("Deve desativar um produto (delete lógico) e retornar 204")
-    void shouldDisableToolSuccessfully() throws Exception {
+    @DisplayName("Delete (disable) tool returns 204 no content")
+    void delete_Success() throws Exception {
         doNothing().when(service).disableById(1L);
 
         mockMvc.perform(delete("/api/v1/tool/{idTool}", 1L))
@@ -113,16 +113,27 @@ class ToolEntityControllerTest {
     }
 
     @Test
-    @DisplayName("Deve filtrar produtos por nome e retornar resultado paginado")
-    void shouldFilterToolsByName() throws Exception {
-        var page = new PageImpl<>(List.of(toolEntity));
+    @DisplayName("Filter tools by name returns paged data")
+    void filterByName_Success() throws Exception {
+        Page<ToolEntity> page = new PageImpl<>(List.of(tool));
         when(service.filterByNamePageable(anyString(), anyInt(), anyInt())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/tool/filterByName")
-                        .param("name", "Teclado")
+                        .param("name", "Martelo")
                         .param("pageNumber", "0")
-                        .param("pageSize", "10"))
+                        .param("pageSize", "10")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].name").value("Teclado Mecânico"));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Martelo"));
+    }
+
+    @Test
+    @DisplayName("Save tool with invalid name returns 400 bad request")
+    void save_InvalidBody_BadRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/tool")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"\"}"))
+                .andExpect(status().isBadRequest());
     }
 }

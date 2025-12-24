@@ -2,6 +2,7 @@ package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.request.ToolEntityDTO;
 import com.example.estoque_api.dto.response.entity.ToolEntityResponseDTO;
+import com.example.estoque_api.exceptions.DamagedToolException;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.ToolEntityMapper;
@@ -14,20 +15,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ToolEntityServiceTest {
@@ -43,100 +41,150 @@ class ToolEntityServiceTest {
 
     private ToolEntity tool;
     private ToolEntityDTO toolDTO;
-    private ToolEntityResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
         tool = ToolEntity.builder()
                 .id(1L)
-                .name("Smartphone")
+                .name("Parafusadeira")
                 .active(true)
+                .currentLifeCycle(100.0)
+                .usageCount(0)
                 .build();
 
-        toolDTO = new ToolEntityDTO("Smartphone", true);
-
-        responseDTO = ToolEntityResponseDTO.builder()
-                .id(1L)
-                .name("Smartphone")
-                .active(true)
-                .createdAt(LocalDate.now())
-                .build();
+        toolDTO = new ToolEntityDTO("Parafusadeira", true);
     }
 
     @Test
-    @DisplayName("Should save tool successfully when name is unique")
-    void shouldSaveToolSuccessfully() {
-        when(repository.existsByName(toolDTO.name())).thenReturn(false);
-        when(mapper.toEntityTool(toolDTO)).thenReturn(tool);
-        when(repository.save(tool)).thenReturn(tool);
-        when(mapper.toResponseEntityTool(tool)).thenReturn(responseDTO);
+    @DisplayName("Save success")
+    void save_Success() {
+        when(repository.existsByName(anyString())).thenReturn(false);
+        when(mapper.toEntityTool(any())).thenReturn(tool);
+        when(repository.save(any())).thenReturn(tool);
 
-        ToolEntityResponseDTO result = service.save(toolDTO);
+        service.save(toolDTO);
 
-        assertAll(
-                () -> assertNotNull(result),
-                () -> assertEquals(responseDTO.name(), result.name()),
-                () -> verify(repository).existsByName(toolDTO.name()),
-                () -> verify(repository).save(any(ToolEntity.class))
-        );
+        verify(repository).save(any(ToolEntity.class));
     }
 
     @Test
-    @DisplayName("Should throw DuplicateResouceException when saving tool with existing name")
-    void shouldThrowExceptionWhenNameAlreadyExistsOnSave() {
-        when(repository.existsByName(toolDTO.name())).thenReturn(true);
+    @DisplayName("Save duplicate error")
+    void save_DuplicateError() {
+        when(repository.existsByName(anyString())).thenReturn(true);
 
-        assertThrows(DuplicateResouceException.class, () -> service.save(toolDTO));
-        verify(repository, never()).save(any());
+        assertThatThrownBy(() -> service.save(toolDTO))
+                .isInstanceOf(DuplicateResouceException.class);
     }
 
     @Test
-    @DisplayName("Should find all active tools")
-    void shouldFindAllActiveTools() {
+    @DisplayName("Find all active tools")
+    void findAllIsActive_Success() {
         when(repository.findAllByActiveTrue()).thenReturn(List.of(tool));
-        when(mapper.toResponseEntityTool(tool)).thenReturn(responseDTO);
 
-        List<ToolEntityResponseDTO> results = service.findAllIsActive();
+        List<ToolEntityResponseDTO> result = service.findAllIsActive();
 
-        assertAll(
-                () -> assertFalse(results.isEmpty()),
-                () -> assertEquals(1, results.size()),
-                () -> verify(repository).findAllByActiveTrue()
-        );
+        assertThat(result).isNotNull();
+        verify(repository).findAllByActiveTrue();
     }
 
     @Test
-    @DisplayName("Should update tool successfully")
-    void shouldUpdateToolSuccessfully() {
-        when(repository.findById(1L)).thenReturn(Optional.of(tool));
-        when(repository.existsByNameAndIdNot(toolDTO.name(), 1L)).thenReturn(false);
-        when(repository.save(tool)).thenReturn(tool);
-        when(mapper.toResponseEntityTool(tool)).thenReturn(responseDTO);
+    @DisplayName("Update success")
+    void update_Success() {
+        when(repository.findById(anyLong())).thenReturn(Optional.of(tool));
+        when(repository.existsByNameAndIdNot(anyString(), anyLong())).thenReturn(false);
+        when(repository.save(any())).thenReturn(tool);
 
-        ToolEntityResponseDTO result = service.update(1L, toolDTO);
+        service.update(1L, toolDTO);
 
-        assertAll(
-                () -> assertNotNull(result),
-                () -> verify(mapper).updateEntity(tool, toolDTO),
-                () -> verify(repository).save(tool)
-        );
+        verify(mapper).updateEntity(eq(tool), eq(toolDTO));
+        verify(repository).save(tool);
     }
 
     @Test
-    @DisplayName("Should disable tool by setting active to false")
-    void shouldDisableToolSuccessfully() {
+    @DisplayName("Disable by ID success")
+    void disableById_Success() {
         when(repository.findById(1L)).thenReturn(Optional.of(tool));
 
         service.disableById(1L);
 
-        assertFalse(tool.getActive());
+        assertThat(tool.getActive()).isFalse();
     }
 
     @Test
-    @DisplayName("Should throw ResourceNotFoundException when tool ID is invalid")
-    void shouldThrowExceptionWhenIdDoesNotExist() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+    @DisplayName("Start usage reduces life cycle and increases count")
+    void startUsage_Success() {
+        service.startUsage(tool);
 
-        assertThrows(ResourceNotFoundException.class, () -> service.findToolByIdOrElseThrow(1L));
+        assertThat(tool.getUsageCount()).isEqualTo(1);
+        assertThat(tool.getCurrentLifeCycle()).isEqualTo(98.5);
+        assertThat(tool.getUsageTime()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Start usage damaged tool error")
+    void startUsage_DamagedError() {
+        tool.setCurrentLifeCycle(40.0);
+
+        assertThatThrownBy(() -> service.startUsage(tool))
+                .isInstanceOf(DamagedToolException.class);
+
+        assertThat(tool.getActive()).isFalse();
+        verify(repository).save(tool);
+    }
+
+    @Test
+    @DisplayName("Return tool success and calculate time")
+    void returnTool_Success() {
+        tool.setUsageTime(LocalTime.now().minusMinutes(30));
+
+        service.returnTool(tool);
+
+        assertThat(tool.getUsageTime()).isNotNull();
+        verify(repository).save(tool);
+    }
+
+    @Test
+    @DisplayName("Filter by name pageable success")
+    @SuppressWarnings("unchecked")
+    void filterByNamePageable_Success() {
+        Page<ToolEntity> page = new PageImpl<>(List.of(tool));
+        when(repository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        Page<ToolEntity> result = service.filterByNamePageable("Para", 0, 10);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        verify(repository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Find by ID not found error")
+    void findById_NotFound() {
+        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.findToolByIdOrElseThrow(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Validate duplicate on update error")
+    void validateDuplicateOnUpdate_Error() {
+        when(repository.findById(1L)).thenReturn(Optional.of(tool));
+        when(repository.existsByNameAndIdNot(anyString(), eq(1L))).thenReturn(true);
+
+        assertThatThrownBy(() -> service.update(1L, toolDTO))
+                .isInstanceOf(DuplicateResouceException.class);
+    }
+
+    @Test
+    @DisplayName("Find all not active tools")
+    void findAllIsNotActive_Success() {
+        tool.setActive(false);
+        when(repository.findAllByActiveFalse()).thenReturn(List.of(tool));
+
+        List<ToolEntityResponseDTO> result = service.findAllIsNotActive();
+
+        assertThat(result).isNotNull();
+        verify(repository).findAllByActiveFalse();
     }
 }

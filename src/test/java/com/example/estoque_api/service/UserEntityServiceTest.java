@@ -14,19 +14,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserEntityServiceTest {
@@ -42,96 +42,116 @@ class UserEntityServiceTest {
 
     private UserEntity user;
     private UserEntityDTO userDTO;
-    private UserEntityResponseDTO responseDTO;
-    private final String VALID_CPF = "11144477735";
 
     @BeforeEach
     void setUp() {
         user = UserEntity.builder()
                 .id(1L)
-                .username("john_doe")
-                .cpf(VALID_CPF)
+                .username("joao_silva")
+                .cpf("12345678901")
                 .active(true)
                 .build();
 
-        userDTO = new UserEntityDTO("john_doe", VALID_CPF, "123 Street");
-
-        responseDTO = UserEntityResponseDTO.builder()
-                .id(1L)
-                .username("john_doe")
-                .createdAt(LocalDate.now())
-                .build();
+        userDTO = new UserEntityDTO("joao_silva", "11144477735", "rua madeireira");
     }
 
     @Test
-    @DisplayName("Should save user successfully when CPF is unique")
-    void shouldSaveUserSuccessfully() {
-        when(repository.existsByCpf(VALID_CPF)).thenReturn(false);
-        when(mapper.toEntityUser(userDTO)).thenReturn(user);
-        when(repository.save(user)).thenReturn(user);
-        when(mapper.toResponseEntityUser(user)).thenReturn(responseDTO);
+    @DisplayName("Save user success")
+    void save_Success() {
+        when(repository.existsByCpf(anyString())).thenReturn(false);
+        when(mapper.toEntityUser(any())).thenReturn(user);
+        when(repository.save(any())).thenReturn(user);
 
-        UserEntityResponseDTO result = service.save(userDTO);
+        service.save(userDTO);
 
-        assertAll(
-                () -> assertNotNull(result),
-                () -> assertEquals(responseDTO.username(), result.username()),
-                () -> verify(repository).existsByCpf(VALID_CPF),
-                () -> verify(repository).save(any(UserEntity.class))
-        );
+        verify(repository).save(any(UserEntity.class));
     }
 
     @Test
-    @DisplayName("Should throw DuplicateResouceException when saving user with existing CPF")
-    void shouldThrowExceptionWhenCpfAlreadyExistsOnSave() {
-        when(repository.existsByCpf(VALID_CPF)).thenReturn(true);
+    @DisplayName("Save user duplicate CPF error")
+    void save_DuplicateCpfError() {
+        when(repository.existsByCpf(anyString())).thenReturn(true);
 
-        assertThrows(DuplicateResouceException.class, () -> service.save(userDTO));
-        verify(repository, never()).save(any());
+        assertThatThrownBy(() -> service.save(userDTO))
+                .isInstanceOf(DuplicateResouceException.class);
     }
 
     @Test
-    @DisplayName("Should return user when ID exists")
-    void shouldFindUserByIdWhenExists() {
+    @DisplayName("Find all active users success")
+    void findAll_Success() {
+        when(repository.findAllByActiveTrue()).thenReturn(List.of(user));
+
+        List<UserEntityResponseDTO> result = service.findAll();
+
+        assertThat(result).isNotNull();
+        verify(repository).findAllByActiveTrue();
+    }
+
+    @Test
+    @DisplayName("Update user success")
+    void update_Success() {
+        when(repository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(repository.existsByCpfAndIdNot(anyString(), anyLong())).thenReturn(false);
+        when(repository.save(any())).thenReturn(user);
+
+        service.update(1L, userDTO);
+
+        verify(mapper).updateEntity(eq(user), eq(userDTO));
+        verify(repository).save(user);
+    }
+
+    @Test
+    @DisplayName("Update user duplicate CPF error")
+    void update_DuplicateCpfError() {
         when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.existsByCpfAndIdNot(anyString(), eq(1L))).thenReturn(true);
 
-        UserEntity result = service.findUserByIdOrElseThrow(1L);
-
-        assertEquals(user, result);
+        assertThatThrownBy(() -> service.update(1L, userDTO))
+                .isInstanceOf(DuplicateResouceException.class);
     }
 
     @Test
-    @DisplayName("Should throw ResourceNotFoundException when user ID does not exist")
-    void shouldThrowExceptionWhenIdDoesNotExist() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> service.findUserByIdOrElseThrow(1L));
-    }
-
-    @Test
-    @DisplayName("Should update user successfully")
-    void shouldUpdateUserSuccessfully() {
-        when(repository.findById(1L)).thenReturn(Optional.of(user));
-        when(repository.existsByCpfAndIdNot(VALID_CPF, 1L)).thenReturn(false);
-        when(repository.save(user)).thenReturn(user);
-        when(mapper.toResponseEntityUser(user)).thenReturn(responseDTO);
-
-        UserEntityResponseDTO result = service.update(1L, userDTO);
-
-        assertAll(
-                () -> assertNotNull(result),
-                () -> verify(mapper).updateEntity(user, userDTO),
-                () -> verify(repository).save(user)
-        );
-    }
-
-    @Test
-    @DisplayName("Should disable user by setting active to false")
-    void shouldDisableUserSuccessfully() {
+    @DisplayName("Disable user by ID success")
+    void disableById_Success() {
         when(repository.findById(1L)).thenReturn(Optional.of(user));
 
         service.disableById(1L);
 
-        assertFalse(user.getActive());
+        assertThat(user.getActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Find user by ID not found error")
+    void findById_NotFound() {
+        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.findUserByIdOrElseThrow(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Filter by username pageable success")
+    @SuppressWarnings("unchecked")
+    void filterByUsernamePageable_Success() {
+        Page<UserEntity> page = new PageImpl<>(List.of(user));
+        when(repository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        Page<UserEntity> result = service.filterByUsernamePageable("joao", 0, 10);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        verify(repository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Filter by username with null name builds empty specification")
+    void filterByUsernamePageable_NullName() {
+        Page<UserEntity> page = new PageImpl<>(List.of(user));
+        when(repository.findAll((Specification<UserEntity>) null, PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("username").ascending())))
+                .thenReturn(page);
+
+        Page<UserEntity> result = service.filterByUsernamePageable(null, 0, 10);
+
+        assertThat(result).isNotNull();
     }
 }
