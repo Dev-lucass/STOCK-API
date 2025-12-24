@@ -6,6 +6,6 @@ import org.springframework.data.jpa.domain.Specification;
 public class InventoryEntitySpec {
 
     public static Specification<InventoryEntity> equalsQuantity(int quantity) {
-        return (r, q, cb) -> cb.equal(r.get("quantityInitial"), quantity);
+        return (r, q, cb) -> cb.equal(r.get("quantity"), quantity);
     }
 }

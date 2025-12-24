@@ -54,7 +54,7 @@ public class InventoryEntityController {
     @GetMapping("filterByQuantity")
     @ResponseStatus(HttpStatus.OK)
     public Page<InventoryEntityResponseDTO> filterByQuantity(
-            @RequestParam(value = "quantityInitial", required = false) Integer quantity,
+            @RequestParam(value = "quantity", required = false) Integer quantity,
             @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize
     ) {

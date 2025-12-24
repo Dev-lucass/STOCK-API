@@ -70,7 +70,7 @@ class HistoryEntityControllerTest {
 
         mockMvc.perform(get("/api/v1/history/filterHistory")
                         .param("InventoryAction", "TAKE")
-                        .param("quantityInitial", "50")
+                        .param("quantity", "50")
                         .param("pageNumber", "0")
                         .param("pageSize", "10")
                         .contentType(MediaType.APPLICATION_JSON))

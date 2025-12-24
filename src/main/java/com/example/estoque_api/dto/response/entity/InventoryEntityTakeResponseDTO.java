@@ -6,10 +6,13 @@ import java.time.LocalDate;
 
 @Builder
 public record InventoryEntityTakeResponseDTO(Long id,
-                                                                                        String inventoryId,
-                                                                                        int quantityTaked,
-                                                                                        int quantityCurrent,
-                                                                                        int quantityInitial,
-                                                                                        Long idTool,
-                                                                                        @DateTimeFormat(pattern = "dd/MM/yyyy")
-                                                                                        LocalDate createdAt) {}
+                                                                                         String inventoryId,
+                                                                                         int quantityTaked,
+                                                                                         int quantityCurrent,
+                                                                                         int quantityInitial,
+                                                                                         Long idTool,
+                                                                                         Double currentLifeCycle,
+                                                                                         int usageCount,
+                                                                                         @DateTimeFormat(pattern = "dd/MM/yyyy")
+                                                                                         LocalDate createdAt) {
+}

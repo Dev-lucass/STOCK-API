@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Entity
 @Builder
 @AllArgsConstructor
@@ -23,10 +27,19 @@ public class ToolEntity {
     @Column(nullable = false)
     private Boolean active;
 
+    private Double currentLifeCycle;
+    private Integer usageCount;
+    private LocalTime usageTime;
+    private Double degradationRate;
+    private Double minimumViableLife;
+
     @PrePersist
     public void prePersist() {
-        if (active == null) {
-            active = true;
-        }
+        if (active == null) active = true;
+        if (usageCount == null) usageCount = 0;
+        if (currentLifeCycle == null) currentLifeCycle = 100.0;
+
+        degradationRate = 1.5;
+        minimumViableLife = 40.0;
     }
 }

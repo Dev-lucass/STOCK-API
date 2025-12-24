@@ -134,10 +134,10 @@ class InventoryEntityControllerTest {
         when(service.filterByQuantity(any(), anyInt(), anyInt())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/inventory/filterByQuantity")
-                        .param("quantityInitial", "100")
+                        .param("quantity", "100")
                         .param("pageNumber", "0")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].quantityInitial").value(100));
+                .andExpect(jsonPath("$.content[0].quantity").value(100));
     }
 }

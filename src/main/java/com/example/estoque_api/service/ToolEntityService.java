@@ -2,6 +2,7 @@ package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.request.ToolEntityDTO;
 import com.example.estoque_api.dto.response.entity.ToolEntityResponseDTO;
+import com.example.estoque_api.exceptions.DamagedToolException;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.ToolEntityMapper;
@@ -15,9 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.List;
-
 import static com.example.estoque_api.repository.specs.ToolEntitySpec.likeName;
 
 @Service
@@ -60,6 +61,60 @@ public class ToolEntityService {
     public void disableById(Long id) {
         var entity = findToolByIdOrElseThrow(id);
         entity.setActive(false);
+    }
+
+    public void startUsage(ToolEntity tool) {
+        validateLifeCycleTool(tool);
+        readjustUsefulLife(tool);
+        startTimeUsageTool(tool);
+        setUsageTool(tool);
+    }
+
+    public void returnTool(ToolEntity tool) {
+        validateLifeCycleTool(tool);
+        timeUsagedAfterReturn(tool);
+        repository.save(tool);
+    }
+
+    private void timeUsagedAfterReturn(ToolEntity tool) {
+        LocalTime startTime = tool.getUsageTime();
+        LocalTime endTime = LocalTime.now();
+
+        Duration duration = Duration.between(startTime, endTime);
+
+        long seconds = duration.getSeconds();
+
+        LocalTime usageDurationAsTime = LocalTime.ofSecondOfDay(seconds);
+
+        tool.setUsageTime(usageDurationAsTime);
+    }
+
+    private void startTimeUsageTool(ToolEntity tool) {
+        if (tool.getUsageTime() == null) tool.setUsageTime(LocalTime.now());
+    }
+
+    private void validateLifeCycleTool(ToolEntity tool) {
+        if (tool.getCurrentLifeCycle() <= (100.0 - 60.0)) {
+            disableToolByLifeCycle(tool);
+            throw new DamagedToolException("End of useful life reached");
+        }
+    }
+
+    private void setUsageTool(ToolEntity tool) {
+        tool.setUsageCount(tool.getUsageCount() + 1);
+    }
+
+    private void readjustUsefulLife(ToolEntity tool) {
+        double currentLife = tool.getCurrentLifeCycle();
+        double updatedLife = currentLife - 1.5;
+        tool.setCurrentLifeCycle(updatedLife);
+    }
+
+    private void disableToolByLifeCycle(ToolEntity tool) {
+        if (tool.getCurrentLifeCycle() <= 40) {
+            tool.setActive(false);
+            repository.save(tool);
+        }
     }
 
     public Page<ToolEntity> filterByNamePageable(String name, int pageNumber, int pageSize) {
