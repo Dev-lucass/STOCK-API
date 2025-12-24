@@ -8,8 +8,10 @@ import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDT
 import com.example.estoque_api.service.InventoryEntityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -45,7 +47,21 @@ public class InventoryEntityController {
 
     @PutMapping("returnFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public List<InventoryEntityReturnResponseDTO> returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
+    public InventoryEntityReturnResponseDTO returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
         return service.returnFromInventory(returneFromInventory);
+    }
+
+    @GetMapping("filterByQuantity")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<InventoryEntityResponseDTO> filterByQuantity(
+            @RequestParam(value = "quantityInitial", required = false) Integer quantity,
+            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize
+    ) {
+        return service.filterByQuantity(
+                quantity,
+                pageNumber,
+                pageSize
+        );
     }
 }

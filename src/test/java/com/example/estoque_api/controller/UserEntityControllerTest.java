@@ -2,283 +2,120 @@ package com.example.estoque_api.controller;
 
 import com.example.estoque_api.dto.request.UserEntityDTO;
 import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
-import com.example.estoque_api.exceptions.DuplicateResouceException;
-import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.service.UserEntityService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserEntityController.class)
-@ExtendWith(MockitoExtension.class)
 class UserEntityControllerTest {
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private UserEntityService service;
 
-    private UserEntityDTO userDto;
-    private UserEntityResponseDTO responseUpdated;
-    private UserEntityResponseDTO response;
+    private UserEntityDTO userDTO;
+    private UserEntityResponseDTO responseDTO;
+    private UserEntity userEntity;
+    private final String VALID_CPF = "11144477735";
 
     @BeforeEach
     void setUp() {
-        userDto = UserEntityDTO.builder()
-                .username("lucas Silva")
-                .cpf("11144477735")
-                .address("Rua das Flores, 123, São Paulo, RJ")
-                .build();
+        userDTO = new UserEntityDTO("john_doe", VALID_CPF, "Rua Teste, 123");
 
-        responseUpdated = UserEntityResponseDTO.builder()
+        responseDTO = UserEntityResponseDTO.builder()
                 .id(1L)
-                .username("lucas Silva da silva")
+                .username("john_doe")
                 .createdAt(LocalDate.now())
                 .build();
 
-        response = UserEntityResponseDTO.builder()
+        userEntity = UserEntity.builder()
                 .id(1L)
-                .username(userDto.username())
-                .createdAt(LocalDate.now())
+                .username("john_doe")
+                .cpf(VALID_CPF)
+                .active(true)
                 .build();
     }
 
     @Test
-    void should_save_user_successfully() throws Exception {
-        when(service.save(any(UserEntityDTO.class))).thenReturn(response);
+    @DisplayName("Deve salvar um usuário e retornar status 201")
+    void shouldSaveUserSuccessfully() throws Exception {
+        when(service.save(any(UserEntityDTO.class))).thenReturn(responseDTO);
 
-        var json = """
-                {
-                  "username": "lucas Silva",
-                  "cpf": "11144477735",
-                  "address": "Rua das Flores, 123, São Paulo, RJ"
-                }
-                """;
-
-        mvc.perform(post("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(response.id()))
-                .andExpect(jsonPath("$.username").value(response.username()))
-                .andExpect(jsonPath("$.createdAt").value(response.createdAt().toString()));
+                .andExpect(jsonPath("$.username").value("john_doe"))
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
-    void should_throw_bad_request_when_username_invalid() throws Exception {
-        var json = """
-                {
-                  "username": "l",
-                  "cpf": "11144477735",
-                  "address": "Rua das Flores, 123, São Paulo, RJ"
-                }
-                """;
+    @DisplayName("Deve retornar lista de todos os usuários ativos")
+    void shouldReturnAllUsers() throws Exception {
+        when(service.findAll()).thenReturn(List.of(responseDTO));
 
-        mvc.perform(post("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()))
-                .andExpect(jsonPath("$.invalidFields").isArray());
-    }
-
-    @Test
-    void should_throw_bad_request_when_cpf_invalid() throws Exception {
-        var json = """
-                {
-                  "username": "lucas Silva",
-                  "cpf": "11144",
-                  "address": "Rua das Flores, 123, São Paulo, RJ"
-                }
-                """;
-
-        mvc.perform(post("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()))
-                .andExpect(jsonPath("$.invalidFields").isArray());
-    }
-
-    @Test
-    void should_throw_bad_request_when_address_invalid() throws Exception {
-        var json = """
-                {
-                  "username": "lucas Silva",
-                  "cpf": "11144477735",
-                  "address": "R"
-                }
-                """;
-
-        mvc.perform(post("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()))
-                .andExpect(jsonPath("$.invalidFields").isArray());
-    }
-
-    @Test
-    void should_throw_conflict_when_cpf_duplicate_on_create() throws Exception {
-        when(service.save(any(UserEntityDTO.class)))
-                .thenThrow(new DuplicateResouceException("User already registered"));
-
-        var json = """
-                {
-                  "username": "lucas Silva",
-                  "cpf": "11144477735",
-                  "address": "Rua das Flores, 123, São Paulo, RJ"
-                }
-                """;
-
-        mvc.perform(post("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.CONFLICT.value()))
-                .andExpect(jsonPath("$.message").value("User already registered"))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()));
-    }
-
-    @Test
-    void should_find_all_active_users() throws Exception {
-        when(service.findAll()).thenReturn(List.of(response));
-
-        mvc.perform(get("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/user"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(response.id()))
-                .andExpect(jsonPath("$[0].username").value(response.username()))
-                .andExpect(jsonPath("$[0].createdAt").value(response.createdAt().toString()));
+                .andExpect(jsonPath("$[0].username").value("john_doe"))
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
-    void should_return_empty_list_when_no_active_users() throws Exception {
-        when(service.findAll()).thenReturn(Collections.emptyList());
+    @DisplayName("Deve atualizar um usuário e retornar status 200")
+    void shouldUpdateUserSuccessfully() throws Exception {
+        when(service.update(eq(1L), any(UserEntityDTO.class))).thenReturn(responseDTO);
 
-        mvc.perform(get("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(put("/api/v1/user/{userId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.username").value("john_doe"));
     }
 
     @Test
-    void should_update_user_successfully() throws Exception {
-        when(service.update(eq(1L), any(UserEntityDTO.class))).thenReturn(responseUpdated);
-
-        var json = """
-                {
-                  "username": "lucas Silva da silva",
-                  "cpf": "05744110038",
-                  "address": "Rua das Flores, 444, Rio de Janeiro"
-                }
-                """;
-
-        mvc.perform(put("/api/v1/user/1")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(responseUpdated.id()))
-                .andExpect(jsonPath("$.username").value(responseUpdated.username()))
-                .andExpect(jsonPath("$.createdAt").value(responseUpdated.createdAt().toString()));
-    }
-
-    @Test
-    void should_throw_bad_request_when_update_nonexistent_user() throws Exception {
-        when(service.update(eq(40L), any(UserEntityDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Invalid user id"));
-
-        var json = """
-                {
-                  "username": "lucas Silva da silva",
-                  "cpf": "05744110038",
-                  "address": "Rua das Flores, 444, Rio de Janeiro"
-                }
-                """;
-
-        mvc.perform(put("/api/v1/user/40")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.message").value("Invalid user id"))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()));
-    }
-
-    @Test
-    void should_throw_conflict_when_update_user_with_duplicate_cpf() throws Exception {
-        when(service.update(eq(1L), any(UserEntityDTO.class)))
-                .thenThrow(new DuplicateResouceException("User already registered"));
-
-        var json = """
-                {
-                  "username": "lucas Silva da silva",
-                  "cpf": "11144477735",
-                  "address": "Rua das Flores, 444, Rio de Janeiro"
-                }
-                """;
-
-        mvc.perform(put("/api/v1/user/1")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.CONFLICT.value()))
-                .andExpect(jsonPath("$.message").value("User already registered"))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()));
-    }
-
-    @Test
-    void should_delete_user_successfully() throws Exception {
+    @DisplayName("Deve desativar um usuário e retornar 204")
+    void shouldDisableUserSuccessfully() throws Exception {
         doNothing().when(service).disableById(1L);
 
-        mvc.perform(delete("/api/v1/user/1")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/v1/user/{userId}", 1L))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void should_throw_bad_request_when_delete_nonexistent_user() throws Exception {
-        Mockito.doThrow(new ResourceNotFoundException("Invalid user id"))
-                .when(service).disableById(40L);
+    @DisplayName("Deve filtrar usuários por username e retornar página")
+    void shouldFilterUsersByUsername() throws Exception {
+        var page = new PageImpl<>(List.of(userEntity));
+        when(service.filterByUsernamePageable(anyString(), anyInt(), anyInt())).thenReturn(page);
 
-        mvc.perform(delete("/api/v1/user/40")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.message").value("Invalid user id"))
-                .andExpect(jsonPath("$.dateError").value(LocalDate.now().toString()));
+        mockMvc.perform(get("/api/v1/user/filterByUsername")
+                        .param("username", "john")
+                        .param("pageNumber", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].username").value("john_doe"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }

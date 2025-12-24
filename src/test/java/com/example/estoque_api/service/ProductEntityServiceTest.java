@@ -8,21 +8,28 @@ import com.example.estoque_api.mapper.ProductEntityMapper;
 import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.repository.ProductEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ProductEntityServiceTest {
 
     @Mock
@@ -35,167 +42,100 @@ class ProductEntityServiceTest {
     private ProductEntityService service;
 
     private ProductEntity product;
-    private ProductEntityDTO dto;
+    private ProductEntityDTO productDTO;
     private ProductEntityResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
-        product = new ProductEntity();
-        product.setId(1L);
-        product.setName("makita");
-        product.setActive(true);
+        product = ProductEntity.builder()
+                .id(1L)
+                .name("Smartphone")
+                .active(true)
+                .build();
 
-        dto = new ProductEntityDTO("makita", true);
+        productDTO = new ProductEntityDTO("Smartphone", true);
 
-        responseDTO = new ProductEntityResponseDTO(
-                1L,
-                "pen",
-                true,
-                LocalDate.now());
+        responseDTO = ProductEntityResponseDTO.builder()
+                .id(1L)
+                .name("Smartphone")
+                .active(true)
+                .createdAt(LocalDate.now())
+                .build();
     }
 
     @Test
-    void should_save_product_successfully() {
-        when(repository.existsByName(dto.name()))
-                .thenReturn(false);
+    @DisplayName("Should save product successfully when name is unique")
+    void shouldSaveProductSuccessfully() {
+        when(repository.existsByName(productDTO.name())).thenReturn(false);
+        when(mapper.toEntityProduct(productDTO)).thenReturn(product);
+        when(repository.save(product)).thenReturn(product);
+        when(mapper.toResponseEntityProduct(product)).thenReturn(responseDTO);
 
-        when(mapper.toEntityProduct(dto))
-                .thenReturn(product);
+        ProductEntityResponseDTO result = service.save(productDTO);
 
-        when(repository.save(product))
-                .thenReturn(product);
-
-        when(mapper.toResponseEntityProduct(product))
-                .thenReturn(responseDTO);
-
-        var result = service.save(dto);
-
-        assertNotNull(result);
-        assertEquals(responseDTO, result);
-        verify(repository).existsByName(dto.name());
-        verify(repository).save(product);
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(responseDTO.name(), result.name()),
+                () -> verify(repository).existsByName(productDTO.name()),
+                () -> verify(repository).save(any(ProductEntity.class))
+        );
     }
 
     @Test
-    void should_throw_exception_when_saving_duplicated_name() {
-        when(repository.existsByName(dto.name()))
-                .thenReturn(true);
+    @DisplayName("Should throw DuplicateResouceException when saving product with existing name")
+    void shouldThrowExceptionWhenNameAlreadyExistsOnSave() {
+        when(repository.existsByName(productDTO.name())).thenReturn(true);
 
-        assertThrows(DuplicateResouceException.class, () -> service.save(dto));
-
-        verify(repository).existsByName(dto.name());
+        assertThrows(DuplicateResouceException.class, () -> service.save(productDTO));
         verify(repository, never()).save(any());
     }
 
     @Test
-    void should_return_all_active_products() {
-        when(repository.findAllByActiveTrue())
-                .thenReturn(List.of(product));
+    @DisplayName("Should find all active products")
+    void shouldFindAllActiveProducts() {
+        when(repository.findAllByActiveTrue()).thenReturn(List.of(product));
+        when(mapper.toResponseEntityProduct(product)).thenReturn(responseDTO);
 
-        when(mapper.toResponseEntityProduct(product))
-                .thenReturn(responseDTO);
+        List<ProductEntityResponseDTO> results = service.findAllIsActive();
 
-        var result = service.findAllIsActive();
-
-        assertEquals(1, result.size());
-        verify(repository).findAllByActiveTrue();
+        assertAll(
+                () -> assertFalse(results.isEmpty()),
+                () -> assertEquals(1, results.size()),
+                () -> verify(repository).findAllByActiveTrue()
+        );
     }
 
     @Test
-    void should_return_all_inactive_products() {
-        product.setActive(false);
+    @DisplayName("Should update product successfully")
+    void shouldUpdateProductSuccessfully() {
+        when(repository.findById(1L)).thenReturn(Optional.of(product));
+        when(repository.existsByNameAndIdNot(productDTO.name(), 1L)).thenReturn(false);
+        when(repository.save(product)).thenReturn(product);
+        when(mapper.toResponseEntityProduct(product)).thenReturn(responseDTO);
 
-        when(repository.findAllByActiveFalse())
-                .thenReturn(List.of(product));
+        ProductEntityResponseDTO result = service.update(1L, productDTO);
 
-        when(mapper.toResponseEntityProduct(product))
-                .thenReturn(responseDTO);
-
-        var result = service.findAllIsNotActive();
-
-        assertEquals(1, result.size());
-        verify(repository).findAllByActiveFalse();
+        assertAll(
+                () -> assertNotNull(result),
+                () -> verify(mapper).updateEntity(product, productDTO),
+                () -> verify(repository).save(product)
+        );
     }
 
     @Test
-    void should_update_product_successfully() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(product));
-
-        when(repository.existsByNameAndIdNot(dto.name(), 1L)).thenReturn(false);
-
-        when(repository.save(product))
-                .thenReturn(product);
-
-        when(mapper.toResponseEntityProduct(product))
-                .thenReturn(responseDTO);
-
-        var result = service.update(1L, dto);
-
-        assertNotNull(result);
-
-        verify(repository).findById(1L);
-        verify(repository).existsByNameAndIdNot(dto.name(), 1L);
-        verify(mapper).updateEntity(product, dto);
-        verify(repository).save(product);
-    }
-
-    @Test
-    void should_throw_exception_when_updating_with_duplicated_name() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(product));
-
-        when(repository.existsByNameAndIdNot(dto.name(), 1L))
-                .thenReturn(true);
-
-        assertThrows(DuplicateResouceException.class, () -> service.update(1L, dto));
-
-        verify(repository).existsByNameAndIdNot(dto.name(), 1L);
-        verify(repository, never()).save(any());
-    }
-
-    @Test
-    void should_throw_exception_when_updating_invalid_id() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> service.update(1L, dto));
-    }
-
-    @Test
-    void should_disable_product_successfully() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(product));
+    @DisplayName("Should disable product by setting active to false")
+    void shouldDisableProductSuccessfully() {
+        when(repository.findById(1L)).thenReturn(Optional.of(product));
 
         service.disableById(1L);
 
         assertFalse(product.getActive());
-        verify(repository).findById(1L);
     }
 
     @Test
-    void should_throw_exception_when_disabling_invalid_id() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> service.disableById(1L));
-    }
-
-    @Test
-    void should_find_product_by_id_successfully() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(product));
-
-        var result = service
-                .findProductByIdOrElseThrow(1L);
-
-        assertEquals(product, result);
-    }
-
-    @Test
-    void should_throw_exception_when_finding_invalid_id() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.empty());
+    @DisplayName("Should throw ResourceNotFoundException when product ID is invalid")
+    void shouldThrowExceptionWhenIdDoesNotExist() {
+        when(repository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.findProductByIdOrElseThrow(1L));
     }

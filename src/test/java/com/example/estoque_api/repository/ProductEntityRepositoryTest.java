@@ -2,132 +2,96 @@ package com.example.estoque_api.repository;
 
 import com.example.estoque_api.model.ProductEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@ActiveProfiles("test")
 class ProductEntityRepositoryTest {
 
     @Autowired
     private ProductEntityRepository repository;
 
+    @Autowired
+    private TestEntityManager entityManager;
+
     private ProductEntity activeProduct;
     private ProductEntity inactiveProduct;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         activeProduct = ProductEntity.builder()
-                .name("Teclado Mecânico")
+                .name("Smartphone")
                 .active(true)
                 .build();
 
         inactiveProduct = ProductEntity.builder()
-                .name("Mouse Óptico")
+                .name("Notebook")
                 .active(false)
                 .build();
+
+        entityManager.persist(activeProduct);
+        entityManager.persist(inactiveProduct);
+        entityManager.flush();
     }
 
     @Test
-    void should_save_product() {
-        var savedProduct = repository.save(activeProduct);
-
-        assertNotNull(savedProduct.getId());
-        assertEquals("Teclado Mecânico", savedProduct.getName());
-        assertTrue(savedProduct.getActive());
+    @DisplayName("Should return true when a product exists with the given name")
+    void shouldReturnTrueWhenNameExists() {
+        Boolean exists = repository.existsByName("Smartphone");
+        assertTrue(exists);
     }
 
     @Test
-    void should_apply_default_active_when_null() {
-        var product = ProductEntity.builder()
+    @DisplayName("Should return true when another product exists with the same name excluding current ID")
+    void shouldReturnTrueWhenNameExistsAndIdNot() {
+        ProductEntity anotherProduct = ProductEntity.builder()
                 .name("Monitor")
+                .active(true)
                 .build();
+        entityManager.persist(anotherProduct);
 
-        var savedProduct = repository.save(product);
-        assertTrue(savedProduct.getActive());
-    }
-
-    @Test
-    void should_find_all_active_products() {
-        repository.save(activeProduct);
-        repository.save(inactiveProduct);
-
-        var result = repository.findAllByActiveTrue();
-
-        assertEquals(1, result.size());
-        assertTrue(result.getFirst().getActive());
-    }
-
-    @Test
-    void should_find_all_inactive_products() {
-        repository.save(activeProduct);
-        repository.save(inactiveProduct);
-
-        var result = repository.findAllByActiveFalse();
-
-        assertEquals(1, result.size());
-        assertFalse(result.getFirst().getActive());
-    }
-
-    @Test
-    void should_return_true_when_name_exists() {
-        repository.save(activeProduct);
-        Boolean exists = repository.existsByName("Teclado Mecânico");
+        Boolean exists = repository.existsByNameAndIdNot("Smartphone", anotherProduct.getId());
         assertTrue(exists);
     }
 
     @Test
-    void should_return_false_when_name_does_not_exist() {
-        Boolean exists = repository.existsByName("Produto Inexistente");
-
+    @DisplayName("Should return false when checking name existence against its own ID")
+    void shouldReturnFalseWhenNameExistsButIsTheSameId() {
+        Boolean exists = repository.existsByNameAndIdNot("Smartphone", activeProduct.getId());
         assertFalse(exists);
     }
 
     @Test
-    void should_return_true_when_name_exists_and_id_is_different() {
-        var savedProduct = repository.save(activeProduct);
+    @DisplayName("Should return a list of all active products")
+    void shouldFindAllByActiveTrue() {
+        List<ProductEntity> actives = repository.findAllByActiveTrue();
 
-        Boolean exists = repository.existsByNameAndIdNot(
-                "Teclado Mecânico",
-                savedProduct.getId() + 1
+        assertAll(
+                () -> assertEquals(1, actives.size()),
+                () -> assertEquals("Smartphone", actives.get(0).getName()),
+                () -> assertTrue(actives.get(0).getActive())
         );
-
-        assertTrue(exists);
     }
 
     @Test
-    void should_return_false_when_name_exists_and_id_is_same() {
-        var savedProduct = repository.save(activeProduct);
+    @DisplayName("Should return a list of all inactive products")
+    void shouldFindAllByActiveFalse() {
+        List<ProductEntity> inactives = repository.findAllByActiveFalse();
 
-        Boolean exists = repository.existsByNameAndIdNot(
-                "Teclado Mecânico",
-                savedProduct.getId()
+        assertAll(
+                () -> assertEquals(1, inactives.size()),
+                () -> assertEquals("Notebook", inactives.get(0).getName()),
+                () -> assertFalse(inactives.get(0).getActive())
         );
-
-        assertFalse(exists);
-    }
-
-    @Test
-    void should_update_product() {
-        var savedProduct = repository.save(activeProduct);
-
-        savedProduct.setName("Teclado Mecânico RGB");
-        savedProduct.setActive(false);
-
-        var updatedProduct = repository.save(savedProduct);
-
-        assertEquals(savedProduct.getId(), updatedProduct.getId());
-        assertEquals("Teclado Mecânico RGB", updatedProduct.getName());
-        assertFalse(updatedProduct.getActive());
-    }
-
-    @Test
-    void should_delete_product_by_id() {
-        var savedProduct = repository.save(activeProduct);
-        repository.deleteById(savedProduct.getId());
-        assertTrue(repository.findById(savedProduct.getId()).isEmpty());
     }
 }

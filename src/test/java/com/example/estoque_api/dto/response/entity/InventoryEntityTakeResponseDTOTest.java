@@ -1,25 +1,87 @@
 package com.example.estoque_api.dto.response.entity;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InventoryEntityTakeResponseDTOTest {
 
-    @Test
-    void should_create_inventory_entity_take_response_dto() {
-        var date = LocalDate.now();
+    private Long id;
+    private String inventoryId;
+    private int quantityTaked;
+    private int quantityCurrent;
+    private int quantityInitial;
+    private Long productId;
+    private LocalDate createdAt;
 
-        var dto = InventoryEntityTakeResponseDTO.builder()
-                .id(1L)
-                .quantityTaked(8)
-                .productId(10L)
-                .createdAt(date)
+    @BeforeEach
+    void setUp() {
+        id = 1L;
+        inventoryId = "INV-TAKE-001";
+        quantityTaked = 20;
+        quantityCurrent = 80;
+        quantityInitial = 100;
+        productId = 500L;
+        createdAt = LocalDate.now();
+    }
+
+    @Test
+    @DisplayName("Should successfully instantiate the record using builder and return correct values")
+    void shouldCreateInventoryEntityTakeResponseDTOUsingBuilder() {
+        InventoryEntityTakeResponseDTO dto = InventoryEntityTakeResponseDTO.builder()
+                .id(id)
+                .inventoryId(inventoryId)
+                .quantityTaked(quantityTaked)
+                .quantityCurrent(quantityCurrent)
+                .quantityInitial(quantityInitial)
+                .productId(productId)
+                .createdAt(createdAt)
                 .build();
 
-        assertEquals(1L, dto.id());
-        assertEquals(8, dto.quantityTaked());
-        assertEquals(10L, dto.productId());
-        assertEquals(date, dto.createdAt());
+        assertAll(
+                () -> assertEquals(id, dto.id()),
+                () -> assertEquals(inventoryId, dto.inventoryId()),
+                () -> assertEquals(quantityTaked, dto.quantityTaked()),
+                () -> assertEquals(quantityCurrent, dto.quantityCurrent()),
+                () -> assertEquals(quantityInitial, dto.quantityInitial()),
+                () -> assertEquals(productId, dto.productId()),
+                () -> assertEquals(createdAt, dto.createdAt())
+        );
+    }
+
+    @Test
+    @DisplayName("Should verify equality between two instances with same values")
+    void shouldVerifyEquality() {
+        InventoryEntityTakeResponseDTO dto1 = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, productId, createdAt);
+        InventoryEntityTakeResponseDTO dto2 = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, productId, createdAt);
+        InventoryEntityTakeResponseDTO dto3 = new InventoryEntityTakeResponseDTO(2L, "OTHER-ID", 5, 45, 50, 600L, createdAt);
+
+        assertAll(
+                () -> assertEquals(dto1, dto2),
+                () -> assertEquals(dto1.hashCode(), dto2.hashCode()),
+                () -> assertNotEquals(dto1, dto3)
+        );
+    }
+
+    @Test
+    @DisplayName("Should verify if toString method contains all record fields")
+    void shouldVerifyToString() {
+        InventoryEntityTakeResponseDTO dto = new InventoryEntityTakeResponseDTO(id, inventoryId, quantityTaked, quantityCurrent, quantityInitial, productId, createdAt);
+        String toString = dto.toString();
+
+        assertAll(
+                () -> assertTrue(toString.contains("id=" + id)),
+                () -> assertTrue(toString.contains("inventoryId=" + inventoryId)),
+                () -> assertTrue(toString.contains("quantityTaked=" + quantityTaked)),
+                () -> assertTrue(toString.contains("quantityCurrent=" + quantityCurrent)),
+                () -> assertTrue(toString.contains("productId=" + productId))
+        );
     }
 }

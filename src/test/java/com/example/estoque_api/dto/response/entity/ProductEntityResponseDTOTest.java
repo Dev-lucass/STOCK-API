@@ -1,25 +1,74 @@
 package com.example.estoque_api.dto.response.entity;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProductEntityResponseDTOTest {
 
-    @Test
-    void should_create_product_entity_response_dto() {
-        var date = LocalDate.now();
+    private Long id;
+    private String name;
+    private Boolean active;
+    private LocalDate createdAt;
 
-        var dto = ProductEntityResponseDTO.builder()
-                .id(1L)
-                .name("Teclado Mecânico")
-                .active(true)
-                .createdAt(date)
+    @BeforeEach
+    void setUp() {
+        id = 1L;
+        name = "Smartphone";
+        active = true;
+        createdAt = LocalDate.now();
+    }
+
+    @Test
+    @DisplayName("Should successfully instantiate the record using builder and return correct values")
+    void shouldCreateProductEntityResponseDTOUsingBuilder() {
+        ProductEntityResponseDTO dto = ProductEntityResponseDTO.builder()
+                .id(id)
+                .name(name)
+                .active(active)
+                .createdAt(createdAt)
                 .build();
 
-        assertEquals(1L, dto.id());
-        assertEquals("Teclado Mecânico", dto.name());
-        assertTrue(dto.active());
-        assertEquals(date, dto.createdAt());
+        assertAll(
+                () -> assertEquals(id, dto.id()),
+                () -> assertEquals(name, dto.name()),
+                () -> assertEquals(active, dto.active()),
+                () -> assertEquals(createdAt, dto.createdAt())
+        );
+    }
+
+    @Test
+    @DisplayName("Should verify equality between two instances with same values")
+    void shouldVerifyEquality() {
+        ProductEntityResponseDTO dto1 = new ProductEntityResponseDTO(id, name, active, createdAt);
+        ProductEntityResponseDTO dto2 = new ProductEntityResponseDTO(id, name, active, createdAt);
+        ProductEntityResponseDTO dto3 = new ProductEntityResponseDTO(2L, "Tablet", false, createdAt);
+
+        assertAll(
+                () -> assertEquals(dto1, dto2),
+                () -> assertEquals(dto1.hashCode(), dto2.hashCode()),
+                () -> assertNotEquals(dto1, dto3)
+        );
+    }
+
+    @Test
+    @DisplayName("Should verify if toString method contains all record fields")
+    void shouldVerifyToString() {
+        ProductEntityResponseDTO dto = new ProductEntityResponseDTO(id, name, active, createdAt);
+        String toString = dto.toString();
+
+        assertAll(
+                () -> assertTrue(toString.contains("id=" + id)),
+                () -> assertTrue(toString.contains("name=" + name)),
+                () -> assertTrue(toString.contains("active=" + active)),
+                () -> assertTrue(toString.contains("createdAt=" + createdAt))
+        );
     }
 }

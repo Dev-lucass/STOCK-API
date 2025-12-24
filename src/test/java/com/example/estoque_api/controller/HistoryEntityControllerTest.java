@@ -4,79 +4,92 @@ import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.service.HistoryEntityService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.time.LocalDate;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(HistoryEntityController.class)
-@ExtendWith(MockitoExtension.class)
 class HistoryEntityControllerTest {
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
 
     @MockitoBean
     private HistoryEntityService service;
 
-    private HistoryEntityResponseDTO history1;
-    private HistoryEntityResponseDTO history2;
+    private HistoryEntityResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
-        history1 = HistoryEntityResponseDTO.builder()
-                .userId(1L)
-                .productId(10L)
+        responseDTO = HistoryEntityResponseDTO.builder()
+                .historyId(1L)
+                .inventoryId("INV-001")
+                .userId(10L)
+                .productId(5L)
+                .quantityTaken(50)
                 .action(InventoryAction.TAKE)
-                .quantity(5)
-                .createdAt(LocalDate.now())
-                .build();
-
-        history2 = HistoryEntityResponseDTO.builder()
-                .userId(2L)
-                .productId(11L)
-                .action(InventoryAction.RETURN)
-                .quantity(3)
                 .createdAt(LocalDate.now())
                 .build();
     }
 
     @Test
-    void should_return_history_list_successfully() throws Exception {
-        when(service.findAll()).thenReturn(List.of(history1, history2));
+    @DisplayName("Should return status 200 and a list of history records")
+    void shouldReturnAllHistory() throws Exception {
+        when(service.findAll()).thenReturn(List.of(responseDTO));
 
-        mvc.perform(get("/api/v1/history")
-                        .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/history")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].userId").value(history1.userId()))
-                .andExpect(jsonPath("$[0].productId").value(history1.productId()))
-                .andExpect(jsonPath("$[0].action").value(history1.action().name()))
-                .andExpect(jsonPath("$[0].quantity").value(history1.quantity()))
-                .andExpect(jsonPath("$[0].createdAt").value(history1.createdAt().toString()))
-                .andExpect(jsonPath("$[1].userId").value(history2.userId()))
-                .andExpect(jsonPath("$[1].productId").value(history2.productId()))
-                .andExpect(jsonPath("$[1].action").value(history2.action().name()))
-                .andExpect(jsonPath("$[1].quantity").value(history2.quantity()))
-                .andExpect(jsonPath("$[1].createdAt").value(history2.createdAt().toString()));
+                .andExpect(jsonPath("$[0].historyId").value(1))
+                .andExpect(jsonPath("$[0].inventoryId").value("INV-001"))
+                .andExpect(jsonPath("$[0].action").value("TAKE"));
     }
 
     @Test
-    void should_return_empty_history_list() throws Exception {
-        when(service.findAll()).thenReturn(List.of());
+    @DisplayName("Should return status 200 and a paginated filter result")
+    void shouldReturnFilteredHistory() throws Exception {
+        Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of(responseDTO));
 
-        mvc.perform(get("/api/v1/history")
-                        .accept(MediaType.APPLICATION_JSON))
+        when(service.filterHistory(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/history/filterHistory")
+                        .param("InventoryAction", "TAKE")
+                        .param("quantityInitial", "50")
+                        .param("pageNumber", "0")
+                        .param("pageSize", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content[0].historyId").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("Should return status 200 even with empty filter parameters")
+    void shouldHandleEmptyFilterParameters() throws Exception {
+        Page<HistoryEntityResponseDTO> emptyPage = new PageImpl<>(List.of());
+
+        when(service.filterHistory(isNull(), isNull(), isNull(), isNull(), anyInt(), anyInt()))
+                .thenReturn(emptyPage);
+
+        mockMvc.perform(get("/api/v1/history/filterHistory")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isEmpty());
     }
 }

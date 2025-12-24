@@ -1,25 +1,63 @@
 package com.example.estoque_api.dto.request;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TakeFromInventoryTest {
 
     @Test
-    void should_create_take_from_inventory_dto() {
-        var dto = new TakeFromInventory(1L, 5, 10L);
+    @DisplayName("Should successfully instantiate the record and return correct values")
+    void shouldCreateTakeFromInventoryAndReturnCorrectValues() {
+        Long expectedUserId = 1L;
+        String expectedInventoryId = "INV-999";
+        int expectedQuantityTaken = 5;
+        int expectedTotalQuantityTaken = 50;
 
-        assertEquals(1L, dto.userId());
-        assertEquals(5, dto.quantity());
-        assertEquals(10L, dto.productId());
+        TakeFromInventory dto = new TakeFromInventory(
+                expectedUserId,
+                expectedInventoryId,
+                expectedQuantityTaken,
+                expectedTotalQuantityTaken
+        );
+
+        assertAll(
+                () -> assertEquals(expectedUserId, dto.userId()),
+                () -> assertEquals(expectedInventoryId, dto.inventoryId()),
+                () -> assertEquals(expectedQuantityTaken, dto.quantityTaken()),
+                () -> assertEquals(expectedTotalQuantityTaken, dto.totalQuantityTaken())
+        );
     }
 
     @Test
-    void should_allow_any_values_when_not_validated() {
-        var dto = new TakeFromInventory(null, -10, null);
+    @DisplayName("Should verify equality between two instances with same values")
+    void shouldVerifyEquality() {
+        TakeFromInventory dto1 = new TakeFromInventory(1L, "A1", 10, 20);
+        TakeFromInventory dto2 = new TakeFromInventory(1L, "A1", 10, 20);
+        TakeFromInventory dto3 = new TakeFromInventory(2L, "B2", 5, 15);
 
-        assertNull(dto.userId());
-        assertEquals(-10, dto.quantity());
-        assertNull(dto.productId());
+        assertAll(
+                () -> assertEquals(dto1, dto2),
+                () -> assertEquals(dto1.hashCode(), dto2.hashCode()),
+                () -> assertNotEquals(dto1, dto3)
+        );
+    }
+
+    @Test
+    @DisplayName("Should verify if toString method contains all record fields")
+    void shouldVerifyToString() {
+        TakeFromInventory dto = new TakeFromInventory(1L, "REF-123", 10, 100);
+        String toString = dto.toString();
+
+        assertAll(
+                () -> assertTrue(toString.contains("userId=1")),
+                () -> assertTrue(toString.contains("inventoryId=REF-123")),
+                () -> assertTrue(toString.contains("quantityTaken=10")),
+                () -> assertTrue(toString.contains("totalQuantityTaken=100"))
+        );
     }
 }

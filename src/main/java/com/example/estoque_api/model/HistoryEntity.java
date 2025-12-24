@@ -14,16 +14,15 @@ import lombok.NoArgsConstructor;
 @Data
 public class HistoryEntity {
 
-    @EmbeddedId
-    private HistoryId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("userId")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("productId")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
 
@@ -32,5 +31,11 @@ public class HistoryEntity {
     private InventoryAction action;
 
     @Column(nullable = false)
-    private int quantity;
+    private String inventoryId;
+
+    @Column(nullable = false)
+    private int quantityTaken;
+
+    @Column(nullable = true)
+    private int totalQuantityTaken;
 }

@@ -1,15 +1,13 @@
 package com.example.estoque_api.globalHandlerException;
 
 import com.example.estoque_api.dto.response.error.*;
-import com.example.estoque_api.exceptions.DuplicateResouceException;
-import com.example.estoque_api.exceptions.ErrorReturnToInventoryResponseException;
-import com.example.estoque_api.exceptions.InvalidQuantityException;
-import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.time.LocalDate;
 
 @RestControllerAdvice
@@ -58,6 +56,16 @@ public class GlobalHandlerException {
         );
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseErrorInvalidQuantity handleIllegalArgument(IllegalArgumentException ex) {
+        return new ResponseErrorInvalidQuantity(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDate.now()
+        );
+    }
+
     @ExceptionHandler(InvalidQuantityException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseErrorInvalidQuantity invalildQuantity(InvalidQuantityException ex) {
@@ -73,6 +81,26 @@ public class GlobalHandlerException {
     public ResponseErrorReturnToInventory returnToInventory(ErrorReturnToInventoryResponseException ex) {
         return new ResponseErrorReturnToInventory(
                 HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDate.now()
+        );
+    }
+
+    @ExceptionHandler(QuantityRestoredException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseErrorReturnToInventory quantityRestored(QuantityRestoredException ex) {
+        return new ResponseErrorReturnToInventory(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                LocalDate.now()
+        );
+    }
+
+    @ExceptionHandler(QuantitySoldOutException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseErrorReturnToInventory quantitySoldOut(QuantitySoldOutException ex) {
+        return new ResponseErrorReturnToInventory(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
                 ex.getMessage(),
                 LocalDate.now()
         );

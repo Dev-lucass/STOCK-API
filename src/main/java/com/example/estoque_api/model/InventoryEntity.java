@@ -18,9 +18,22 @@ public class InventoryEntity {
     private Long id;
 
     @Column(nullable = false)
-    private int quantity;
+    private int quantityInitial;
+
+    @Column(nullable = false)
+    private int quantityCurrent;
+
+    @Column(nullable = false)
+    private String inventoryId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false, unique = true)
     private ProductEntity product;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.quantityCurrent == 0) {
+            this.quantityCurrent = this.quantityInitial;
+        }
+    }
 }

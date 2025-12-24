@@ -55,19 +55,26 @@ public class UserEntityService {
         entity.setActive(false);
     }
 
-    public Page<UserEntity> filterByUsernamePageable(String username, int pageNumber , int pageSize) {
-        Specification<UserEntity> specification  = null;
+    public Page<UserEntity> filterByUsernamePageable(String username, int pageNumber, int pageSize) {
 
-        if (username != null) {
-            specification = likeUsername(username);
-        }
+        var specification = buildSpecification(username);
 
         Pageable pageable = PageRequest.of(
                 pageNumber,
                 pageSize,
                 Sort.by("username").ascending());
 
-        return repository.findAll(specification,pageable);
+        return repository.findAll(specification, pageable);
+    }
+
+    private Specification<UserEntity> buildSpecification(String username) {
+        Specification<UserEntity> specification = null;
+
+        if (username != null) {
+            specification = likeUsername(username);
+        }
+
+        return specification;
     }
 
     private void validateDuplicateOnCreate(String cpf) {

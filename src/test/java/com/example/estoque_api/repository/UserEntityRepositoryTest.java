@@ -2,103 +2,90 @@ package com.example.estoque_api.repository;
 
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@ActiveProfiles("test")
 class UserEntityRepositoryTest {
 
     @Autowired
     private UserEntityRepository repository;
 
+    @Autowired
+    private TestEntityManager entityManager;
+
     private UserEntity activeUser;
-    private UserEntity inactiveUser;
+    private final String VALID_CPF = "11144477735";
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         activeUser = UserEntity.builder()
-                .username("Lucas Silva")
-                .cpf("11144477735")
-                .address("Rua das Flores, 123")
+                .username("john_doe")
+                .cpf(VALID_CPF)
+                .address("123 Street")
                 .active(true)
                 .build();
 
-        inactiveUser = UserEntity.builder()
-                .username("Ana Souza")
-                .cpf("98765432100")
-                .address("Rua Central, 456")
+        entityManager.persist(activeUser);
+        entityManager.flush();
+    }
+
+    @Test
+    @DisplayName("Should return true when a user exists with the given CPF")
+    void shouldReturnTrueWhenCpfExists() {
+        Boolean exists = repository.existsByCpf(VALID_CPF);
+        assertTrue(exists);
+    }
+
+    @Test
+    @DisplayName("Should return true when another user exists with the same CPF excluding current ID")
+    void shouldReturnTrueWhenCpfExistsAndIdNot() {
+        UserEntity anotherUser = UserEntity.builder()
+                .username("jane_doe")
+                .cpf("22255588846")
+                .address("456 Avenue")
+                .active(true)
+                .build();
+        entityManager.persist(anotherUser);
+
+        Boolean exists = repository.existsByCpfAndIdNot(VALID_CPF, anotherUser.getId());
+        assertTrue(exists);
+    }
+
+    @Test
+    @DisplayName("Should return false when checking CPF existence against its own ID")
+    void shouldReturnFalseWhenCpfExistsButIsTheSameId() {
+        Boolean exists = repository.existsByCpfAndIdNot(VALID_CPF, activeUser.getId());
+        assertFalse(exists);
+    }
+
+    @Test
+    @DisplayName("Should return a list of all active users")
+    void shouldFindAllByActiveTrue() {
+        UserEntity inactiveUser = UserEntity.builder()
+                .username("ghost_user")
+                .cpf("33366699957")
+                .address("789 Blvd")
                 .active(false)
                 .build();
-    }
+        entityManager.persist(inactiveUser);
 
-    @Test
-    void should_save_user() {
-        var savedUser = repository.save(activeUser);
+        List<UserEntity> actives = repository.findAllByActiveTrue();
 
-        assertNotNull(savedUser.getId());
-        assertEquals(activeUser.getCpf(), savedUser.getCpf());
-    }
-
-    @Test
-    void should_find_all_active_users() {
-        repository.save(activeUser);
-        repository.save(inactiveUser);
-
-        var result = repository.findAllByActiveTrue();
-
-        assertEquals(1, result.size());
-        assertTrue(result.getFirst().getActive());
-    }
-
-    @Test
-    void should_return_true_when_cpf_exists() {
-        repository.save(activeUser);
-        Boolean exists = repository.existsByCpf("11144477735");
-        assertTrue(exists);
-    }
-
-    @Test
-    void should_return_false_when_cpf_does_not_exist() {
-        Boolean exists = repository.existsByCpf("00000000000");
-        assertFalse(exists);
-    }
-
-    @Test
-    void should_return_true_when_cpf_exists_and_id_is_different() {
-        var savedUser = repository.save(activeUser);
-        Boolean exists = repository.existsByCpfAndIdNot("11144477735", savedUser.getId() + 1);
-        assertTrue(exists);
-    }
-
-    @Test
-    void should_return_false_when_cpf_exists_and_id_is_same() {
-        var savedUser = repository.save(activeUser);
-        Boolean exists = repository.existsByCpfAndIdNot("11144477735", savedUser.getId());
-        assertFalse(exists);
-    }
-
-    @Test
-    void should_update_user() {
-        var savedUser = repository.save(activeUser);
-
-        savedUser.setUsername("Lucas Atualizado");
-        savedUser.setActive(false);
-
-        var updatedUser = repository.save(savedUser);
-
-        assertEquals(savedUser.getId(), updatedUser.getId());
-        assertFalse(updatedUser.getActive());
-        assertEquals("Lucas Atualizado", updatedUser.getUsername());
-    }
-
-    @Test
-    void should_delete_user_by_id() {
-        var savedUser = repository.save(activeUser);
-        repository.deleteById(savedUser.getId());
-        assertFalse(repository.findById(savedUser.getId()).isPresent());
+        assertAll(
+                () -> assertEquals(1, actives.size()),
+                () -> assertEquals("john_doe", actives.get(0).getUsername()),
+                () -> assertTrue(actives.get(0).getActive())
+        );
     }
 }

@@ -6,9 +6,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
 @Builder
-public record HistoryEntityResponseDTO(Long userId,
+public record HistoryEntityResponseDTO(Long historyId,
+                                                                           String inventoryId,
+                                                                           Long userId,
                                                                            Long productId,
                                                                            InventoryAction action,
-                                                                           int quantity,
+                                                                           int quantityTaken,
                                                                            @DateTimeFormat(pattern = "dd/MM/yyyy")
                                                                            LocalDate createdAt) {}

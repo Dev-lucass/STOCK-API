@@ -5,48 +5,43 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ResponseErrorInvalidArgumentsTest {
+class ResponseErrorReturnToInventoryTest {
 
     private int statusCode;
+    private String message;
     private LocalDate dateError;
-    private List<ResponseErrorInvalidFields> invalidFields;
 
     @BeforeEach
     void setUp() {
         statusCode = 400;
+        message = "Cannot return more items than were originally taken";
         dateError = LocalDate.now();
-        invalidFields = List.of(
-                new ResponseErrorInvalidFields("name", "Name is required"),
-                new ResponseErrorInvalidFields("cpf", "Invalid CPF format")
-        );
     }
 
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
-    void shouldCreateResponseErrorInvalidArgumentsAndReturnCorrectValues() {
-        ResponseErrorInvalidArguments dto = new ResponseErrorInvalidArguments(statusCode, dateError, invalidFields);
+    void shouldCreateResponseErrorReturnToInventoryAndReturnCorrectValues() {
+        ResponseErrorReturnToInventory dto = new ResponseErrorReturnToInventory(statusCode, message, dateError);
 
         assertAll(
                 () -> assertEquals(statusCode, dto.statusCode()),
-                () -> assertEquals(dateError, dto.dateError()),
-                () -> assertEquals(invalidFields, dto.invalidFields()),
-                () -> assertEquals(2, dto.invalidFields().size())
+                () -> assertEquals(message, dto.message()),
+                () -> assertEquals(dateError, dto.dateError())
         );
     }
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        ResponseErrorInvalidArguments dto1 = new ResponseErrorInvalidArguments(statusCode, dateError, invalidFields);
-        ResponseErrorInvalidArguments dto2 = new ResponseErrorInvalidArguments(statusCode, dateError, invalidFields);
-        ResponseErrorInvalidArguments dto3 = new ResponseErrorInvalidArguments(500, dateError, List.of());
+        ResponseErrorReturnToInventory dto1 = new ResponseErrorReturnToInventory(statusCode, message, dateError);
+        ResponseErrorReturnToInventory dto2 = new ResponseErrorReturnToInventory(statusCode, message, dateError);
+        ResponseErrorReturnToInventory dto3 = new ResponseErrorReturnToInventory(409, "Different error", dateError);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -58,13 +53,13 @@ class ResponseErrorInvalidArgumentsTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        ResponseErrorInvalidArguments dto = new ResponseErrorInvalidArguments(statusCode, dateError, invalidFields);
+        ResponseErrorReturnToInventory dto = new ResponseErrorReturnToInventory(statusCode, message, dateError);
         String toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("statusCode=" + statusCode)),
-                () -> assertTrue(toString.contains("dateError=" + dateError)),
-                () -> assertTrue(toString.contains("invalidFields=" + invalidFields))
+                () -> assertTrue(toString.contains("message=" + message)),
+                () -> assertTrue(toString.contains("dateError=" + dateError))
         );
     }
 }

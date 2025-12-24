@@ -7,6 +7,7 @@ import lombok.Builder;
 
 @Builder
 public record HistoryEntityDTO(UserEntity user,
-                                                          ProductEntity product,
-                                                          InventoryAction action,
-                                                          int quantity) {}
+                                                           String inventoryId,
+                                                           ProductEntity product,
+                                                           InventoryAction action,
+                                                           int quantityTaken) {}

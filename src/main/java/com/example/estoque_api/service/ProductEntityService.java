@@ -9,8 +9,16 @@ import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.repository.ProductEntityRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
+
+import static com.example.estoque_api.repository.specs.ProductEntitySpec.likeName;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +60,28 @@ public class ProductEntityService {
     public void disableById(Long id) {
         var entity = findProductByIdOrElseThrow(id);
         entity.setActive(false);
+    }
+
+    public Page<ProductEntity> filterByNamePageable(String name, int pageNumber, int pageSize) {
+
+        var specification = buildSpecification(name);
+
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by("name").ascending());
+
+        return repository.findAll(specification, pageable);
+    }
+
+    private Specification<ProductEntity> buildSpecification(String name) {
+        Specification<ProductEntity> specification = null;
+
+        if (name != null) {
+            specification = likeName(name);
+        }
+
+        return specification;
     }
 
     private void validateDuplicateOnCreate(String name) {

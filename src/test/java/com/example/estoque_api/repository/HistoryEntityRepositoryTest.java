@@ -2,126 +2,86 @@ package com.example.estoque_api.repository;
 
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.HistoryEntity;
-import com.example.estoque_api.model.HistoryId;
 import com.example.estoque_api.model.ProductEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@ActiveProfiles("test")
 class HistoryEntityRepositoryTest {
 
     @Autowired
-    private HistoryEntityRepository historyRepository;
+    private HistoryEntityRepository repository;
 
     @Autowired
-    private UserEntityRepository userRepository;
-
-    @Autowired
-    private ProductEntityRepository productRepository;
+    private TestEntityManager entityManager;
 
     private UserEntity user;
     private ProductEntity product;
-    private HistoryId historyId;
 
     @BeforeEach
-    void setup() {
-        user = userRepository.save(
-                UserEntity.builder()
-                        .username("Lucas Silva")
-                        .cpf("11144477735")
-                        .address("Rua das Flores, 123")
-                        .active(true)
-                        .build()
-        );
-
-        product = productRepository.save(
-                ProductEntity.builder()
-                        .name("Notebook")
-                        .active(true)
-                        .build()
-        );
-
-        historyId = HistoryId.builder()
-                .userId(user.getId())
-                .productId(product.getId())
-                .createdAt(LocalDate.now())
+    void setUp() {
+        user = UserEntity.builder()
+                .username("tester")
+                .cpf("11144477735")
+                .address("Test Street")
                 .build();
+        entityManager.persist(user);
+
+        product = ProductEntity.builder()
+                .name("Test Product")
+                .active(true)
+                .build();
+        entityManager.persist(product);
     }
 
     @Test
-    void should_save_history() {
-        var history = HistoryEntity.builder()
-                .id(historyId)
+    @DisplayName("Should return true when a history record exists for the user and action")
+    void shouldReturnTrueWhenHistoryExists() {
+        HistoryEntity history = HistoryEntity.builder()
                 .user(user)
                 .product(product)
+                .inventoryId("INV-001")
+                .quantityTaken(10)
                 .action(InventoryAction.TAKE)
-                .quantity(10)
                 .build();
+        entityManager.persist(history);
+        entityManager.flush();
 
-        var savedHistory = historyRepository.save(history);
+        Boolean exists = repository.existsByUserAndAction(user, InventoryAction.TAKE);
 
-        assertNotNull(savedHistory);
-        assertEquals(InventoryAction.TAKE, savedHistory.getAction());
-        assertEquals(10, savedHistory.getQuantity());
-        assertEquals(user.getId(), savedHistory.getUser().getId());
-        assertEquals(product.getId(), savedHistory.getProduct().getId());
+        assertTrue(exists);
     }
 
     @Test
-    void should_find_history_by_user() {
-        historyRepository.save(
-                HistoryEntity.builder()
-                        .id(historyId)
-                        .user(user)
-                        .product(product)
-                        .action(InventoryAction.RETURN)
-                        .quantity(3)
-                        .build()
-        );
+    @DisplayName("Should return false when no history record exists for the user and action")
+    void shouldReturnFalseWhenHistoryDoesNotExist() {
+        Boolean exists = repository.existsByUserAndAction(user, InventoryAction.RETURN);
 
-        var result = historyRepository.findByUser(user);
-
-        assertTrue(result.isPresent());
-        assertEquals(InventoryAction.RETURN, result.get().getAction());
+        assertFalse(exists);
     }
 
     @Test
-    void should_update_history_quantity() {
-        var history = historyRepository.save(
-                HistoryEntity.builder()
-                        .id(historyId)
-                        .user(user)
-                        .product(product)
-                        .action(InventoryAction.TAKE)
-                        .quantity(5)
-                        .build()
-        );
+    @DisplayName("Should return false when record exists for the user but with a different action")
+    void shouldReturnFalseWhenActionDiffers() {
+        HistoryEntity history = HistoryEntity.builder()
+                .user(user)
+                .product(product)
+                .inventoryId("INV-001")
+                .quantityTaken(10)
+                .action(InventoryAction.TAKE)
+                .build();
+        entityManager.persist(history);
 
-        history.setQuantity(20);
-        var updatedHistory = historyRepository.save(history);
-        assertEquals(20, updatedHistory.getQuantity());
-    }
+        Boolean exists = repository.existsByUserAndAction(user, InventoryAction.RETURN);
 
-    @Test
-    void should_delete_history_by_id() {
-        var history = historyRepository.save(
-                HistoryEntity.builder()
-                        .id(historyId)
-                        .user(user)
-                        .product(product)
-                        .action(InventoryAction.TAKE)
-                        .quantity(2)
-                        .build()
-        );
-
-        historyRepository.deleteById(history.getId());
-        assertTrue(historyRepository.findById(history.getId()).isEmpty());
+        assertFalse(exists);
     }
 }

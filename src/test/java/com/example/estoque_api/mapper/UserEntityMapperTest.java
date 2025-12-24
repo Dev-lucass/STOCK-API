@@ -1,70 +1,73 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.request.UserEntityDTO;
+import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class UserEntityMapperTest {
 
     private UserEntityMapper mapper;
+    private UserEntityDTO userDTO;
+    private UserEntity userEntity;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         mapper = new UserEntityMapper();
-    }
 
-    @Test
-    void should_map_dto_to_entity() {
-        var dto = new UserEntityDTO(
-                "Lucas Silva",
-                "11144477735",
-                "Rua das Flores, 123"
-        );
+        userDTO = new UserEntityDTO("john_doe", "123.456.789-00", "Main St, 123");
 
-        var entity = mapper.toEntityUser(dto);
-
-        assertEquals("Lucas Silva", entity.getUsername());
-        assertEquals("11144477735", entity.getCpf());
-        assertEquals("Rua das Flores, 123", entity.getAddress());
-        assertNull(entity.getId());
-    }
-
-    @Test
-    void should_map_entity_to_response_dto() {
-        var entity = UserEntity.builder()
+        userEntity = UserEntity.builder()
                 .id(1L)
-                .username("Lucas Silva")
+                .username("jane_doe")
+                .cpf("000.000.000-00")
+                .address("Old St, 456")
                 .build();
-
-        var response = mapper.toResponseEntityUser(entity);
-
-        assertEquals(1L, response.id());
-        assertEquals("Lucas Silva", response.username());
-        assertEquals(LocalDate.now(), response.createdAt());
     }
 
     @Test
-    void should_update_entity_from_dto() {
-        var entity = UserEntity.builder()
-                .username("Nome Antigo")
-                .cpf("00000000000")
-                .address("Endereco Antigo")
-                .build();
+    @DisplayName("Should map UserEntityDTO to UserEntity successfully")
+    void shouldMapDtoToEntityUser() {
+        UserEntity result = mapper.toEntityUser(userDTO);
 
-        var dto = new UserEntityDTO(
-                "Nome Novo",
-                "11144477735",
-                "Endereco Novo"
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(userDTO.username(), result.getUsername()),
+                () -> assertEquals(userDTO.cpf(), result.getCpf()),
+                () -> assertEquals(userDTO.address(), result.getAddress())
         );
+    }
 
-        mapper.updateEntity(entity, dto);
+    @Test
+    @DisplayName("Should map UserEntity to UserEntityResponseDTO successfully")
+    void shouldMapEntityToResponseEntityUser() {
+        UserEntityResponseDTO result = mapper.toResponseEntityUser(userEntity);
 
-        assertEquals("Nome Novo", entity.getUsername());
-        assertEquals("11144477735", entity.getCpf());
-        assertEquals("Endereco Novo", entity.getAddress());
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(userEntity.getId(), result.id()),
+                () -> assertEquals(userEntity.getUsername(), result.username()),
+                () -> assertEquals(LocalDate.now(), result.createdAt())
+        );
+    }
+
+    @Test
+    @DisplayName("Should update existing UserEntity with DTO data")
+    void shouldUpdateEntity() {
+        mapper.updateEntity(userEntity, userDTO);
+
+        assertAll(
+                () -> assertEquals(userDTO.username(), userEntity.getUsername()),
+                () -> assertEquals(userDTO.cpf(), userEntity.getCpf()),
+                () -> assertEquals(userDTO.address(), userEntity.getAddress())
+        );
     }
 }

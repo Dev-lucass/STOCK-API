@@ -1,66 +1,71 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.request.ProductEntityDTO;
+import com.example.estoque_api.dto.response.entity.ProductEntityResponseDTO;
 import com.example.estoque_api.model.ProductEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ProductEntityMapperTest {
 
     private ProductEntityMapper mapper;
+    private ProductEntityDTO productDTO;
+    private ProductEntity productEntity;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         mapper = new ProductEntityMapper();
-    }
-
-    @Test
-    void should_map_dto_to_entity() {
-        var dto = new ProductEntityDTO(
-                "Teclado Mecânico",
-                true
-        );
-
-        var entity = mapper.toEntityProduct(dto);
-
-        assertEquals("Teclado Mecânico", entity.getName());
-        assertTrue(entity.getActive());
-        assertNull(entity.getId());
-    }
-
-    @Test
-    void should_map_entity_to_response_dto() {
-        var entity = ProductEntity.builder()
+        
+        productDTO = new ProductEntityDTO("Keyboard Mechanical", true);
+        
+        productEntity = ProductEntity.builder()
                 .id(1L)
-                .name("Teclado Mecânico")
+                .name("Mouse Optical")
                 .active(true)
                 .build();
-
-        var response = mapper.toResponseEntityProduct(entity);
-
-        assertEquals(1L, response.id());
-        assertEquals("Teclado Mecânico", response.name());
-        assertTrue(response.active());
-        assertEquals(LocalDate.now(), response.createdAt());
     }
 
     @Test
-    void should_update_entity_from_dto() {
-        var entity = ProductEntity.builder()
-                .name("Produto Antigo")
-                .active(false)
-                .build();
+    @DisplayName("Should map ProductEntityDTO to ProductEntity successfully")
+    void shouldMapDtoToEntityProduct() {
+        ProductEntity result = mapper.toEntityProduct(productDTO);
 
-        var dto = new ProductEntityDTO(
-                "Produto Novo",
-                true
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(productDTO.name(), result.getName()),
+                () -> assertEquals(productDTO.active(), result.getActive())
         );
+    }
 
-        mapper.updateEntity(entity, dto);
+    @Test
+    @DisplayName("Should map ProductEntity to ProductEntityResponseDTO successfully")
+    void shouldMapEntityToResponseEntityProduct() {
+        ProductEntityResponseDTO result = mapper.toResponseEntityProduct(productEntity);
 
-        assertEquals("Produto Novo", entity.getName());
-        assertTrue(entity.getActive());
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(productEntity.getId(), result.id()),
+                () -> assertEquals(productEntity.getName(), result.name()),
+                () -> assertEquals(productEntity.getActive(), result.active()),
+                () -> assertEquals(LocalDate.now(), result.createdAt())
+        );
+    }
+
+    @Test
+    @DisplayName("Should update existing ProductEntity with DTO data")
+    void shouldUpdateEntity() {
+        mapper.updateEntity(productEntity, productDTO);
+
+        assertAll(
+                () -> assertEquals(productDTO.name(), productEntity.getName()),
+                () -> assertEquals(productDTO.active(), productEntity.getActive())
+        );
     }
 }
