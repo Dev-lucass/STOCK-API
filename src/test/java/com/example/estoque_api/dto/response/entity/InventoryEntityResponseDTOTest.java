@@ -75,7 +75,7 @@ class InventoryEntityResponseDTOTest {
         assertAll(
                 () -> assertTrue(toString.contains("id=" + id)),
                 () -> assertTrue(toString.contains("inventoryId=" + inventoryId)),
-                () -> assertTrue(toString.contains("quantityInitial=" + quantityInitial)),
+                () -> assertTrue(toString.contains("quantity=" + quantityInitial)),
                 () -> assertTrue(toString.contains("quantityCurrent=" + quantityCurrent)),
                 () -> assertTrue(toString.contains("idTool=" + idTool)),
                 () -> assertTrue(toString.contains("createdAt=" + createdAt))

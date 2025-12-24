@@ -105,4 +105,14 @@ public class GlobalHandlerException {
                 LocalDate.now()
         );
     }
+
+    @ExceptionHandler(DamagedToolException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseErrorReturnToInventory damageTool(DamagedToolException ex) {
+        return new ResponseErrorReturnToInventory(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                ex.getMessage(),
+                LocalDate.now()
+        );
+    }
 }

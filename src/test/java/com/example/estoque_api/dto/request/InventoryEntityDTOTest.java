@@ -19,7 +19,7 @@ class InventoryEntityDTOTest {
         InventoryEntityDTO dto = new InventoryEntityDTO(expectedQuantity, expectedIdTool);
 
         assertAll(
-                () -> assertEquals(expectedQuantity, dto.quantityInitial()),
+                () -> assertEquals(expectedQuantity, dto.quantity()),
                 () -> assertEquals(expectedIdTool, dto.idTool())
         );
     }
@@ -45,7 +45,7 @@ class InventoryEntityDTOTest {
         String toString = dto.toString();
 
         assertAll(
-                () -> assertTrue(toString.contains("quantityInitial=10")),
+                () -> assertTrue(toString.contains("quantity=10")),
                 () -> assertTrue(toString.contains("idTool=1"))
         );
     }

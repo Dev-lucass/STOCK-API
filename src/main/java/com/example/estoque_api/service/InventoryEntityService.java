@@ -8,6 +8,7 @@ import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponse
 import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.*;
+import com.example.estoque_api.mapper.HistoryEntityMapper;
 import com.example.estoque_api.mapper.InventoryEntityMapper;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
@@ -32,12 +33,15 @@ public class InventoryEntityService {
 
     private final InventoryEntityRepository repository;
     private final InventoryEntityMapper mapper;
+    private final HistoryEntityMapper historyMapper;
     private final ToolEntityService toolService;
     private final UserEntityService userService;
     private final HistoryEntityService historyService;
 
     public InventoryEntityResponseDTO save(InventoryEntityDTO dto) {
+
         var tool = toolService.findToolByIdOrElseThrow(dto.idTool());
+
         validationInventoryToolIsDuplicatedOnCreate(tool);
 
         var inventoryEntityMapped = mapper
@@ -63,10 +67,25 @@ public class InventoryEntityService {
                 .findToolByIdOrElseThrow(dto.idTool());
 
         validateInventoryTooltIsDuplicatedOnUpdate(tool, id);
-        mapper.updateEntity(inventory, dto, tool);
+
+        int currentQuantity = calculateCurrentQuantity(inventory, dto);
+        int initialQuantity = calculateInitialQuantity(inventory, dto);
+
+        mapper.updateEntity(currentQuantity,
+                initialQuantity,
+                tool,
+                inventory);
 
         var inventoryUpdated = repository.save(inventory);
         return mapper.toResponseEntityInventory(inventoryUpdated);
+    }
+
+    private int calculateCurrentQuantity(InventoryEntity inventory, InventoryEntityDTO dto) {
+        return inventory.getQuantityCurrent() + dto.quantity();
+    }
+
+    private int calculateInitialQuantity(InventoryEntity inventory, InventoryEntityDTO dto) {
+        return inventory.getQuantityInitial() + dto.quantity();
     }
 
     public InventoryEntityTakeResponseDTO takeFromInventory(TakeFromInventory fromInventory) {
@@ -77,6 +96,7 @@ public class InventoryEntityService {
         validateQuantityTaken(fromInventory.quantityTaken(),
                 inventory.getQuantityCurrent());
 
+        startUsageTool(inventory.getTool());
 
         int subtracted = subtractQuantity(inventory.getQuantityCurrent(),
                 fromInventory.quantityTaken());
@@ -84,7 +104,7 @@ public class InventoryEntityService {
         inventory.setQuantityCurrent(subtracted);
         repository.save(inventory);
 
-        var history = mapper.buildHistoryDto(
+        var history = historyMapper.buildHistoryDto(
                 fromInventory.quantityTaken(),
                 InventoryAction.TAKE,
                 inventory.getTool(),
@@ -93,7 +113,9 @@ public class InventoryEntityService {
         );
 
         saveHistory(history);
-        return mapper.toTakeInventoryResponse(inventory, fromInventory.quantityTaken());
+        return mapper.toTakeInventoryResponse(inventory,
+                fromInventory.quantityTaken(),
+                inventory.getTool().getUsageCount());
     }
 
     public InventoryEntityReturnResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
@@ -103,6 +125,8 @@ public class InventoryEntityService {
 
         validateQuantityReturn(fromInventory.quantityTaken());
         validateUserTakedFromInventory(user);
+
+        returnToolUsage(inventory.getTool());
 
         int sumQuantity = sumQuantity(inventory.getQuantityCurrent(),
                 fromInventory.quantityTaken());
@@ -116,7 +140,7 @@ public class InventoryEntityService {
         inventory.setQuantityCurrent(sumQuantity);
         repository.save(inventory);
 
-        var history = mapper.buildHistoryDto(
+        var history = historyMapper.buildHistoryDto(
                 fromInventory.quantityTaken(),
                 InventoryAction.RETURN,
                 inventory.getTool(),
@@ -125,7 +149,18 @@ public class InventoryEntityService {
         );
 
         saveHistory(history);
-        return mapper.toReturnedInventoryResponse(inventory, fromInventory.quantityTaken());
+        return mapper.toReturnedInventoryResponse(inventory,
+                fromInventory.quantityTaken(),
+                inventory.getTool().getUsageCount(),
+                inventory.getTool().getUsageTime());
+    }
+
+    private void startUsageTool(ToolEntity tool) {
+        toolService.startUsage(tool);
+    }
+
+    private void returnToolUsage(ToolEntity tool) {
+        toolService.returnTool(tool);
     }
 
     private UserEntity findByUser(Long userId) {
@@ -150,7 +185,7 @@ public class InventoryEntityService {
             inventory.setQuantityCurrent(quantityToReturn);
             repository.save(inventory);
 
-            var history = mapper.buildHistoryDto(
+            var history = historyMapper.buildHistoryDto(
                     fromInventory.quantityTaken(),
                     InventoryAction.RETURN,
                     inventory.getTool(),
@@ -159,7 +194,6 @@ public class InventoryEntityService {
             );
 
             saveHistory(history);
-        } else {
             throw new QuantityRestoredException("quantity already restored");
         }
     }
@@ -175,6 +209,9 @@ public class InventoryEntityService {
 
         if (availableQuantity == 0)
             throw new QuantitySoldOutException("quantity sold out");
+
+        if (quantityToReturn > availableQuantity)
+            throw new InvalidQuantityException("The Quantity requested must be less than available quantity");
     }
 
     private InventoryEntity findByInventoryId(String inventoryId) {
@@ -191,7 +228,7 @@ public class InventoryEntityService {
 
         Pageable pageable = PageRequest.of(pageNumber,
                 pageSize,
-                Sort.by(Sort.Order.asc("quantityInitial")));
+                Sort.by(Sort.Order.asc("quantity")));
 
         return repository
                 .findAll(specification, pageable)

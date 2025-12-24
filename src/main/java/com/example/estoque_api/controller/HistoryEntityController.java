@@ -28,7 +28,7 @@ public class HistoryEntityController {
     @ResponseStatus(HttpStatus.OK)
     public Page<HistoryEntityResponseDTO> filterHistory(
             @RequestParam(value = "InventoryAction", required = false) InventoryAction action,
-            @RequestParam(value = "quantityInitial", required = false) Integer quantity,
+            @RequestParam(value = "quantity", required = false) Integer quantity,
             @RequestParam(value = "minQuantity", required = false) Integer minQuantity,
             @RequestParam(value = "maxQuantity", required = false) Integer maxQuantity,
             @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
