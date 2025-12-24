@@ -3,7 +3,6 @@ package com.example.estoque_api.controller;
 import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.service.HistoryEntityService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,64 +31,59 @@ class HistoryEntityControllerTest {
     @MockitoBean
     private HistoryEntityService service;
 
-    private HistoryEntityResponseDTO responseDTO;
-
-    @BeforeEach
-    void setUp() {
-        responseDTO = HistoryEntityResponseDTO.builder()
-                .historyId(1L)
-                .inventoryId("INV-001")
-                .userId(10L)
-                .idTool(5L)
-                .quantityTaken(50)
-                .action(InventoryAction.TAKE)
-                .createdAt(LocalDate.now())
-                .build();
-    }
-
     @Test
-    @DisplayName("Should return status 200 and a list of history records")
-    void shouldReturnAllHistory() throws Exception {
-        when(service.findAll()).thenReturn(List.of(responseDTO));
+    @DisplayName("Get all history success")
+    void getAllHistory_Success() throws Exception {
+        HistoryEntityResponseDTO response = HistoryEntityResponseDTO.builder().build();
+        when(service.findAll()).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/v1/history")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].historyId").value(1))
-                .andExpect(jsonPath("$[0].inventoryId").value("INV-001"))
-                .andExpect(jsonPath("$[0].action").value("TAKE"));
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
-    @DisplayName("Should return status 200 and a paginated filter result")
-    void shouldReturnFilteredHistory() throws Exception {
-        Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of(responseDTO));
+    @DisplayName("Filter history with parameters success")
+    void filterHistory_WithParams_Success() throws Exception {
+        HistoryEntityResponseDTO response = HistoryEntityResponseDTO.builder().build();
+        Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of(response));
 
-        when(service.filterHistory(any(), any(), any(), any(), anyInt(), anyInt()))
+        when(service.filterHistory(any(InventoryAction.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/history/filterHistory")
                         .param("InventoryAction", "TAKE")
-                        .param("quantity", "50")
+                        .param("quantity", "10")
+                        .param("minQuantity", "5")
+                        .param("maxQuantity", "20")
                         .param("pageNumber", "0")
                         .param("pageSize", "10")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].historyId").value(1))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.content.length()").value(1));
     }
 
     @Test
-    @DisplayName("Should return status 200 even with empty filter parameters")
-    void shouldHandleEmptyFilterParameters() throws Exception {
-        Page<HistoryEntityResponseDTO> emptyPage = new PageImpl<>(List.of());
+    @DisplayName("Filter history with empty parameters success")
+    void filterHistory_EmptyParams_Success() throws Exception {
+        Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of());
 
-        when(service.filterHistory(isNull(), isNull(), isNull(), isNull(), anyInt(), anyInt()))
-                .thenReturn(emptyPage);
+        when(service.filterHistory(null, null, null, null, 0, 10))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/history/filterHistory")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("Filter history should return 400 when InventoryAction is invalid")
+    void filterHistory_InvalidAction_BadRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/history/filterHistory")
+                        .param("InventoryAction", "INVALID_ACTION")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

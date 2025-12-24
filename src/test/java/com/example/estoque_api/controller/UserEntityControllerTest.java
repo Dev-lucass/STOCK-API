@@ -10,19 +10,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserEntityController.class)
 class UserEntityControllerTest {
@@ -36,68 +37,63 @@ class UserEntityControllerTest {
     @MockitoBean
     private UserEntityService service;
 
-    private UserEntityDTO userDTO;
     private UserEntityResponseDTO responseDTO;
-    private UserEntity userEntity;
-    private final String VALID_CPF = "11144477735";
+    private UserEntityDTO requestDTO;
+    private UserEntity user;
 
     @BeforeEach
     void setUp() {
-        userDTO = new UserEntityDTO("john_doe", VALID_CPF, "Rua Teste, 123");
-
+        requestDTO = new UserEntityDTO("joao_silva", "11144477735", "rua madeireira");
         responseDTO = UserEntityResponseDTO.builder()
                 .id(1L)
-                .username("john_doe")
-                .createdAt(LocalDate.now())
+                .username("joao_silva")
                 .build();
-
-        userEntity = UserEntity.builder()
+        user = UserEntity.builder()
                 .id(1L)
-                .username("john_doe")
-                .cpf(VALID_CPF)
+                .username("joao_silva")
                 .active(true)
                 .build();
     }
 
     @Test
-    @DisplayName("Deve salvar um usuário e retornar status 201")
-    void shouldSaveUserSuccessfully() throws Exception {
+    @DisplayName("Save user returns 201 created")
+    void save_Success() throws Exception {
         when(service.save(any(UserEntityDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDTO)))
+                        .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value("john_doe"))
+                .andExpect(jsonPath("$.username").value("joao_silva"));
+    }
+
+    @Test
+    @DisplayName("Find all active users returns 200 OK")
+    void findAll_Success() throws Exception {
+        when(service.findAll()).thenReturn(List.of(responseDTO));
+
+        mockMvc.perform(get("/api/v1/user")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("joao_silva"));
+    }
+
+    @Test
+    @DisplayName("Update user returns 200 OK")
+    void update_Success() throws Exception {
+        when(service.update(anyLong(), any(UserEntityDTO.class))).thenReturn(responseDTO);
+
+        mockMvc.perform(put("/api/v1/user/{userId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
-    @DisplayName("Deve retornar lista de todos os usuários ativos")
-    void shouldReturnAllUsers() throws Exception {
-        when(service.findAll()).thenReturn(List.of(responseDTO));
-
-        mockMvc.perform(get("/api/v1/user"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].username").value("john_doe"))
-                .andExpect(jsonPath("$.length()").value(1));
-    }
-
-    @Test
-    @DisplayName("Deve atualizar um usuário e retornar status 200")
-    void shouldUpdateUserSuccessfully() throws Exception {
-        when(service.update(eq(1L), any(UserEntityDTO.class))).thenReturn(responseDTO);
-
-        mockMvc.perform(put("/api/v1/user/{userId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("john_doe"));
-    }
-
-    @Test
-    @DisplayName("Deve desativar um usuário e retornar 204")
-    void shouldDisableUserSuccessfully() throws Exception {
+    @DisplayName("Delete user returns 204 no content")
+    void delete_Success() throws Exception {
         doNothing().when(service).disableById(1L);
 
         mockMvc.perform(delete("/api/v1/user/{userId}", 1L))
@@ -105,17 +101,27 @@ class UserEntityControllerTest {
     }
 
     @Test
-    @DisplayName("Deve filtrar usuários por username e retornar página")
-    void shouldFilterUsersByUsername() throws Exception {
-        var page = new PageImpl<>(List.of(userEntity));
+    @DisplayName("Filter users by username returns paged data")
+    void filterByUsername_Success() throws Exception {
+        Page<UserEntity> page = new PageImpl<>(List.of(user));
         when(service.filterByUsernamePageable(anyString(), anyInt(), anyInt())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/user/filterByUsername")
-                        .param("username", "john")
+                        .param("username", "joao")
                         .param("pageNumber", "0")
-                        .param("pageSize", "10"))
+                        .param("pageSize", "10")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].username").value("john_doe"))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].username").value("joao_silva"));
+    }
+
+    @Test
+    @DisplayName("Save user with invalid data returns 400 bad request")
+    void save_InvalidBody_BadRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\": \"\"}"))
+                .andExpect(status().isBadRequest());
     }
 }

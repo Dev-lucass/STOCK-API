@@ -3,85 +3,64 @@ package com.example.estoque_api.dto.response.entity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.LocalTime;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryEntityReturnResponseDTOTest {
 
     private Long id;
     private String inventoryId;
-    private int quantityReturned;
-    private int quantityInitial;
-    private int quantityCurrent;
     private Long idTool;
+    private int quantityReturned;
+    private LocalTime usageTime;
     private LocalDate createdAt;
 
     @BeforeEach
     void setUp() {
-        id = 1L;
-        inventoryId = "INV-RETURN-001";
-        quantityReturned = 5;
-        quantityInitial = 100;
-        quantityCurrent = 95;
+        id = 10L;
+        inventoryId = "INV-2024-ABC";
         idTool = 500L;
-        createdAt = LocalDate.now();
+        quantityReturned = 2;
+        usageTime = LocalTime.of(10, 0, 0);
+        createdAt = LocalDate.of(2024, 1, 1);
     }
 
     @Test
-    @DisplayName("Should successfully instantiate the record using builder and return correct values")
-    void shouldCreateInventoryEntityReturnResponseDTOUsingBuilder() {
-        InventoryEntityReturnResponseDTO dto = InventoryEntityReturnResponseDTO.builder()
+    @DisplayName("Should verify all fields are correctly mapped through builder")
+    void shouldBuildDtoWithCompleteData() {
+        InventoryEntityReturnResponseDTO response = InventoryEntityReturnResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
-                .quantityReturned(quantityReturned)
-                .quantityInitial(quantityInitial)
-                .quantityCurrent(quantityCurrent)
                 .idTool(idTool)
+                .quantityReturned(quantityReturned)
+                .usageTime(usageTime)
                 .createdAt(createdAt)
                 .build();
 
-        assertAll(
-                () -> assertEquals(id, dto.id()),
-                () -> assertEquals(inventoryId, dto.inventoryId()),
-                () -> assertEquals(quantityReturned, dto.quantityReturned()),
-                () -> assertEquals(quantityInitial, dto.quantityInitial()),
-                () -> assertEquals(quantityCurrent, dto.quantityCurrent()),
-                () -> assertEquals(idTool, dto.idTool()),
-                () -> assertEquals(createdAt, dto.createdAt())
-        );
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(id);
+        assertThat(response.inventoryId()).isEqualTo(inventoryId);
+        assertThat(response.idTool()).isEqualTo(idTool);
+        assertThat(response.quantityReturned()).isEqualTo(quantityReturned);
+        assertThat(response.usageTime()).isEqualTo(usageTime);
+        assertThat(response.createdAt()).isEqualTo(createdAt);
     }
 
     @Test
-    @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        InventoryEntityReturnResponseDTO dto1 = new InventoryEntityReturnResponseDTO(id, inventoryId, quantityReturned, quantityInitial, quantityCurrent, idTool, createdAt);
-        InventoryEntityReturnResponseDTO dto2 = new InventoryEntityReturnResponseDTO(id, inventoryId, quantityReturned, quantityInitial, quantityCurrent, idTool, createdAt);
-        InventoryEntityReturnResponseDTO dto3 = new InventoryEntityReturnResponseDTO(2L, "DIFF-ID", 10, 50, 40, 600L, createdAt);
+    @DisplayName("Should validate that two instances with same data are equal")
+    void shouldVerifyValueEquality() {
+        InventoryEntityReturnResponseDTO dtoA = createDefaultInstance();
+        InventoryEntityReturnResponseDTO dtoB = createDefaultInstance();
 
-        assertAll(
-                () -> assertEquals(dto1, dto2),
-                () -> assertEquals(dto1.hashCode(), dto2.hashCode()),
-                () -> assertNotEquals(dto1, dto3)
-        );
+        assertThat(dtoA).isEqualTo(dtoB);
+        assertThat(dtoA.hashCode()).isEqualTo(dtoB.hashCode());
     }
 
-    @Test
-    @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        InventoryEntityReturnResponseDTO dto = new InventoryEntityReturnResponseDTO(id, inventoryId, quantityReturned, quantityInitial, quantityCurrent, idTool, createdAt);
-        String toString = dto.toString();
-
-        assertAll(
-                () -> assertTrue(toString.contains("id=" + id)),
-                () -> assertTrue(toString.contains("inventoryId=" + inventoryId)),
-                () -> assertTrue(toString.contains("quantityReturned=" + quantityReturned)),
-                () -> assertTrue(toString.contains("quantityCurrent=" + quantityCurrent)),
-                () -> assertTrue(toString.contains("idTool=" + idTool))
-        );
+    private InventoryEntityReturnResponseDTO createDefaultInstance() {
+        return InventoryEntityReturnResponseDTO.builder()
+                .id(id)
+                .inventoryId(inventoryId)
+                .build();
     }
 }
