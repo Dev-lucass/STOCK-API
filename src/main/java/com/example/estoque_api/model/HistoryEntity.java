@@ -24,7 +24,7 @@ public class HistoryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity product;
+    private ToolEntity tool;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

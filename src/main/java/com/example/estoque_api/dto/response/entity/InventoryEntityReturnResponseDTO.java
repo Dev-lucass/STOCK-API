@@ -10,6 +10,6 @@ public record InventoryEntityReturnResponseDTO(Long id,
                                                                                             int quantityReturned,
                                                                                             int quantityInitial,
                                                                                             int quantityCurrent,
-                                                                                            Long productId,
+                                                                                            Long idTool,
                                                                                             @DateTimeFormat(pattern = "dd/MM/yyyy")
                                                                                             LocalDate createdAt) {}

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public record HistoryEntityResponseDTO(Long historyId,
                                                                            String inventoryId,
                                                                            Long userId,
-                                                                           Long productId,
+                                                                           Long idTool,
                                                                            InventoryAction action,
                                                                            int quantityTaken,
                                                                            @DateTimeFormat(pattern = "dd/MM/yyyy")

@@ -13,7 +13,7 @@ public class HistoryEntityMapper {
         return HistoryEntity.builder()
                 .user(dto.user())
                 .inventoryId(dto.inventoryId())
-                .product(dto.product())
+                .tool(dto.tool())
                 .quantityTaken(dto.quantityTaken())
                 .action(dto.action())
                 .build();
@@ -25,7 +25,7 @@ public class HistoryEntityMapper {
                 .inventoryId(entity.getInventoryId())
                 .userId(entity.getUser().getId())
                 .quantityTaken(entity.getQuantityTaken())
-                .productId(entity.getProduct().getId())
+                .idTool(entity.getTool().getId())
                 .action(entity.getAction())
                 .createdAt(LocalDate.now())
                 .build();

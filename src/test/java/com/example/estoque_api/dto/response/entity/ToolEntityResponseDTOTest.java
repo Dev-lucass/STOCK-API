@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ProductEntityResponseDTOTest {
+class ToolEntityResponseDTOTest {
 
     private Long id;
     private String name;
@@ -28,8 +28,8 @@ class ProductEntityResponseDTOTest {
 
     @Test
     @DisplayName("Should successfully instantiate the record using builder and return correct values")
-    void shouldCreateProductEntityResponseDTOUsingBuilder() {
-        ProductEntityResponseDTO dto = ProductEntityResponseDTO.builder()
+    void shouldCreateToolEntityResponseDTOUsingBuilder() {
+        ToolEntityResponseDTO dto = ToolEntityResponseDTO.builder()
                 .id(id)
                 .name(name)
                 .active(active)
@@ -47,9 +47,9 @@ class ProductEntityResponseDTOTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        ProductEntityResponseDTO dto1 = new ProductEntityResponseDTO(id, name, active, createdAt);
-        ProductEntityResponseDTO dto2 = new ProductEntityResponseDTO(id, name, active, createdAt);
-        ProductEntityResponseDTO dto3 = new ProductEntityResponseDTO(2L, "Tablet", false, createdAt);
+        ToolEntityResponseDTO dto1 = new ToolEntityResponseDTO(id, name, active, createdAt);
+        ToolEntityResponseDTO dto2 = new ToolEntityResponseDTO(id, name, active, createdAt);
+        ToolEntityResponseDTO dto3 = new ToolEntityResponseDTO(2L, "Tablet", false, createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -61,7 +61,7 @@ class ProductEntityResponseDTOTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        ProductEntityResponseDTO dto = new ProductEntityResponseDTO(id, name, active, createdAt);
+        ToolEntityResponseDTO dto = new ToolEntityResponseDTO(id, name, active, createdAt);
         String toString = dto.toString();
 
         assertAll(

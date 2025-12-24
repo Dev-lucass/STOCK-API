@@ -40,7 +40,7 @@ class HistoryEntityControllerTest {
                 .historyId(1L)
                 .inventoryId("INV-001")
                 .userId(10L)
-                .productId(5L)
+                .idTool(5L)
                 .quantityTaken(50)
                 .action(InventoryAction.TAKE)
                 .createdAt(LocalDate.now())

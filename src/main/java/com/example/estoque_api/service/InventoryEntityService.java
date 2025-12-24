@@ -10,7 +10,7 @@ import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.*;
 import com.example.estoque_api.mapper.InventoryEntityMapper;
 import com.example.estoque_api.model.InventoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +20,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.UUID;
+
 import static com.example.estoque_api.repository.specs.InventoryEntitySpec.equalsQuantity;
 
 @Service
@@ -30,16 +32,16 @@ public class InventoryEntityService {
 
     private final InventoryEntityRepository repository;
     private final InventoryEntityMapper mapper;
-    private final ProductEntityService productService;
+    private final ToolEntityService toolService;
     private final UserEntityService userService;
     private final HistoryEntityService historyService;
 
     public InventoryEntityResponseDTO save(InventoryEntityDTO dto) {
-        var product = productService.findProductByIdOrElseThrow(dto.productId());
-        validationInventoryProductIsDuplicatedOnCreate(product);
+        var tool = toolService.findToolByIdOrElseThrow(dto.idTool());
+        validationInventoryToolIsDuplicatedOnCreate(tool);
 
         var inventoryEntityMapped = mapper
-                .toEntityInventory(dto, product);
+                .toEntityInventory(dto, tool);
 
         inventoryEntityMapped.setInventoryId(UUID.randomUUID().toString());
 
@@ -47,8 +49,8 @@ public class InventoryEntityService {
         return mapper.toResponseEntityInventory(inventorySaved);
     }
 
-    public List<InventoryEntityResponseDTO> findAllByProductIsActive() {
-        return repository.findAllByProductActiveTrue()
+    public List<InventoryEntityResponseDTO> findAllByToolIsActive() {
+        return repository.findAllByToolActiveTrue()
                 .stream()
                 .map(mapper::toResponseEntityInventory)
                 .toList();
@@ -57,11 +59,11 @@ public class InventoryEntityService {
     public InventoryEntityResponseDTO update(Long id, InventoryEntityDTO dto) {
         var inventory = findInventoryByIdOrElseThrow(id);
 
-        var product = productService
-                .findProductByIdOrElseThrow(dto.productId());
+        var tool = toolService
+                .findToolByIdOrElseThrow(dto.idTool());
 
-        validateInventoryProductIsDuplicatedOnUpdate(product, id);
-        mapper.updateEntity(inventory, dto, product);
+        validateInventoryTooltIsDuplicatedOnUpdate(tool, id);
+        mapper.updateEntity(inventory, dto, tool);
 
         var inventoryUpdated = repository.save(inventory);
         return mapper.toResponseEntityInventory(inventoryUpdated);
@@ -73,11 +75,11 @@ public class InventoryEntityService {
         var user = findByUser(fromInventory.userId());
 
         validateQuantityTaken(fromInventory.quantityTaken(),
-                                                 inventory.getQuantityCurrent());
+                inventory.getQuantityCurrent());
 
 
         int subtracted = subtractQuantity(inventory.getQuantityCurrent(),
-                                                                    fromInventory.quantityTaken());
+                fromInventory.quantityTaken());
 
         inventory.setQuantityCurrent(subtracted);
         repository.save(inventory);
@@ -85,7 +87,7 @@ public class InventoryEntityService {
         var history = mapper.buildHistoryDto(
                 fromInventory.quantityTaken(),
                 InventoryAction.TAKE,
-                inventory.getProduct(),
+                inventory.getTool(),
                 user,
                 fromInventory.inventoryId()
         );
@@ -103,13 +105,13 @@ public class InventoryEntityService {
         validateUserTakedFromInventory(user);
 
         int sumQuantity = sumQuantity(inventory.getQuantityCurrent(),
-                                                                fromInventory.quantityTaken());
+                fromInventory.quantityTaken());
 
         saveHistoryAndInventoryOnQuantityRestored(fromInventory,
-                                                                                            user,
-                                                                                            sumQuantity,
-                                                                                            inventory.getQuantityInitial(),
-                                                                                            inventory);
+                user,
+                sumQuantity,
+                inventory.getQuantityInitial(),
+                inventory);
 
         inventory.setQuantityCurrent(sumQuantity);
         repository.save(inventory);
@@ -117,7 +119,7 @@ public class InventoryEntityService {
         var history = mapper.buildHistoryDto(
                 fromInventory.quantityTaken(),
                 InventoryAction.RETURN,
-                inventory.getProduct(),
+                inventory.getTool(),
                 user,
                 fromInventory.inventoryId()
         );
@@ -151,7 +153,7 @@ public class InventoryEntityService {
             var history = mapper.buildHistoryDto(
                     fromInventory.quantityTaken(),
                     InventoryAction.RETURN,
-                    inventory.getProduct(),
+                    inventory.getTool(),
                     user,
                     fromInventory.inventoryId()
             );
@@ -188,8 +190,8 @@ public class InventoryEntityService {
         var specification = buildSpecification(quantity);
 
         Pageable pageable = PageRequest.of(pageNumber,
-                                                                            pageSize,
-                                                                            Sort.by(Sort.Order.asc("quantityInitial")));
+                pageSize,
+                Sort.by(Sort.Order.asc("quantityInitial")));
 
         return repository
                 .findAll(specification, pageable)
@@ -206,14 +208,14 @@ public class InventoryEntityService {
         return specification;
     }
 
-    private void validationInventoryProductIsDuplicatedOnCreate(ProductEntity product) {
-        if (repository.existsByProduct(product))
-            throw new DuplicateResouceException("Product already registered in inventory");
+    private void validationInventoryToolIsDuplicatedOnCreate(ToolEntity Tool) {
+        if (repository.existsByTool(Tool))
+            throw new DuplicateResouceException("Tool already registered in inventory");
     }
 
-    private void validateInventoryProductIsDuplicatedOnUpdate(ProductEntity product, Long id) {
-        if (repository.existsByProductAndIdNot(product, id))
-            throw new DuplicateResouceException("Product already registered in inventory");
+    private void validateInventoryTooltIsDuplicatedOnUpdate(ToolEntity Tool, Long id) {
+        if (repository.existsByToolAndIdNot(Tool, id))
+            throw new DuplicateResouceException("Tool already registered in inventory");
     }
 
     private InventoryEntity findInventoryByIdOrElseThrow(Long id) {

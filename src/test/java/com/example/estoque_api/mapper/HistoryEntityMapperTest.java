@@ -4,7 +4,7 @@ import com.example.estoque_api.dto.internal.HistoryEntityDTO;
 import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.HistoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +18,7 @@ class HistoryEntityMapperTest {
 
     private HistoryEntityMapper mapper;
     private UserEntity user;
-    private ProductEntity product;
+    private ToolEntity tool;
 
     @BeforeEach
     void setUp() {
@@ -27,8 +27,8 @@ class HistoryEntityMapperTest {
         user = new UserEntity();
         user.setId(10L);
 
-        product = new ProductEntity();
-        product.setId(50L);
+        tool = new ToolEntity();
+        tool.setId(50L);
     }
 
     @Test
@@ -37,7 +37,7 @@ class HistoryEntityMapperTest {
         HistoryEntityDTO dto = HistoryEntityDTO.builder()
                 .user(user)
                 .inventoryId("INV-001")
-                .product(product)
+                .tool(tool)
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
                 .build();
@@ -48,7 +48,7 @@ class HistoryEntityMapperTest {
                 () -> assertNotNull(entity),
                 () -> assertEquals(dto.user(), entity.getUser()),
                 () -> assertEquals(dto.inventoryId(), entity.getInventoryId()),
-                () -> assertEquals(dto.product(), entity.getProduct()),
+                () -> assertEquals(dto.tool(), entity.getTool()),
                 () -> assertEquals(dto.quantityTaken(), entity.getQuantityTaken()),
                 () -> assertEquals(dto.action(), entity.getAction())
         );
@@ -61,7 +61,7 @@ class HistoryEntityMapperTest {
                 .id(1L)
                 .user(user)
                 .inventoryId("INV-001")
-                .product(product)
+                .tool(tool)
                 .quantityTaken(5)
                 .action(InventoryAction.RETURN)
                 .build();
@@ -73,7 +73,7 @@ class HistoryEntityMapperTest {
                 () -> assertEquals(entity.getId(), response.historyId()),
                 () -> assertEquals(entity.getInventoryId(), response.inventoryId()),
                 () -> assertEquals(user.getId(), response.userId()),
-                () -> assertEquals(product.getId(), response.productId()),
+                () -> assertEquals(tool.getId(), response.idTool()),
                 () -> assertEquals(entity.getQuantityTaken(), response.quantityTaken()),
                 () -> assertEquals(entity.getAction(), response.action()),
                 () -> assertEquals(LocalDate.now(), response.createdAt())

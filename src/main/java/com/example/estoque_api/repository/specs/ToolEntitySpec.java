@@ -1,11 +1,11 @@
 package com.example.estoque_api.repository.specs;
 
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import org.springframework.data.jpa.domain.Specification;
 
-public class ProductEntitySpec {
+public class ToolEntitySpec {
 
-    public static Specification<ProductEntity> likeName (String name) {
+    public static Specification<ToolEntity> likeName (String name) {
         return (r, q, cb) -> cb.like(cb.lower(r.get("name")),  name.toLowerCase() + "%");
     }
 }

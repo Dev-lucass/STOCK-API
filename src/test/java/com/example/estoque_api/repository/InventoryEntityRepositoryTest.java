@@ -1,7 +1,7 @@
 package com.example.estoque_api.repository;
 
 import com.example.estoque_api.model.InventoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,82 +23,77 @@ class InventoryEntityRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private ProductEntity product1;
-    private ProductEntity product2;
+    private ToolEntity tool1;
+    private ToolEntity tool2;
 
     @BeforeEach
     void setUp() {
-        product1 = ProductEntity.builder()
+        tool1 = ToolEntity.builder()
                 .name("Keyboard")
                 .active(true)
                 .build();
-        entityManager.persist(product1);
+        entityManager.persist(tool1);
 
-        product2 = ProductEntity.builder()
+        tool2 = ToolEntity.builder()
                 .name("Mouse")
                 .active(false)
                 .build();
-        entityManager.persist(product2);
+        entityManager.persist(tool2);
     }
 
     @Test
-    @DisplayName("Should return true when inventory exists for a specific product")
-    void shouldReturnTrueWhenExistsByProduct() {
+    @DisplayName("Should return true when inventory exists for a specific tool")
+    void shouldReturnTrueWhenExistsByTool() {
         InventoryEntity inventory = InventoryEntity.builder()
                 .inventoryId("INV-001")
-                .product(product1)
+                .tool(tool1)
                 .quantityInitial(10)
                 .quantityCurrent(10)
                 .build();
         entityManager.persist(inventory);
 
-        Boolean exists = repository.existsByProduct(product1);
+        Boolean exists = repository.existsByTool(tool1);
 
         assertTrue(exists);
     }
 
     @Test
-    @DisplayName("Should return true when another inventory exists for the same product excluding current ID")
-    void shouldReturnTrueWhenExistsByProductAndIdNot() {
+    @DisplayName("Should return true when another inventory exists for the same tool excluding current ID")
+    void shouldReturnTrueWhenExistsByToolAndIdNot() {
         // To test this without unique constraint violation,
         // we first persist one, then try to check existence while ignoring its own ID.
         InventoryEntity inventory = InventoryEntity.builder()
                 .inventoryId("INV-001")
-                .product(product1)
+                .tool(tool1)
                 .quantityInitial(10)
                 .quantityCurrent(10)
                 .build();
 
         InventoryEntity saved = entityManager.persist(inventory);
+        Boolean existsItself = repository.existsByToolAndIdNot(tool1, saved.getId());
 
-        // This should return FALSE because the only inventory for product1 is the one with 'saved.getId()'
-        Boolean existsItself = repository.existsByProductAndIdNot(product1, saved.getId());
-
-        // Let's create a scenario where it returns TRUE:
-        // Note: If your business logic strictly allows 1 inventory per product,
-        // this method 'existsByProductAndIdNot' is usually used during updates to prevent duplicates.
         assertFalse(existsItself);
     }
 
     @Test
-    @DisplayName("Should return only inventories where associated product is active")
-    void shouldFindAllByProductActiveTrue() {
+    @DisplayName("Should return only inventories where associated tool is active")
+    void shouldFindAllByToolActiveTrue() {
         InventoryEntity invActive = InventoryEntity.builder()
                 .inventoryId("INV-ACTIVE")
-                .product(product1) // active
+                .tool(tool1) // active
                 .quantityInitial(10)
                 .build();
 
         InventoryEntity invInactive = InventoryEntity.builder()
                 .inventoryId("INV-INACTIVE")
-                .product(product2) // inactive
+                .tool(tool2) // inactive
                 .quantityInitial(5)
                 .build();
 
         entityManager.persist(invActive);
         entityManager.persist(invInactive);
 
-        List<InventoryEntity> results = repository.findAllByProductActiveTrue();
+        List<InventoryEntity> results = repository.findAllByToolActiveTrue();
 
         assertAll(
                 () -> assertEquals(1, results.size()),
@@ -112,7 +107,7 @@ class InventoryEntityRepositoryTest {
         String targetId = "UNIQUE-STR-ID";
         InventoryEntity inventory = InventoryEntity.builder()
                 .inventoryId(targetId)
-                .product(product1)
+                .tool(tool1)
                 .quantityInitial(10)
                 .build();
         entityManager.persist(inventory);

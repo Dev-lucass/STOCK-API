@@ -8,27 +8,26 @@ import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponse
 import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.InventoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 
 @Component
 public class InventoryEntityMapper {
 
-    public InventoryEntity toEntityInventory(InventoryEntityDTO dto, ProductEntity product) {
+    public InventoryEntity toEntityInventory(InventoryEntityDTO dto, ToolEntity tool) {
         return InventoryEntity.builder()
                 .quantityInitial(dto.quantityInitial())
-                .product(product)
+                .tool(tool)
                 .build();
     }
 
-    public HistoryEntityDTO buildHistoryDto(int quantity, InventoryAction action, ProductEntity product, UserEntity user, String inventoryId) {
+    public HistoryEntityDTO buildHistoryDto(int quantity, InventoryAction action, ToolEntity tool, UserEntity user, String inventoryId) {
         return HistoryEntityDTO.builder()
                 .quantityTaken(quantity)
                 .action(action)
-                .product(product)
+                .tool(tool)
                 .user(user)
                 .inventoryId(inventoryId)
                 .build();
@@ -40,7 +39,7 @@ public class InventoryEntityMapper {
                 .inventoryId(entity.getInventoryId())
                 .quantityInitial(entity.getQuantityInitial())
                 .quantityCurrent(entity.getQuantityCurrent())
-                .productId(entity.getProduct().getId())
+                .idTool(entity.getTool().getId())
                 .createdAt(LocalDate.now())
                 .build();
     }
@@ -52,7 +51,7 @@ public class InventoryEntityMapper {
                 .quantityTaked(quantityTaked)
                 .quantityCurrent(entity.getQuantityCurrent())
                 .quantityInitial(entity.getQuantityInitial())
-                .productId(entity.getProduct().getId())
+                .idTool(entity.getTool().getId())
                 .createdAt(LocalDate.now())
                 .build();
     }
@@ -64,24 +63,24 @@ public class InventoryEntityMapper {
                 .quantityReturned(quantityReturned)
                 .quantityInitial(entity.getQuantityInitial())
                 .quantityCurrent(entity.getQuantityCurrent())
-                .productId(entity.getProduct().getId())
+                .idTool(entity.getTool().getId())
                 .createdAt(LocalDate.now())
                 .build();
     }
 
-    public HistoryEntityDTO toHistoryEntityDTO(TakeFromInventory take, UserEntity user, ProductEntity product, InventoryAction action) {
+    public HistoryEntityDTO toHistoryEntityDTO(TakeFromInventory take, UserEntity user, ToolEntity tool, InventoryAction action) {
         return HistoryEntityDTO.builder()
                 .quantityTaken(take.quantityTaken())
                 .inventoryId(take.inventoryId())
                 .user(user)
-                .product(product)
+                .tool(tool)
                 .action(action)
                 .build();
     }
 
-    public void updateEntity(InventoryEntity entity, InventoryEntityDTO dto, ProductEntity product) {
+    public void updateEntity(InventoryEntity entity, InventoryEntityDTO dto, ToolEntity product) {
         entity.setQuantityInitial(dto.quantityInitial());
         entity.setQuantityCurrent(dto.quantityInitial());
-        entity.setProduct(product);
+        entity.setTool(product);
     }
 }

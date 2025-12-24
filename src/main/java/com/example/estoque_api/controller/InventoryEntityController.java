@@ -29,8 +29,8 @@ public class InventoryEntityController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<InventoryEntityResponseDTO> findAllByProductIsActive() {
-        return service.findAllByProductIsActive();
+    public List<InventoryEntityResponseDTO> findAllByToolIsActive() {
+        return service.findAllByToolIsActive();
     }
 
     @PutMapping("/{invenvoryId}")

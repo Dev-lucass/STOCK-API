@@ -8,7 +8,7 @@ import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponse
 import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.InventoryEntity;
-import com.example.estoque_api.model.ProductEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class InventoryEntityMapperTest {
 
     private InventoryEntityMapper mapper;
-    private ProductEntity product;
+    private ToolEntity tool;
     private UserEntity user;
     private InventoryEntity inventory;
 
@@ -29,8 +29,8 @@ class InventoryEntityMapperTest {
     void setUp() {
         mapper = new InventoryEntityMapper();
 
-        product = new ProductEntity();
-        product.setId(1L);
+        tool = new ToolEntity();
+        tool.setId(1L);
 
         user = new UserEntity();
         user.setId(2L);
@@ -40,32 +40,32 @@ class InventoryEntityMapperTest {
                 .inventoryId("INV-001")
                 .quantityInitial(100)
                 .quantityCurrent(80)
-                .product(product)
+                .tool(tool)
                 .build();
     }
 
     @Test
-    @DisplayName("Should map InventoryEntityDTO and ProductEntity to InventoryEntity")
+    @DisplayName("Should map InventoryEntityDTO and ToolEntity to InventoryEntity")
     void shouldMapDtoToEntityInventory() {
         InventoryEntityDTO dto = new InventoryEntityDTO(100, 1L);
-        InventoryEntity result = mapper.toEntityInventory(dto, product);
+        InventoryEntity result = mapper.toEntityInventory(dto, tool);
 
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals(100, result.getQuantityInitial()),
-                () -> assertEquals(product, result.getProduct())
+                () -> assertEquals(tool, result.getTool())
         );
     }
 
     @Test
     @DisplayName("Should build HistoryEntityDTO from individual parameters")
     void shouldBuildHistoryDto() {
-        HistoryEntityDTO result = mapper.buildHistoryDto(10, InventoryAction.TAKE, product, user, "INV-001");
+        HistoryEntityDTO result = mapper.buildHistoryDto(10, InventoryAction.TAKE, tool, user, "INV-001");
 
         assertAll(
                 () -> assertEquals(10, result.quantityTaken()),
                 () -> assertEquals(InventoryAction.TAKE, result.action()),
-                () -> assertEquals(product, result.product()),
+                () -> assertEquals(tool, result.tool()),
                 () -> assertEquals(user, result.user()),
                 () -> assertEquals("INV-001", result.inventoryId())
         );
@@ -81,7 +81,7 @@ class InventoryEntityMapperTest {
                 () -> assertEquals(inventory.getInventoryId(), result.inventoryId()),
                 () -> assertEquals(inventory.getQuantityInitial(), result.quantityInitial()),
                 () -> assertEquals(inventory.getQuantityCurrent(), result.quantityCurrent()),
-                () -> assertEquals(product.getId(), result.productId()),
+                () -> assertEquals(tool.getId(), result.idTool()),
                 () -> assertEquals(LocalDate.now(), result.createdAt())
         );
     }
@@ -118,13 +118,13 @@ class InventoryEntityMapperTest {
     @DisplayName("Should map TakeFromInventory to HistoryEntityDTO with correct parameters")
     void shouldMapToHistoryEntityDTO() {
         TakeFromInventory take = new TakeFromInventory(2L, "INV-001", 10, 10);
-        HistoryEntityDTO result = mapper.toHistoryEntityDTO(take, user, product, InventoryAction.TAKE);
+        HistoryEntityDTO result = mapper.toHistoryEntityDTO(take, user, tool, InventoryAction.TAKE);
 
         assertAll(
                 () -> assertEquals(take.quantityTaken(), result.quantityTaken()),
                 () -> assertEquals(take.inventoryId(), result.inventoryId()),
                 () -> assertEquals(user, result.user()),
-                () -> assertEquals(product, result.product()),
+                () -> assertEquals(tool, result.tool()),
                 () -> assertEquals(InventoryAction.TAKE, result.action())
         );
     }
@@ -133,12 +133,12 @@ class InventoryEntityMapperTest {
     @DisplayName("Should update existing InventoryEntity from DTO")
     void shouldUpdateEntity() {
         InventoryEntityDTO dto = new InventoryEntityDTO(200, 1L);
-        mapper.updateEntity(inventory, dto, product);
+        mapper.updateEntity(inventory, dto, tool);
 
         assertAll(
                 () -> assertEquals(200, inventory.getQuantityInitial()),
                 () -> assertEquals(200, inventory.getQuantityCurrent()),
-                () -> assertEquals(product, inventory.getProduct())
+                () -> assertEquals(tool, inventory.getTool())
         );
     }
 }
