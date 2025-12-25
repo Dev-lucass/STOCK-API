@@ -117,6 +117,9 @@ public class ToolEntityService {
         }
     }
 
+    public boolean validateToolIsInactive(Long idTool){
+        return repository.existsByIdAndActiveFalse(idTool);
+    }
     public Page<ToolEntity> filterByNamePageable(String name, int pageNumber, int pageSize) {
 
         var specification = buildSpecification(name);

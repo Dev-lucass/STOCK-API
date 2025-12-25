@@ -27,6 +27,7 @@ public class HistoryEntityController {
     @GetMapping("filterHistory")
     @ResponseStatus(HttpStatus.OK)
     public Page<HistoryEntityResponseDTO> filterHistory(
+            @RequestParam(value = "nameTool", required = false) String nameTool,
             @RequestParam(value = "InventoryAction", required = false) InventoryAction action,
             @RequestParam(value = "quantity", required = false) Integer quantity,
             @RequestParam(value = "minQuantity", required = false) Integer minQuantity,
@@ -35,6 +36,7 @@ public class HistoryEntityController {
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize
     ) {
         return service.filterHistory(
+                nameTool,
                 action,
                 quantity,
                 minQuantity,

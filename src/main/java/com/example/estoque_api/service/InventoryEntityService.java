@@ -93,13 +93,13 @@ public class InventoryEntityService {
         var inventory = findByInventoryId(fromInventory.inventoryId());
         var user = findByUser(fromInventory.userId());
 
-        validateQuantityTaken(fromInventory.quantityTaken(),
-                inventory.getQuantityCurrent());
+        validateIsActiveTool(inventory.getTool());
+        validateQuantityTaken(fromInventory.quantityTaken(), inventory.getQuantityCurrent());
 
         startUsageTool(inventory.getTool());
 
         int subtracted = subtractQuantity(inventory.getQuantityCurrent(),
-                fromInventory.quantityTaken());
+                                                                    fromInventory.quantityTaken());
 
         inventory.setQuantityCurrent(subtracted);
         repository.save(inventory);
@@ -123,8 +123,10 @@ public class InventoryEntityService {
         var inventory = findByInventoryId(fromInventory.inventoryId());
         var user = findByUser(fromInventory.userId());
 
+        validateIsActiveTool(inventory.getTool());
         validateQuantityReturn(fromInventory.quantityTaken());
         validateUserTakedFromInventory(user);
+        validateTotalAmountThatTheUserMust(user, fromInventory.quantityTaken());
 
         returnToolUsage(inventory.getTool());
 
@@ -161,6 +163,10 @@ public class InventoryEntityService {
 
     private void returnToolUsage(ToolEntity tool) {
         toolService.returnTool(tool);
+    }
+
+    private void validateTotalAmountThatTheUserMust(UserEntity user, int quantityReturned) {
+        historyService.validateTotalAmountThatTheUserMust(user, quantityReturned);
     }
 
     private UserEntity findByUser(Long userId) {
@@ -248,6 +254,11 @@ public class InventoryEntityService {
     private void validationInventoryToolIsDuplicatedOnCreate(ToolEntity Tool) {
         if (repository.existsByTool(Tool))
             throw new DuplicateResouceException("Tool already registered in inventory");
+    }
+
+    private void validateIsActiveTool(ToolEntity tool){
+        if (toolService.validateToolIsInactive(tool.getId()))
+            throw new DuplicateResouceException("Tool not found in inventory.");
     }
 
     private void validateInventoryTooltIsDuplicatedOnUpdate(ToolEntity Tool, Long id) {

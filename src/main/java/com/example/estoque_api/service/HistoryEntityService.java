@@ -15,9 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-
 import static com.example.estoque_api.repository.specs.HistoryEntitySpec.*;
 
 @Service
@@ -43,7 +41,25 @@ public class HistoryEntityService {
                 .toList();
     }
 
+    public void validateTotalAmountThatTheUserMust(UserEntity user, int quantityReturned) {
+        int toReturn = calculateTotalToReturn(user);
+
+        if (quantityReturned > toReturn)
+            throw new InvalidQuantityException("You cannot return more than you received");
+
+        if (toReturn - quantityReturned == quantityReturned)
+            throw new InvalidQuantityException("Have you already returned the entire quantity you took");
+    }
+
+    private int calculateTotalToReturn(UserEntity user) {
+        return repository.findByUser(user)
+                .stream()
+                .mapToInt(HistoryEntity::getQuantityTaken)
+                .sum();
+    }
+
     public Page<HistoryEntityResponseDTO> filterHistory(
+            String nameTool,
             InventoryAction action,
             Integer quantity,
             Integer minQuantity,
@@ -54,7 +70,7 @@ public class HistoryEntityService {
         validateMinAndMaxQuantity(minQuantity, maxQuantity);
         validateAction(action);
 
-        Specification<HistoryEntity> specification = buildSpecification(action, quantity, minQuantity, maxQuantity);
+        Specification<HistoryEntity> specification = buildSpecification(nameTool, action, quantity, minQuantity, maxQuantity);
 
         Pageable pageable = PageRequest.of(
                 pageNumber,
@@ -67,6 +83,7 @@ public class HistoryEntityService {
     }
 
     public Specification<HistoryEntity> buildSpecification(
+            String nameTool,
             InventoryAction action,
             Integer quantity,
             Integer minQuantity,
@@ -76,6 +93,10 @@ public class HistoryEntityService {
 
         if (action != null) {
             spec = spec.and(hasAction(action));
+        }
+
+        if (nameTool != null) {
+            spec = spec.and(likeToolName(nameTool));
         }
 
         if (quantity != null) {

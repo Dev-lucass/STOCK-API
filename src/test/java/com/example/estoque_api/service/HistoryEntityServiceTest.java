@@ -4,7 +4,6 @@ import com.example.estoque_api.dto.internal.HistoryEntityDTO;
 import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.InvalidQuantityException;
-import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.HistoryEntityMapper;
 import com.example.estoque_api.model.HistoryEntity;
 import com.example.estoque_api.model.UserEntity;
@@ -92,7 +91,7 @@ class HistoryEntityServiceTest {
         when(mapper.toResponseEntityHistory(any())).thenReturn(mock(HistoryEntityResponseDTO.class));
 
         Page<HistoryEntityResponseDTO> result = service.filterHistory(
-                InventoryAction.TAKE, 10, 5, 15, 0, 10);
+                "makita", InventoryAction.TAKE, 10, 5, 15, 0, 10);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
@@ -124,14 +123,14 @@ class HistoryEntityServiceTest {
     @Test
     @DisplayName("Should return empty specification when all parameters are null")
     void buildSpecification_AllNull() {
-        Specification<HistoryEntity> spec = service.buildSpecification(null, null, null, null);
+        Specification<HistoryEntity> spec = service.buildSpecification(null, null, null, null, null);
         assertThat(spec).isNotNull();
     }
 
     @Test
     @DisplayName("Should build specification with all parameters present")
     void buildSpecification_FullCriteria() {
-        Specification<HistoryEntity> spec = service.buildSpecification(InventoryAction.RETURN, 10, 1, 20);
+        Specification<HistoryEntity> spec = service.buildSpecification("makita", InventoryAction.RETURN, 10, 1, 20);
         assertThat(spec).isNotNull();
     }
 }
