@@ -56,7 +56,7 @@ class InventoryEntityControllerTest {
                 .createdAt(LocalDate.now())
                 .build();
 
-        takeRequest = new TakeFromInventory(1L, "INV-001", 5, 5);
+        takeRequest = new TakeFromInventory(1L, "INV-001", 5);
     }
 
     @Test

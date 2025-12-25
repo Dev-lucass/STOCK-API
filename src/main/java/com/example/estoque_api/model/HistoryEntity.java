@@ -35,7 +35,4 @@ public class HistoryEntity {
 
     @Column(nullable = false)
     private int quantityTaken;
-
-    @Column(nullable = true)
-    private int totalQuantityTaken;
 }

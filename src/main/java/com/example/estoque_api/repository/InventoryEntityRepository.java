@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InventoryEntityRepository extends JpaRepository<InventoryEntity, Long>, JpaSpecificationExecutor<InventoryEntity> {
-    Boolean existsByTool(ToolEntity product);
-    Boolean existsByToolAndIdNot(ToolEntity product, Long id);
+    boolean existsByTool(ToolEntity tool);
+    boolean existsByToolAndIdNot(ToolEntity tool, Long id);
     List<InventoryEntity> findAllByToolActiveTrue();
     Optional<InventoryEntity> findByInventoryId(String inventoryId);
 }

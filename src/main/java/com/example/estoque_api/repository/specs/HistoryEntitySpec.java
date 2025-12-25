@@ -6,9 +6,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class HistoryEntitySpec {
 
-    public static Specification<HistoryEntity> likeProductName(String productName) {
+    public static Specification<HistoryEntity> likeToolName(String toolName) {
         return (r, q, cb) ->
-                cb.like(cb.lower(r.get("tool").get("name")), productName.toLowerCase() + "%");
+                cb.like(cb.lower(r.get("tool").get("name")), toolName.toLowerCase() + "%");
     }
 
     public static Specification<HistoryEntity> hasAction(InventoryAction action) {

@@ -100,7 +100,7 @@ class InventoryEntityServiceTest {
     @Test
     @DisplayName("Take from inventory success")
     void take_Success() {
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 5, 5);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 5);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
         when(historyMapper.buildHistoryDto(anyInt(), any(), any(), any(), anyString()))
@@ -116,7 +116,7 @@ class InventoryEntityServiceTest {
     @Test
     @DisplayName("Take invalid quantity error")
     void take_InvalidQuantity() {
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 0, 0);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 0);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
 
@@ -128,7 +128,7 @@ class InventoryEntityServiceTest {
     @DisplayName("Take sold out error")
     void take_SoldOut() {
         inventory.setQuantityCurrent(0);
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 1, 1);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 1);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
 
@@ -139,7 +139,7 @@ class InventoryEntityServiceTest {
     @Test
     @DisplayName("Take more than available error")
     void take_NotEnoughStock() {
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 15, 15);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 15);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
 
@@ -151,7 +151,7 @@ class InventoryEntityServiceTest {
     @DisplayName("Return to inventory success")
     void return_Success() {
         inventory.setQuantityCurrent(5);
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 2, 2);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 2);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
         when(historyService.validateUserTakedFromInventory(user, InventoryAction.TAKE)).thenReturn(true);
@@ -169,7 +169,7 @@ class InventoryEntityServiceTest {
     @DisplayName("Return full restoration exception")
     void return_FullRestoration() {
         inventory.setQuantityCurrent(5);
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 5, 5);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 5);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
         when(historyService.validateUserTakedFromInventory(user, InventoryAction.TAKE)).thenReturn(true);
@@ -186,7 +186,7 @@ class InventoryEntityServiceTest {
     @Test
     @DisplayName("Return user never took item error")
     void return_UserNeverTookItem() {
-        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 1, 1);
+        TakeFromInventory request = new TakeFromInventory(10L, "INV-UUID", 1);
         when(repository.findByInventoryId(anyString())).thenReturn(Optional.of(inventory));
         when(userService.findUserByIdOrElseThrow(anyLong())).thenReturn(user);
         when(historyService.validateUserTakedFromInventory(user, InventoryAction.TAKE)).thenReturn(false);
@@ -226,7 +226,7 @@ class InventoryEntityServiceTest {
     @DisplayName("Find by ID not found error")
     void findById_NotFound() {
         when(repository.findByInventoryId("INVALID")).thenReturn(Optional.empty());
-        TakeFromInventory request = new TakeFromInventory(10L, "INVALID", 1, 1);
+        TakeFromInventory request = new TakeFromInventory(10L, "INVALID", 1);
 
         assertThatThrownBy(() -> service.takeFromInventory(request))
                 .isInstanceOf(ResourceNotFoundException.class);

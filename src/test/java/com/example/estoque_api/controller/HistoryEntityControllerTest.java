@@ -15,8 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -49,10 +48,11 @@ class HistoryEntityControllerTest {
         HistoryEntityResponseDTO response = HistoryEntityResponseDTO.builder().build();
         Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of(response));
 
-        when(service.filterHistory(any(InventoryAction.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt()))
+        when(service.filterHistory(anyString(),any(InventoryAction.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/history/filterHistory")
+                        .param("nameTool", "makita")
                         .param("InventoryAction", "TAKE")
                         .param("quantity", "10")
                         .param("minQuantity", "5")
@@ -69,7 +69,7 @@ class HistoryEntityControllerTest {
     void filterHistory_EmptyParams_Success() throws Exception {
         Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of());
 
-        when(service.filterHistory(null, null, null, null, 0, 10))
+        when(service.filterHistory(null, null, null,null, null, 0, 10))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/history/filterHistory")
