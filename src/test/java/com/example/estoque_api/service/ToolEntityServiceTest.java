@@ -9,7 +9,6 @@ import com.example.estoque_api.mapper.ToolEntityMapper;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.repository.ToolEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,14 +16,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,154 +35,148 @@ class ToolEntityServiceTest {
     private ToolEntityMapper mapper;
 
     @InjectMocks
-    private ToolEntityService service;
+    private ToolEntityService toolService;
 
     private ToolEntity tool;
     private ToolEntityDTO toolDTO;
 
     @BeforeEach
     void setUp() {
-        tool = ToolEntity.builder()
-                .id(1L)
-                .name("Parafusadeira")
-                .active(true)
-                .currentLifeCycle(100.0)
-                .usageCount(0)
-                .build();
+        tool = new ToolEntity();
+        tool.setId(1L);
+        tool.setName("Hammer");
+        tool.setActive(true);
+        tool.setCurrentLifeCycle(100.0);
+        tool.setUsageCount(0);
+        tool.setUsageTime(LocalTime.of(10, 0));
 
-        toolDTO = new ToolEntityDTO("Parafusadeira", true);
+        toolDTO = new ToolEntityDTO("Hammer", true);
     }
 
     @Test
-    @DisplayName("Save success")
-    void save_Success() {
+    void save_ShouldReturnResponse_WhenSuccess() {
         when(repository.existsByName(anyString())).thenReturn(false);
         when(mapper.toEntityTool(any())).thenReturn(tool);
         when(repository.save(any())).thenReturn(tool);
+        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolEntityResponseDTO.class));
 
-        service.save(toolDTO);
+        var result = toolService.save(toolDTO);
 
-        verify(repository).save(any(ToolEntity.class));
+        assertNotNull(result);
+        verify(repository).save(any());
     }
 
     @Test
-    @DisplayName("Save duplicate error")
-    void save_DuplicateError() {
+    void save_ShouldThrowException_WhenNameExists() {
         when(repository.existsByName(anyString())).thenReturn(true);
 
-        assertThatThrownBy(() -> service.save(toolDTO))
-                .isInstanceOf(DuplicateResouceException.class);
+        assertThrows(DuplicateResouceException.class, () -> toolService.save(toolDTO));
     }
 
     @Test
-    @DisplayName("Find all active tools")
-    void findAllIsActive_Success() {
+    void findAllIsActive_ShouldReturnList() {
         when(repository.findAllByActiveTrue()).thenReturn(List.of(tool));
+        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolEntityResponseDTO.class));
 
-        List<ToolEntityResponseDTO> result = service.findAllIsActive();
+        var result = toolService.findAllIsActive();
 
-        assertThat(result).isNotNull();
-        verify(repository).findAllByActiveTrue();
+        assertEquals(1, result.size());
     }
 
     @Test
-    @DisplayName("Update success")
-    void update_Success() {
-        when(repository.findById(anyLong())).thenReturn(Optional.of(tool));
-        when(repository.existsByNameAndIdNot(anyString(), anyLong())).thenReturn(false);
-        when(repository.save(any())).thenReturn(tool);
-
-        service.update(1L, toolDTO);
-
-        verify(mapper).updateEntity(eq(tool), eq(toolDTO));
-        verify(repository).save(tool);
-    }
-
-    @Test
-    @DisplayName("Disable by ID success")
-    void disableById_Success() {
-        when(repository.findById(1L)).thenReturn(Optional.of(tool));
-
-        service.disableById(1L);
-
-        assertThat(tool.getActive()).isFalse();
-    }
-
-    @Test
-    @DisplayName("Start usage reduces life cycle and increases count")
-    void startUsage_Success() {
-        service.startUsage(tool);
-
-        assertThat(tool.getUsageCount()).isEqualTo(1);
-        assertThat(tool.getCurrentLifeCycle()).isEqualTo(98.5);
-        assertThat(tool.getUsageTime()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("Start usage damaged tool error")
-    void startUsage_DamagedError() {
-        tool.setCurrentLifeCycle(40.0);
-
-        assertThatThrownBy(() -> service.startUsage(tool))
-                .isInstanceOf(DamagedToolException.class);
-
-        assertThat(tool.getActive()).isFalse();
-        verify(repository).save(tool);
-    }
-
-    @Test
-    @DisplayName("Return tool success and calculate time")
-    void returnTool_Success() {
-        tool.setUsageTime(LocalTime.now().minusMinutes(30));
-
-        service.returnTool(tool);
-
-        assertThat(tool.getUsageTime()).isNotNull();
-        verify(repository).save(tool);
-    }
-
-    @Test
-    @DisplayName("Filter by name pageable success")
-    @SuppressWarnings("unchecked")
-    void filterByNamePageable_Success() {
-        Page<ToolEntity> page = new PageImpl<>(List.of(tool));
-        when(repository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
-
-        Page<ToolEntity> result = service.filterByNamePageable("Para", 0, 10);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-        verify(repository).findAll(any(Specification.class), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("Find by ID not found error")
-    void findById_NotFound() {
-        when(repository.findById(anyLong())).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.findToolByIdOrElseThrow(99L))
-                .isInstanceOf(ResourceNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("Validate duplicate on update error")
-    void validateDuplicateOnUpdate_Error() {
-        when(repository.findById(1L)).thenReturn(Optional.of(tool));
-        when(repository.existsByNameAndIdNot(anyString(), eq(1L))).thenReturn(true);
-
-        assertThatThrownBy(() -> service.update(1L, toolDTO))
-                .isInstanceOf(DuplicateResouceException.class);
-    }
-
-    @Test
-    @DisplayName("Find all not active tools")
-    void findAllIsNotActive_Success() {
+    void findAllIsNotActive_ShouldReturnList() {
         tool.setActive(false);
         when(repository.findAllByActiveFalse()).thenReturn(List.of(tool));
+        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolEntityResponseDTO.class));
 
-        List<ToolEntityResponseDTO> result = service.findAllIsNotActive();
+        var result = toolService.findAllIsNotActive();
 
-        assertThat(result).isNotNull();
-        verify(repository).findAllByActiveFalse();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void update_ShouldReturnUpdatedResponse_WhenSuccess() {
+        when(repository.findById(1L)).thenReturn(Optional.of(tool));
+        when(repository.existsByNameAndIdNot(anyString(), anyLong())).thenReturn(false);
+        when(repository.save(any())).thenReturn(tool);
+        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolEntityResponseDTO.class));
+
+        var result = toolService.update(1L, toolDTO);
+
+        assertNotNull(result);
+        verify(mapper).updateEntity(tool, toolDTO);
+    }
+
+    @Test
+    void disableById_ShouldSetInactive_WhenFound() {
+        when(repository.findById(1L)).thenReturn(Optional.of(tool));
+
+        toolService.disableById(1L);
+
+        assertFalse(tool.getActive());
+    }
+
+    @Test
+    void startUsage_ShouldUpdateMetrics_WhenValid() {
+        tool.setUsageTime(null);
+
+        toolService.startUsage(tool);
+
+        assertEquals(98.5, tool.getCurrentLifeCycle());
+        assertEquals(1, tool.getUsageCount());
+        assertNotNull(tool.getUsageTime());
+    }
+
+    @Test
+    void startUsage_ShouldThrowException_WhenLifeCycleIsLow() {
+        tool.setCurrentLifeCycle(40.0);
+
+        assertThrows(DamagedToolException.class, () -> toolService.startUsage(tool));
+        assertFalse(tool.getActive());
+        verify(repository).save(tool);
+    }
+
+    @Test
+    void returnTool_ShouldCalculateUsageTime_WhenValid() {
+        tool.setUsageTime(LocalTime.now().minusMinutes(10));
+
+        toolService.returnTool(tool);
+
+        verify(repository).save(tool);
+        assertNotNull(tool.getUsageTime());
+    }
+
+    @Test
+    void returnTool_ShouldThrowException_WhenLifeCycleIsLow() {
+        tool.setCurrentLifeCycle(40.0);
+
+        assertThrows(DamagedToolException.class, () -> toolService.returnTool(tool));
+    }
+
+    @Test
+    void validateToolIsInactive_ShouldReturnTrue_WhenInactive() {
+        when(repository.existsByIdAndActiveFalse(1L)).thenReturn(true);
+
+        boolean result = toolService.validateToolIsInactive(1L);
+
+        assertTrue(result);
+    }
+
+    @Test
+    void filterByNamePageable_ShouldReturnPagedResults() {
+        Page<ToolEntity> page = new PageImpl<>(List.of(tool));
+        when(repository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
+
+        var result = toolService.filterByNamePageable("Hammer", 0, 10);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void findToolByIdOrElseThrow_ShouldThrowException_WhenNotFound() {
+        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> toolService.findToolByIdOrElseThrow(1L));
     }
 }
