@@ -49,6 +49,12 @@ public class UserEntityService {
         return mapper.toResponseEntityUser(userUpdated);
     }
 
+    public void validateUserIsActive(UserEntity user) {
+        if (Boolean.FALSE.equals(user.getActive())) {
+            throw new ResourceNotFoundException("User is inactive and cannot perform this action.");
+        }
+    }
+
     @Transactional
     public void disableById(Long id) {
         var entity = findUserByIdOrElseThrow(id);

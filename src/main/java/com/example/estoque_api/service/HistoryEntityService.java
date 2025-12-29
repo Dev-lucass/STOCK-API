@@ -42,18 +42,24 @@ public class HistoryEntityService {
     }
 
     public void validateTotalAmountThatTheUserMust(UserEntity user, int quantityReturned) {
-        int toReturn = calculateTotalToReturn(user);
+        int totalTaken = calculateTotalTaken(user);
+        int totalReturned = calculateTotalReturned(user);
+        int currentDebt = totalTaken - totalReturned;
 
-        if (quantityReturned > toReturn)
-            throw new InvalidQuantityException("You cannot return more than you received");
-
-        if (toReturn - quantityReturned == quantityReturned)
-            throw new InvalidQuantityException("Have you already returned the entire quantity you took");
+        if (quantityReturned > currentDebt)
+            throw new InvalidQuantityException("You cannot return " + quantityReturned + ", you only have " + currentDebt + " pending.");
     }
 
-    private int calculateTotalToReturn(UserEntity user) {
-        return repository.findByUser(user)
-                .stream()
+    private int calculateTotalTaken(UserEntity user) {
+        return repository.findByUser(user).stream()
+                .filter(h -> h.getAction() == InventoryAction.TAKE)
+                .mapToInt(HistoryEntity::getQuantityTaken)
+                .sum();
+    }
+
+    private int calculateTotalReturned(UserEntity user) {
+        return repository.findByUser(user).stream()
+                .filter(h -> h.getAction() == InventoryAction.RETURN)
                 .mapToInt(HistoryEntity::getQuantityTaken)
                 .sum();
     }

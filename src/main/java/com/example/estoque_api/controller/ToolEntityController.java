@@ -28,13 +28,13 @@ public class ToolEntityController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ToolEntityResponseDTO> findAllIsActive() {
-        return service.findAllIsActive();
+        return service.findAllisActive();
     }
 
     @GetMapping("findAllIsNotActive")
     @ResponseStatus(HttpStatus.OK)
     public List<ToolEntityResponseDTO> findAllIsNotActive() {
-        return service.findAllIsNotActive();
+        return service.findAllisDisable();
     }
 
     @PutMapping("/{idTool}")

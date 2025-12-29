@@ -7,13 +7,17 @@ import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
-import com.example.estoque_api.exceptions.*;
+import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.InvalidQuantityException;
+import com.example.estoque_api.exceptions.QuantitySoldOutException;
+import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.HistoryEntityMapper;
 import com.example.estoque_api.mapper.InventoryEntityMapper;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryEntityRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.UUID;
-
 import static com.example.estoque_api.repository.specs.InventoryEntitySpec.equalsQuantity;
 
 @Service
@@ -88,10 +90,13 @@ public class InventoryEntityService {
         return inventory.getQuantityInitial() + dto.quantity();
     }
 
+    @Transactional
     public InventoryEntityTakeResponseDTO takeFromInventory(TakeFromInventory fromInventory) {
 
         var inventory = findByInventoryId(fromInventory.inventoryId());
         var user = findByUser(fromInventory.userId());
+
+        validateUserIsActive(user);
 
         validateIsActiveTool(inventory.getTool());
         validateQuantityTaken(fromInventory.quantityTaken(), inventory.getQuantityCurrent());
@@ -99,7 +104,7 @@ public class InventoryEntityService {
         startUsageTool(inventory.getTool());
 
         int subtracted = subtractQuantity(inventory.getQuantityCurrent(),
-                                                                    fromInventory.quantityTaken());
+                fromInventory.quantityTaken());
 
         inventory.setQuantityCurrent(subtracted);
         repository.save(inventory);
@@ -118,55 +123,67 @@ public class InventoryEntityService {
                 inventory.getTool().getUsageCount());
     }
 
+    @Transactional
     public InventoryEntityReturnResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
 
         var inventory = findByInventoryId(fromInventory.inventoryId());
         var user = findByUser(fromInventory.userId());
 
-        validateIsActiveTool(inventory.getTool());
-        validateQuantityReturn(fromInventory.quantityTaken());
-        validateUserTakedFromInventory(user);
-        validateTotalAmountThatTheUserMust(user, fromInventory.quantityTaken());
+        validateUserIsActive(user);
+        validateReturnProcess(user, inventory, fromInventory.quantityTaken());
 
-        returnToolUsage(inventory.getTool());
+        updateInventoryStock(inventory, fromInventory.quantityTaken());
+        returnTool(inventory.getTool());
 
-        int sumQuantity = sumQuantity(inventory.getQuantityCurrent(),
-                fromInventory.quantityTaken());
+        createAndSaveHistory(fromInventory, inventory, user, InventoryAction.RETURN);
 
-        saveHistoryAndInventoryOnQuantityRestored(fromInventory,
-                user,
-                sumQuantity,
-                inventory.getQuantityInitial(),
-                inventory);
-
-        inventory.setQuantityCurrent(sumQuantity);
-        repository.save(inventory);
-
-        var history = historyMapper.buildHistoryDto(
-                fromInventory.quantityTaken(),
-                InventoryAction.RETURN,
-                inventory.getTool(),
-                user,
-                fromInventory.inventoryId()
-        );
-
-        saveHistory(history);
-        return mapper.toReturnedInventoryResponse(inventory,
+        return mapper.toReturnedInventoryResponse(
+                inventory,
                 fromInventory.quantityTaken(),
                 inventory.getTool().getUsageCount(),
-                inventory.getTool().getUsageTime());
+                inventory.getTool().getUsageTime()
+        );
+    }
+
+    private void returnTool(ToolEntity tool){
+        toolService.returnTool(tool);
+    }
+
+    private void validateReturnProcess(UserEntity user, InventoryEntity inventory, int quantity) {
+        validateIsActiveTool(inventory.getTool());
+        validateQuantityReturn(quantity);
+        validateUserTakedFromInventory(user);
+        historyService.validateTotalAmountThatTheUserMust(user, quantity);
+    }
+
+    private void validateUserIsActive(UserEntity user){
+        userService.validateUserIsActive(user);
+    }
+
+    private void updateInventoryStock(InventoryEntity inventory, int quantityTaken) {
+        int newQuantity = sumQuantity(inventory.getQuantityCurrent(), quantityTaken);
+
+        if (newQuantity > inventory.getQuantityInitial()) {
+            newQuantity = inventory.getQuantityInitial();
+        }
+
+        inventory.setQuantityCurrent(newQuantity);
+        repository.save(inventory);
+    }
+
+    private void createAndSaveHistory(TakeFromInventory dto, InventoryEntity inv, UserEntity user, InventoryAction action) {
+        var historyDto = historyMapper.buildHistoryDto(
+                dto.quantityTaken(),
+                action,
+                inv.getTool(),
+                user,
+                dto.inventoryId()
+        );
+        saveHistory(historyDto);
     }
 
     private void startUsageTool(ToolEntity tool) {
         toolService.startUsage(tool);
-    }
-
-    private void returnToolUsage(ToolEntity tool) {
-        toolService.returnTool(tool);
-    }
-
-    private void validateTotalAmountThatTheUserMust(UserEntity user, int quantityReturned) {
-        historyService.validateTotalAmountThatTheUserMust(user, quantityReturned);
     }
 
     private UserEntity findByUser(Long userId) {
@@ -184,24 +201,6 @@ public class InventoryEntityService {
 
     private int subtractQuantity(int quantityInitial, int quantityTaken) {
         return quantityInitial - quantityTaken;
-    }
-
-    private void saveHistoryAndInventoryOnQuantityRestored(TakeFromInventory fromInventory, UserEntity user, int quantityToReturn, int totalToReturn, InventoryEntity inventory) {
-        if (quantityToReturn == totalToReturn) {
-            inventory.setQuantityCurrent(quantityToReturn);
-            repository.save(inventory);
-
-            var history = historyMapper.buildHistoryDto(
-                    fromInventory.quantityTaken(),
-                    InventoryAction.RETURN,
-                    inventory.getTool(),
-                    user,
-                    fromInventory.inventoryId()
-            );
-
-            saveHistory(history);
-            throw new QuantityRestoredException("quantity already restored");
-        }
     }
 
     public void validateQuantityReturn(int quantityReturned) {
@@ -234,7 +233,7 @@ public class InventoryEntityService {
 
         Pageable pageable = PageRequest.of(pageNumber,
                 pageSize,
-                Sort.by(Sort.Order.asc("quantity")));
+                Sort.by(Sort.Order.asc("quantityInitial")));
 
         return repository
                 .findAll(specification, pageable)
@@ -256,7 +255,7 @@ public class InventoryEntityService {
             throw new DuplicateResouceException("Tool already registered in inventory");
     }
 
-    private void validateIsActiveTool(ToolEntity tool){
+    private void validateIsActiveTool(ToolEntity tool) {
         if (toolService.validateToolIsInactive(tool.getId()))
             throw new DuplicateResouceException("Tool not found in inventory.");
     }

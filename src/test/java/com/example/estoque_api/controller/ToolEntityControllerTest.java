@@ -69,7 +69,7 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Find all active tools returns 200 OK")
     void findAllIsActive_Success() throws Exception {
-        when(service.findAllIsActive()).thenReturn(List.of(responseDTO));
+        when(service.findAllisActive()).thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/tool")
                         .accept(MediaType.APPLICATION_JSON))
@@ -82,7 +82,7 @@ class ToolEntityControllerTest {
     @DisplayName("Find all inactive tools returns 200 OK")
     void findAllIsNotActive_Success() throws Exception {
         responseDTO = ToolEntityResponseDTO.builder().id(2L).name("Serra").active(false).build();
-        when(service.findAllIsNotActive()).thenReturn(List.of(responseDTO));
+        when(service.findAllisDisable()).thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/tool/findAllIsNotActive")
                         .accept(MediaType.APPLICATION_JSON))

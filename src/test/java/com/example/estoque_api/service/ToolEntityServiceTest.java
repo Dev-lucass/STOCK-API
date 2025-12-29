@@ -47,8 +47,10 @@ class ToolEntityServiceTest {
         tool.setName("Hammer");
         tool.setActive(true);
         tool.setCurrentLifeCycle(100.0);
+        tool.setDegradationRate(1.5);
+        tool.setMinimumViableLife(10.0);
         tool.setUsageCount(0);
-        tool.setUsageTime(LocalTime.of(10, 0));
+        tool.setUsageTime(null);
 
         toolDTO = new ToolEntityDTO("Hammer", true);
     }
@@ -78,18 +80,18 @@ class ToolEntityServiceTest {
         when(repository.findAllByActiveTrue()).thenReturn(List.of(tool));
         when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolEntityResponseDTO.class));
 
-        var result = toolService.findAllIsActive();
+        var result = toolService.findAllisActive();
 
         assertEquals(1, result.size());
     }
 
     @Test
-    void findAllIsNotActive_ShouldReturnList() {
+    void findAllisDisable_ShouldReturnList() {
         tool.setActive(false);
         when(repository.findAllByActiveFalse()).thenReturn(List.of(tool));
         when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolEntityResponseDTO.class));
 
-        var result = toolService.findAllIsNotActive();
+        var result = toolService.findAllisDisable();
 
         assertEquals(1, result.size());
     }
@@ -114,43 +116,36 @@ class ToolEntityServiceTest {
         toolService.disableById(1L);
 
         assertFalse(tool.getActive());
+        assertEquals(0.0, tool.getCurrentLifeCycle());
+        verify(repository).save(tool);
     }
 
     @Test
     void startUsage_ShouldUpdateMetrics_WhenValid() {
-        tool.setUsageTime(null);
-
         toolService.startUsage(tool);
 
         assertEquals(98.5, tool.getCurrentLifeCycle());
         assertEquals(1, tool.getUsageCount());
         assertNotNull(tool.getUsageTime());
+        verify(repository).save(tool);
     }
 
     @Test
     void startUsage_ShouldThrowException_WhenLifeCycleIsLow() {
-        tool.setCurrentLifeCycle(40.0);
+        tool.setCurrentLifeCycle(5.0);
 
         assertThrows(DamagedToolException.class, () -> toolService.startUsage(tool));
-        assertFalse(tool.getActive());
-        verify(repository).save(tool);
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void returnTool_ShouldCalculateUsageTime_WhenValid() {
-        tool.setUsageTime(LocalTime.now().minusMinutes(10));
+    void returnTool_ShouldClearUsageTime_WhenValid() {
+        tool.setUsageTime(LocalTime.now());
 
         toolService.returnTool(tool);
 
+        assertNull(tool.getUsageTime());
         verify(repository).save(tool);
-        assertNotNull(tool.getUsageTime());
-    }
-
-    @Test
-    void returnTool_ShouldThrowException_WhenLifeCycleIsLow() {
-        tool.setCurrentLifeCycle(40.0);
-
-        assertThrows(DamagedToolException.class, () -> toolService.returnTool(tool));
     }
 
     @Test

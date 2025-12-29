@@ -16,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
 import static com.example.estoque_api.repository.specs.ToolEntitySpec.likeName;
@@ -30,19 +29,18 @@ public class ToolEntityService {
 
     public ToolEntityResponseDTO save(ToolEntityDTO dto) {
         validateDuplicateOnCreate(dto.name());
-        var userEntityMapped = mapper.toEntityTool(dto);
-        var toolSaved = repository.save(userEntityMapped);
-        return mapper.toResponseEntityTool(toolSaved);
+        ToolEntity entity = mapper.toEntityTool(dto);
+        return mapper.toResponseEntityTool(repository.save(entity));
     }
 
-    public List<ToolEntityResponseDTO> findAllIsActive() {
+    public List<ToolEntityResponseDTO> findAllisActive(){
         return repository.findAllByActiveTrue()
                 .stream()
                 .map(mapper::toResponseEntityTool)
                 .toList();
     }
 
-    public List<ToolEntityResponseDTO> findAllIsNotActive() {
+    public List<ToolEntityResponseDTO> findAllisDisable(){
         return repository.findAllByActiveFalse()
                 .stream()
                 .map(mapper::toResponseEntityTool)
@@ -50,110 +48,83 @@ public class ToolEntityService {
     }
 
     public ToolEntityResponseDTO update(Long id, ToolEntityDTO dto) {
-        var entity = findToolByIdOrElseThrow(id);
+        ToolEntity entity = findToolByIdOrElseThrow(id);
         validateDuplicateOnUpdate(dto.name(), id);
         mapper.updateEntity(entity, dto);
-        var toolUpdated = repository.save(entity);
-        return mapper.toResponseEntityTool(toolUpdated);
+        return mapper.toResponseEntityTool(repository.save(entity));
+    }
+
+    @Transactional
+    public void startUsage(ToolEntity tool) {
+        validateToolAvailability(tool);
+
+        applyDegradation(tool);
+        tool.setUsageCount(tool.getUsageCount() + 1);
+        tool.setUsageTime(LocalTime.now());
+
+        repository.save(tool);
     }
 
     @Transactional
     public void disableById(Long id) {
         var entity = findToolByIdOrElseThrow(id);
         entity.setActive(false);
+        entity.setCurrentLifeCycle(0.0);
+        repository.save(entity);
     }
 
-    public void startUsage(ToolEntity tool) {
-        validateLifeCycleTool(tool);
-        readjustUsefulLife(tool);
-        startTimeUsageTool(tool);
-        setUsageTool(tool);
-    }
-
+    @Transactional
     public void returnTool(ToolEntity tool) {
-        validateLifeCycleTool(tool);
-        timeUsagedAfterReturn(tool);
+        tool.setUsageTime(null);
         repository.save(tool);
     }
 
-    private void timeUsagedAfterReturn(ToolEntity tool) {
-        LocalTime startTime = tool.getUsageTime();
-        LocalTime endTime = LocalTime.now();
+    private void applyDegradation(ToolEntity tool) {
+        double newLife = tool.getCurrentLifeCycle() - tool.getDegradationRate();
+        tool.setCurrentLifeCycle(Math.max(0, newLife));
 
-        Duration duration = Duration.between(startTime, endTime);
-
-        long seconds = duration.getSeconds();
-
-        LocalTime usageDurationAsTime = LocalTime.ofSecondOfDay(seconds);
-
-        tool.setUsageTime(usageDurationAsTime);
-    }
-
-    private void startTimeUsageTool(ToolEntity tool) {
-        if (tool.getUsageTime() == null) tool.setUsageTime(LocalTime.now());
-    }
-
-    private void validateLifeCycleTool(ToolEntity tool) {
-        if (tool.getCurrentLifeCycle() <= (100.0 - 60.0)) {
-            disableToolByLifeCycle(tool);
-            throw new DamagedToolException("End of useful life reached");
-        }
-    }
-
-    private void setUsageTool(ToolEntity tool) {
-        tool.setUsageCount(tool.getUsageCount() + 1);
-    }
-
-    private void readjustUsefulLife(ToolEntity tool) {
-        double currentLife = tool.getCurrentLifeCycle();
-        double updatedLife = currentLife - 1.5;
-        tool.setCurrentLifeCycle(updatedLife);
-    }
-
-    private void disableToolByLifeCycle(ToolEntity tool) {
-        if (tool.getCurrentLifeCycle() <= 40) {
+        if (tool.getCurrentLifeCycle() <= tool.getMinimumViableLife()) {
             tool.setActive(false);
-            repository.save(tool);
         }
     }
 
-    public boolean validateToolIsInactive(Long idTool){
-        return repository.existsByIdAndActiveFalse(idTool);
-    }
-    public Page<ToolEntity> filterByNamePageable(String name, int pageNumber, int pageSize) {
+    private void validateToolAvailability(ToolEntity tool) {
+        if (Boolean.FALSE.equals(tool.getActive()))
+            throw new DamagedToolException("Tool " + tool.getName() + " is inactive.");
 
-        var specification = buildSpecification(name);
-
-        Pageable pageable = PageRequest.of(
-                pageNumber,
-                pageSize,
-                Sort.by("name").ascending());
-
-        return repository.findAll(specification, pageable);
+        if (tool.getCurrentLifeCycle() <= tool.getMinimumViableLife())
+            throw new DamagedToolException("Tool " + tool.getName() + " reached end of life cycle.");
     }
 
-    private Specification<ToolEntity> buildSpecification(String name) {
-        Specification<ToolEntity> specification = null;
-
-        if (name != null) {
-            specification = likeName(name);
-        }
-
-        return specification;
-    }
-
-    private void validateDuplicateOnCreate(String name) {
-        if (repository.existsByName(name))
-            throw new DuplicateResouceException("Tool already registered");
-    }
-
-    private void validateDuplicateOnUpdate(String name, Long id) {
-        if (repository.existsByNameAndIdNot(name, id))
-            throw new DuplicateResouceException("Tool already registered");
+    public List<ToolEntityResponseDTO> findAllByStatus(boolean active) {
+        return (active ? repository.findAllByActiveTrue() : repository.findAllByActiveFalse())
+                .stream()
+                .map(mapper::toResponseEntityTool)
+                .toList();
     }
 
     public ToolEntity findToolByIdOrElseThrow(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid tool id"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tool not found with id: " + id));
+    }
+
+    public boolean validateToolIsInactive(Long idTool) {
+        return repository.existsByIdAndActiveFalse(idTool);
+    }
+
+    private void validateDuplicateOnCreate(String name) {
+        if (repository.existsByName(name))
+            throw new DuplicateResouceException("Tool already registered: " + name);
+    }
+
+    private void validateDuplicateOnUpdate(String name, Long id) {
+        if (repository.existsByNameAndIdNot(name, id))
+            throw new DuplicateResouceException("Tool name already in use");
+    }
+
+    public Page<ToolEntity> filterByNamePageable(String name, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("name").ascending());
+        Specification<ToolEntity> spec = (name != null) ? likeName(name) : null;
+        return repository.findAll(spec, pageable);
     }
 }
