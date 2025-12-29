@@ -25,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 import static com.example.estoque_api.repository.specs.InventoryEntitySpec.equalsQuantity;
@@ -125,24 +127,29 @@ public class InventoryEntityService {
 
     @Transactional
     public InventoryEntityReturnResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
-
         var inventory = findByInventoryId(fromInventory.inventoryId());
+        var tool = inventory.getTool();
         var user = findByUser(fromInventory.userId());
 
         validateUserIsActive(user);
         validateReturnProcess(user, inventory, fromInventory.quantityTaken());
 
-        updateInventoryStock(inventory, fromInventory.quantityTaken());
-        returnTool(inventory.getTool());
+        var durationUsed = calculateUsageTimeTool(tool);
 
+        updateInventoryStock(inventory, fromInventory.quantityTaken());
+        returnTool(tool);
         createAndSaveHistory(fromInventory, inventory, user, InventoryAction.RETURN);
 
         return mapper.toReturnedInventoryResponse(
                 inventory,
                 fromInventory.quantityTaken(),
-                inventory.getTool().getUsageCount(),
-                inventory.getTool().getUsageTime()
+                tool.getUsageCount(),
+                durationUsed
         );
+    }
+
+    private LocalTime calculateUsageTimeTool(ToolEntity tool){
+        return toolService.calculateUsageTime(tool);
     }
 
     private void returnTool(ToolEntity tool){

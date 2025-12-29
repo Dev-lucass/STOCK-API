@@ -16,8 +16,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
 import static com.example.estoque_api.repository.specs.ToolEntitySpec.likeName;
 
 @Service
@@ -33,14 +37,14 @@ public class ToolEntityService {
         return mapper.toResponseEntityTool(repository.save(entity));
     }
 
-    public List<ToolEntityResponseDTO> findAllisActive(){
+    public List<ToolEntityResponseDTO> findAllisActive() {
         return repository.findAllByActiveTrue()
                 .stream()
                 .map(mapper::toResponseEntityTool)
                 .toList();
     }
 
-    public List<ToolEntityResponseDTO> findAllisDisable(){
+    public List<ToolEntityResponseDTO> findAllisDisable() {
         return repository.findAllByActiveFalse()
                 .stream()
                 .map(mapper::toResponseEntityTool)
@@ -79,6 +83,18 @@ public class ToolEntityService {
         repository.save(tool);
     }
 
+    @Transactional
+    public LocalTime calculateUsageTime(ToolEntity tool) {
+
+        if (tool.getUsageTime() == null) {
+            return LocalTime.MIDNIGHT;
+        }
+
+        var usageTime = Duration.between(tool.getUsageTime(), LocalDateTime.now());
+
+        return LocalTime.ofSecondOfDay(usageTime.getSeconds());
+    }
+
     private void applyDegradation(ToolEntity tool) {
         double newLife = tool.getCurrentLifeCycle() - tool.getDegradationRate();
         tool.setCurrentLifeCycle(Math.max(0, newLife));
@@ -94,13 +110,6 @@ public class ToolEntityService {
 
         if (tool.getCurrentLifeCycle() <= tool.getMinimumViableLife())
             throw new DamagedToolException("Tool " + tool.getName() + " reached end of life cycle.");
-    }
-
-    public List<ToolEntityResponseDTO> findAllByStatus(boolean active) {
-        return (active ? repository.findAllByActiveTrue() : repository.findAllByActiveFalse())
-                .stream()
-                .map(mapper::toResponseEntityTool)
-                .toList();
     }
 
     public ToolEntity findToolByIdOrElseThrow(Long id) {
