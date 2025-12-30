@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+
 import static com.example.estoque_api.repository.specs.InventoryEntitySpec.equalsQuantity;
 
 @Service
@@ -44,7 +45,7 @@ public class InventoryEntityService {
 
     public InventoryEntityResponseDTO save(InventoryEntityDTO dto) {
 
-        var tool = toolService.findToolByIdOrElseThrow(dto.idTool());
+        var tool = findToolById(dto);
 
         validationInventoryToolIsDuplicatedOnCreate(tool);
 
@@ -55,6 +56,10 @@ public class InventoryEntityService {
 
         var inventorySaved = repository.save(inventoryEntityMapped);
         return mapper.toResponseEntityInventory(inventorySaved);
+    }
+
+    public ToolEntity findToolById(InventoryEntityDTO dto) {
+        return toolService.findToolByIdOrElseThrow(dto.idTool());
     }
 
     public List<InventoryEntityResponseDTO> findAllByToolIsActive() {
@@ -148,11 +153,11 @@ public class InventoryEntityService {
         );
     }
 
-    private LocalTime calculateUsageTimeTool(ToolEntity tool){
+    private LocalTime calculateUsageTimeTool(ToolEntity tool) {
         return toolService.calculateUsageTime(tool);
     }
 
-    private void returnTool(ToolEntity tool){
+    private void returnTool(ToolEntity tool) {
         toolService.returnTool(tool);
     }
 
@@ -163,7 +168,7 @@ public class InventoryEntityService {
         historyService.validateTotalAmountThatTheUserMust(user, quantity);
     }
 
-    private void validateUserIsActive(UserEntity user){
+    private void validateUserIsActive(UserEntity user) {
         userService.validateUserIsActive(user);
     }
 
