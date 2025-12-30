@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryEntityMapperTest {
@@ -18,10 +20,12 @@ class InventoryEntityMapperTest {
     private InventoryEntityMapper mapper;
     private ToolEntity tool;
     private InventoryEntity entity;
+    private UUID inventoryId;
 
     @BeforeEach
     void setUp() {
         mapper = new InventoryEntityMapper();
+        inventoryId = UUID.randomUUID();
 
         tool = ToolEntity.builder()
                 .id(100L)
@@ -31,7 +35,7 @@ class InventoryEntityMapperTest {
 
         entity = InventoryEntity.builder()
                 .id(1L)
-                .inventoryId("INV-001")
+                .inventoryId(inventoryId)
                 .quantityInitial(10)
                 .quantityCurrent(8)
                 .tool(tool)

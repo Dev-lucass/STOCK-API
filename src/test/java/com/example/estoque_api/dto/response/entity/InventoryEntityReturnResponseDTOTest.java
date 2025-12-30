@@ -5,12 +5,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryEntityReturnResponseDTOTest {
 
     private Long id;
-    private String inventoryId;
+    private UUID inventoryId;
     private Long idTool;
     private int quantityReturned;
     private LocalTime usageTime;
@@ -19,7 +21,7 @@ class InventoryEntityReturnResponseDTOTest {
     @BeforeEach
     void setUp() {
         id = 10L;
-        inventoryId = "INV-2024-ABC";
+        inventoryId = UUID.randomUUID();
         idTool = 500L;
         quantityReturned = 2;
         usageTime = LocalTime.of(10, 0, 0);

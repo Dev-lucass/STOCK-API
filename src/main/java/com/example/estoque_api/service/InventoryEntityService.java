@@ -25,11 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
-
 import static com.example.estoque_api.repository.specs.InventoryEntitySpec.equalsQuantity;
 
 @Service
@@ -52,7 +50,7 @@ public class InventoryEntityService {
         var inventoryEntityMapped = mapper
                 .toEntityInventory(dto, tool);
 
-        inventoryEntityMapped.setInventoryId(UUID.randomUUID().toString());
+        randomInventoryIdAndSet(inventoryEntityMapped);
 
         var inventorySaved = repository.save(inventoryEntityMapped);
         return mapper.toResponseEntityInventory(inventorySaved);
@@ -95,6 +93,10 @@ public class InventoryEntityService {
 
     private int calculateInitialQuantity(InventoryEntity inventory, InventoryEntityDTO dto) {
         return inventory.getQuantityInitial() + dto.quantity();
+    }
+
+    private void randomInventoryIdAndSet(InventoryEntity inventory) {
+        inventory.setInventoryId(UUID.randomUUID());
     }
 
     @Transactional
@@ -231,7 +233,7 @@ public class InventoryEntityService {
             throw new InvalidQuantityException("The Quantity requested must be less than available quantity");
     }
 
-    private InventoryEntity findByInventoryId(String inventoryId) {
+    private InventoryEntity findByInventoryId(UUID inventoryId) {
         return repository.findByInventoryId(inventoryId).orElseThrow(() -> new ResourceNotFoundException("InventoryId not found"));
     }
 

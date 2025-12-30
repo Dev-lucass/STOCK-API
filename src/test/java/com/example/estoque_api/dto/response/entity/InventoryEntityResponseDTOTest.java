@@ -3,15 +3,14 @@ package com.example.estoque_api.dto.response.entity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
-
+import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryEntityResponseDTOTest {
 
     private Long id;
-    private String inventoryId;
+    private UUID inventoryId;
     private int quantityInitial;
     private int quantityCurrent;
     private Long idTool;
@@ -20,7 +19,7 @@ class InventoryEntityResponseDTOTest {
     @BeforeEach
     void setUp() {
         id = 1L;
-        inventoryId = "INV-550e8400";
+        inventoryId = UUID.randomUUID();
         quantityInitial = 100;
         quantityCurrent = 85;
         idTool = 50L;

@@ -1,5 +1,7 @@
 package com.example.estoque_api.dto.request;
 
+import java.util.UUID;
+
 public record TakeFromInventory(Long userId,
-                                                            String inventoryId,
-                                                            int quantityTaken) {}
+                                UUID inventoryId,
+                                int quantityTaken) {}

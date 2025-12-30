@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -42,6 +43,7 @@ class InventoryEntityControllerTest {
     private InventoryEntityResponseDTO responseDTO;
     private InventoryEntityDTO requestDTO;
     private TakeFromInventory takeRequest;
+    private UUID inventoryId;
 
     @BeforeEach
     void setUp() {
@@ -49,14 +51,14 @@ class InventoryEntityControllerTest {
 
         responseDTO = InventoryEntityResponseDTO.builder()
                 .id(1L)
-                .inventoryId("INV-001")
+                .inventoryId(inventoryId)
                 .quantityInitial(10)
                 .quantityCurrent(10)
                 .idTool(1L)
                 .createdAt(LocalDate.now())
                 .build();
 
-        takeRequest = new TakeFromInventory(1L, "INV-001", 5);
+        takeRequest = new TakeFromInventory(1L, inventoryId, 5);
     }
 
     @Test
@@ -68,7 +70,7 @@ class InventoryEntityControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.inventoryId").value("INV-001"));
+                .andExpect(jsonPath("$.inventoryId").value(inventoryId));
     }
 
     @Test
@@ -99,7 +101,7 @@ class InventoryEntityControllerTest {
     @DisplayName("Take from inventory returns 200 OK")
     void takeFromInventory_Success() throws Exception {
         var takeResponse = InventoryEntityTakeResponseDTO.builder()
-                .inventoryId("INV-001")
+                .inventoryId(inventoryId)
                 .quantityTaked(5)
                 .build();
 
@@ -116,7 +118,7 @@ class InventoryEntityControllerTest {
     @DisplayName("Return to inventory returns 200 OK")
     void returnFromInventory_Success() throws Exception {
         var returnResponse = InventoryEntityReturnResponseDTO.builder()
-                .inventoryId("INV-001")
+                .inventoryId(inventoryId)
                 .quantityReturned(5)
                 .build();
 
@@ -142,7 +144,7 @@ class InventoryEntityControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].inventoryId").value("INV-001"));
+                .andExpect(jsonPath("$.content[0].inventoryId").value(inventoryId));
     }
 
     @Test

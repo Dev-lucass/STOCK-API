@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class HistoryEntityResponseDTOTest {
 
     private Long historyId;
-    private String inventoryId;
+    private UUID inventoryId;
     private Long userId;
     private Long idTool;
     private InventoryAction takeAction;
@@ -26,7 +27,7 @@ class HistoryEntityResponseDTOTest {
     @BeforeEach
     void setUp() {
         historyId = 1L;
-        inventoryId = "INV-123";
+        inventoryId = UUID.randomUUID();
         userId = 10L;
         idTool = 50L;
         takeAction = InventoryAction.TAKE;
@@ -64,7 +65,7 @@ class HistoryEntityResponseDTOTest {
     void shouldVerifyEquality() {
         HistoryEntityResponseDTO dto1 = new HistoryEntityResponseDTO(historyId, inventoryId, userId, idTool, returnAction, quantity, createdAt);
         HistoryEntityResponseDTO dto2 = new HistoryEntityResponseDTO(historyId, inventoryId, userId, idTool, returnAction, quantity, createdAt);
-        HistoryEntityResponseDTO dto3 = new HistoryEntityResponseDTO(99L, "OTHER", 2L, 2L, takeAction, 10, createdAt);
+        HistoryEntityResponseDTO dto3 = new HistoryEntityResponseDTO(99L, UUID.randomUUID(), 2L, 2L, takeAction, 10, createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),

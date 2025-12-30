@@ -8,10 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-
 import java.util.List;
 import java.util.Optional;
-
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -25,6 +24,7 @@ class InventoryEntityRepositoryTest {
 
     private ToolEntity tool1;
     private ToolEntity tool2;
+    private UUID inventoryId;
 
     @BeforeEach
     void setUp() {
@@ -39,13 +39,15 @@ class InventoryEntityRepositoryTest {
                 .active(false)
                 .build();
         entityManager.persist(tool2);
+
+        inventoryId = UUID.randomUUID();
     }
 
     @Test
     @DisplayName("Should return true when inventory exists for a specific tool")
     void shouldReturnTrueWhenExistsByTool() {
         InventoryEntity inventory = InventoryEntity.builder()
-                .inventoryId("INV-001")
+                .inventoryId(inventoryId)
                 .tool(tool1)
                 .quantityInitial(10)
                 .quantityCurrent(10)
@@ -63,7 +65,7 @@ class InventoryEntityRepositoryTest {
         // To test this without unique constraint violation,
         // we first persist one, then try to check existence while ignoring its own ID.
         InventoryEntity inventory = InventoryEntity.builder()
-                .inventoryId("INV-001")
+                .inventoryId(inventoryId)
                 .tool(tool1)
                 .quantityInitial(10)
                 .quantityCurrent(10)
@@ -79,13 +81,13 @@ class InventoryEntityRepositoryTest {
     @DisplayName("Should return only inventories where associated tool is active")
     void shouldFindAllByToolActiveTrue() {
         InventoryEntity invActive = InventoryEntity.builder()
-                .inventoryId("INV-ACTIVE")
+                .inventoryId(inventoryId)
                 .tool(tool1) // active
                 .quantityInitial(10)
                 .build();
 
         InventoryEntity invInactive = InventoryEntity.builder()
-                .inventoryId("INV-INACTIVE")
+                .inventoryId(inventoryId)
                 .tool(tool2) // inactive
                 .quantityInitial(5)
                 .build();
@@ -97,14 +99,14 @@ class InventoryEntityRepositoryTest {
 
         assertAll(
                 () -> assertEquals(1, results.size()),
-                () -> assertEquals("INV-ACTIVE", results.get(0).getInventoryId())
+                () -> assertEquals(inventoryId, results.get(0).getInventoryId())
         );
     }
 
     @Test
     @DisplayName("Should find inventory by its custom inventoryId string")
     void shouldFindByInventoryId() {
-        String targetId = "UNIQUE-STR-ID";
+        UUID targetId = UUID.randomUUID();
         InventoryEntity inventory = InventoryEntity.builder()
                 .inventoryId(targetId)
                 .tool(tool1)

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,6 +20,7 @@ class HistoryEntityMapperTest {
     private HistoryEntityMapper mapper;
     private UserEntity user;
     private ToolEntity tool;
+    private UUID uuid;
 
     @BeforeEach
     void setUp() {
@@ -29,6 +31,8 @@ class HistoryEntityMapperTest {
 
         tool = new ToolEntity();
         tool.setId(50L);
+
+        uuid = UUID.randomUUID();
     }
 
     @Test
@@ -36,7 +40,7 @@ class HistoryEntityMapperTest {
     void shouldMapDtoToEntity() {
         HistoryEntityDTO dto = HistoryEntityDTO.builder()
                 .user(user)
-                .inventoryId("INV-001")
+                .inventoryId(uuid)
                 .tool(tool)
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
@@ -60,7 +64,7 @@ class HistoryEntityMapperTest {
         HistoryEntity entity = HistoryEntity.builder()
                 .id(1L)
                 .user(user)
-                .inventoryId("INV-001")
+                .inventoryId(uuid)
                 .tool(tool)
                 .quantityTaken(5)
                 .action(InventoryAction.RETURN)

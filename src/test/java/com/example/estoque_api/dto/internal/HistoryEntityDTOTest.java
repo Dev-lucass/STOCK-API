@@ -6,7 +6,7 @@ import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,7 +14,7 @@ class HistoryEntityDTOTest {
 
     private UserEntity user;
     private ToolEntity tool;
-    private String inventoryId;
+    private UUID inventoryId;
     private InventoryAction action;
     private int quantity;
 
@@ -22,7 +22,7 @@ class HistoryEntityDTOTest {
     void setUp() {
         user = new UserEntity();
         tool = new ToolEntity();
-        inventoryId = "INV-001";
+        inventoryId = inventoryId;
         action = InventoryAction.RETURN;
         quantity = 50;
     }

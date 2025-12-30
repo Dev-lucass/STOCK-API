@@ -5,13 +5,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryEntityTakeResponseDTOTest {
 
     private Long id;
-    private String inventoryId;
+    private UUID inventoryId;
     private int quantityTaked;
     private int quantityCurrent;
     private int quantityInitial;
@@ -23,7 +24,7 @@ class InventoryEntityTakeResponseDTOTest {
     @BeforeEach
     void setUp() {
         id = 1L;
-        inventoryId = "INV-12345";
+        inventoryId = UUID.randomUUID();
         quantityTaked = 10;
         quantityCurrent = 90;
         quantityInitial = 100;
