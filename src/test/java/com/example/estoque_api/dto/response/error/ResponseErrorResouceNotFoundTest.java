@@ -3,9 +3,7 @@ package com.example.estoque_api.dto.response.error;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-
+import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -15,13 +13,13 @@ class ResponseErrorResouceNotFoundTest {
 
     private int statusCode;
     private String message;
-    private LocalDate dateError;
+    private LocalDateTime dateError;
 
     @BeforeEach
     void setUp() {
         statusCode = 404;
         message = "Resource not found with the provided ID";
-        dateError = LocalDate.now();
+        dateError = LocalDateTime.now();
     }
 
     @Test

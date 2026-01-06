@@ -1,9 +1,9 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.ToolEntityDTO;
-import com.example.estoque_api.dto.response.entity.ToolEntityResponseDTO;
+import com.example.estoque_api.dto.request.ToolDTO;
+import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
 import com.example.estoque_api.model.ToolEntity;
-import com.example.estoque_api.service.ToolEntityService;
+import com.example.estoque_api.service.ToolService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,16 +33,16 @@ class ToolEntityControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private ToolEntityService service;
+    private ToolService service;
 
-    private ToolEntityResponseDTO responseDTO;
-    private ToolEntityDTO requestDTO;
+    private ToolResponseDTO responseDTO;
+    private ToolDTO requestDTO;
     private ToolEntity tool;
 
     @BeforeEach
     void setUp() {
-        requestDTO = new ToolEntityDTO("Martelo", true);
-        responseDTO = ToolEntityResponseDTO.builder()
+        requestDTO = new ToolDTO("Martelo", true);
+        responseDTO = ToolResponseDTO.builder()
                 .id(1L)
                 .name("Martelo")
                 .active(true)
@@ -57,7 +57,7 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Save tool returns 201 created")
     void save_Success() throws Exception {
-        when(service.save(any(ToolEntityDTO.class))).thenReturn(responseDTO);
+        when(service.save(any(ToolDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/tool")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,7 +81,7 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Find all inactive tools returns 200 OK")
     void findAllIsNotActive_Success() throws Exception {
-        responseDTO = ToolEntityResponseDTO.builder().id(2L).name("Serra").active(false).build();
+        responseDTO = ToolResponseDTO.builder().id(2L).name("Serra").active(false).build();
         when(service.findAllisDisable()).thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/tool/findAllIsNotActive")
@@ -94,12 +94,12 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Update tool returns 200 OK")
     void update_Success() throws Exception {
-        when(service.update(anyLong(), any(ToolEntityDTO.class))).thenReturn(responseDTO);
+        when(service.update(anyLong(), any(ToolDTO.class))).thenReturn(responseDTO);
 
-        mockMvc.perform(put("/api/v1/tool/{idTool}", 1L)
+        mockMvc.perform(put("/api/v1/tool/{toolId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.id").value(1L));
     }
 
@@ -108,7 +108,7 @@ class ToolEntityControllerTest {
     void delete_Success() throws Exception {
         doNothing().when(service).disableById(1L);
 
-        mockMvc.perform(delete("/api/v1/tool/{idTool}", 1L))
+        mockMvc.perform(patch("/api/v1/tool/{toolId}", 1L))
                 .andExpect(status().isNoContent());
     }
 

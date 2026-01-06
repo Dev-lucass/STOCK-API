@@ -1,9 +1,9 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.UserEntityDTO;
-import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
+import com.example.estoque_api.dto.request.UserDTO;
+import com.example.estoque_api.dto.response.entity.UserResponseDTO;
 import com.example.estoque_api.model.UserEntity;
-import com.example.estoque_api.service.UserEntityService;
+import com.example.estoque_api.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,30 +16,30 @@ import java.util.List;
 @RequestMapping("api/v1/user")
 public class UserEntityController {
 
-    private final UserEntityService service;
+    private final UserService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserEntityResponseDTO save(@RequestBody @Valid UserEntityDTO dto) {
+    public UserResponseDTO save(@RequestBody @Valid UserDTO dto) {
         return service.save(dto);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<UserEntityResponseDTO> findAll() {
+    public List<UserResponseDTO> findAll() {
         return service.findAll();
     }
 
     @PutMapping("/{userId}")
-    @ResponseStatus(HttpStatus.OK)
-    public UserEntityResponseDTO update(@PathVariable("userId") Long id, @RequestBody @Valid UserEntityDTO dto) {
-        return service.update(id, dto);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public UserResponseDTO update(@PathVariable Long userId, @RequestBody @Valid UserDTO dto) {
+        return service.update(userId, dto);
     }
 
-    @DeleteMapping("/{userId}")
+    @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("userId") Long id) {
-        service.disableById(id);
+    public void delete(@PathVariable Long userId) {
+        service.disableById(userId);
     }
 
     @GetMapping("filterByUsername")

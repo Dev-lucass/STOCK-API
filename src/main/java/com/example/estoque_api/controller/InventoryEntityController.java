@@ -1,11 +1,11 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.InventoryEntityDTO;
+import com.example.estoque_api.dto.request.InventoryDTO;
 import com.example.estoque_api.dto.request.TakeFromInventory;
-import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
-import com.example.estoque_api.service.InventoryEntityService;
+import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
+import com.example.estoque_api.service.InventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,41 +19,41 @@ import java.util.List;
 @RequestMapping("api/v1/inventory")
 public class InventoryEntityController {
 
-    private final InventoryEntityService service;
+    private final InventoryService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public InventoryEntityResponseDTO save(@RequestBody @Valid InventoryEntityDTO dto) {
+    public InventoryResponseDTO save(@RequestBody @Valid InventoryDTO dto) {
         return service.save(dto);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<InventoryEntityResponseDTO> findAllByToolIsActive() {
+    public List<InventoryResponseDTO> findAllByToolIsActive() {
         return service.findAllByToolIsActive();
     }
 
     @PutMapping("/{invenvoryId}")
-    @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityResponseDTO update(@PathVariable("invenvoryId") Long id, @RequestBody @Valid InventoryEntityDTO dto) {
-        return service.update(id, dto);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public InventoryResponseDTO update(@PathVariable Long invenvoryId, @RequestBody @Valid InventoryDTO dto) {
+        return service.update(invenvoryId, dto);
     }
 
     @PutMapping("takeFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityTakeResponseDTO takeFromInventory(@RequestBody @Valid TakeFromInventory takeFromInventory) {
+    public InventoryTakeResponseDTO takeFromInventory(@RequestBody @Valid TakeFromInventory takeFromInventory) {
         return service.takeFromInventory(takeFromInventory);
     }
 
     @PutMapping("returnFromInventory")
     @ResponseStatus(HttpStatus.OK)
-    public InventoryEntityReturnResponseDTO returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
+    public InventoryReturnResponseDTO returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
         return service.returnFromInventory(returneFromInventory);
     }
 
     @GetMapping("filterByQuantity")
     @ResponseStatus(HttpStatus.OK)
-    public Page<InventoryEntityResponseDTO> filterByQuantity(
+    public Page<InventoryResponseDTO> filterByQuantity(
             @RequestParam(value = "quantity", required = false) Integer quantity,
             @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize

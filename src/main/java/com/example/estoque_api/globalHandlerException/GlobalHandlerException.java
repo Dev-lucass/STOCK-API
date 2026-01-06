@@ -7,8 +7,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalHandlerException {
@@ -25,10 +25,6 @@ public class GlobalHandlerException {
                 ))
                 .toList();
 
-        var message = responseErrorInvalidFields.isEmpty()
-                ? "Invalid request"
-                : responseErrorInvalidFields.getFirst().message();
-
         return new ResponseErrorInvalidArguments(
                 HttpStatus.BAD_REQUEST.value(),
                 LocalDate.now(),
@@ -42,7 +38,7 @@ public class GlobalHandlerException {
         return new ResponseErrorResouceNotFound(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -52,7 +48,7 @@ public class GlobalHandlerException {
         return new ResponseErrorConflictValue(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -62,7 +58,7 @@ public class GlobalHandlerException {
         return new ResponseErrorInvalidQuantity(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -72,7 +68,7 @@ public class GlobalHandlerException {
         return new ResponseErrorInvalidQuantity(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -82,7 +78,7 @@ public class GlobalHandlerException {
         return new ResponseErrorReturnToInventory(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -92,7 +88,7 @@ public class GlobalHandlerException {
         return new ResponseErrorReturnToInventory(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -102,7 +98,7 @@ public class GlobalHandlerException {
         return new ResponseErrorReturnToInventory(
                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
         );
     }
 
@@ -112,7 +108,17 @@ public class GlobalHandlerException {
         return new ResponseErrorReturnToInventory(
                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
                 ex.getMessage(),
-                LocalDate.now()
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler(userMustStillReturnBeforeBeingDeactivated.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseErrorInvalidQuantity userMustStillReturnBeforeBeingDeactivated(userMustStillReturnBeforeBeingDeactivated ex) {
+        return new ResponseErrorInvalidQuantity(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
         );
     }
 }

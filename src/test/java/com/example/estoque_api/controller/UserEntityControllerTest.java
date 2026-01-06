@@ -1,9 +1,9 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.UserEntityDTO;
-import com.example.estoque_api.dto.response.entity.UserEntityResponseDTO;
+import com.example.estoque_api.dto.request.UserDTO;
+import com.example.estoque_api.dto.response.entity.UserResponseDTO;
 import com.example.estoque_api.model.UserEntity;
-import com.example.estoque_api.service.UserEntityService;
+import com.example.estoque_api.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,16 +35,16 @@ class UserEntityControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private UserEntityService service;
+    private UserService service;
 
-    private UserEntityResponseDTO responseDTO;
-    private UserEntityDTO requestDTO;
+    private UserResponseDTO responseDTO;
+    private UserDTO requestDTO;
     private UserEntity user;
 
     @BeforeEach
     void setUp() {
-        requestDTO = new UserEntityDTO("joao_silva", "11144477735", "rua madeireira");
-        responseDTO = UserEntityResponseDTO.builder()
+        requestDTO = new UserDTO("joao_silva", "11144477735", "rua madeireira");
+        responseDTO = UserResponseDTO.builder()
                 .id(1L)
                 .username("joao_silva")
                 .build();
@@ -58,7 +58,7 @@ class UserEntityControllerTest {
     @Test
     @DisplayName("Save user returns 201 created")
     void save_Success() throws Exception {
-        when(service.save(any(UserEntityDTO.class))).thenReturn(responseDTO);
+        when(service.save(any(UserDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,12 +82,12 @@ class UserEntityControllerTest {
     @Test
     @DisplayName("Update user returns 200 OK")
     void update_Success() throws Exception {
-        when(service.update(anyLong(), any(UserEntityDTO.class))).thenReturn(responseDTO);
+        when(service.update(anyLong(), any(UserDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(put("/api/v1/user/{userId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.id").value(1L));
     }
 
@@ -96,7 +96,7 @@ class UserEntityControllerTest {
     void delete_Success() throws Exception {
         doNothing().when(service).disableById(1L);
 
-        mockMvc.perform(delete("/api/v1/user/{userId}", 1L))
+        mockMvc.perform(patch("/api/v1/user/{userId}", 1L))
                 .andExpect(status().isNoContent());
     }
 
