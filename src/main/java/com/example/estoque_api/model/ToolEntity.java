@@ -5,9 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -38,6 +35,7 @@ public class ToolEntity {
         if (active == null) active = true;
         if (usageCount == null) usageCount = 0;
         if (currentLifeCycle == null) currentLifeCycle = 100.0;
+        if (usageTime == null) usageTime = LocalTime.MIDNIGHT;
 
         degradationRate = 1.5;
         minimumViableLife = 40.0;

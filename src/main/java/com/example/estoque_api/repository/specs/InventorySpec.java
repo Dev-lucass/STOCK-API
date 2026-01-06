@@ -1,0 +1,11 @@
+package com.example.estoque_api.repository.specs;
+
+import com.example.estoque_api.model.InventoryEntity;
+import org.springframework.data.jpa.domain.Specification;
+
+public class InventorySpec {
+
+    public static Specification<InventoryEntity> equalsQuantity(int quantity) {
+        return (r, q, cb) -> cb.equal(r.get("quantity"), quantity);
+    }
+}

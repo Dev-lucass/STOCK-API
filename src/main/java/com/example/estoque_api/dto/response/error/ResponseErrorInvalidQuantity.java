@@ -1,9 +1,9 @@
 package com.example.estoque_api.dto.response.error;
 
-import org.springframework.format.annotation.DateTimeFormat;
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDateTime;
 
 public record ResponseErrorInvalidQuantity(int statusCode,
                                                                                 String message,
-                                                                                @DateTimeFormat(pattern = "dd/MM/yyyy")
-                                                                                LocalDate dateError){}
+                                                                               @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+                                                                               LocalDateTime dateError){}

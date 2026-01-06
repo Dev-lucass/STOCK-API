@@ -1,9 +1,9 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.ToolEntityDTO;
-import com.example.estoque_api.dto.response.entity.ToolEntityResponseDTO;
+import com.example.estoque_api.dto.request.ToolDTO;
+import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
 import com.example.estoque_api.model.ToolEntity;
-import com.example.estoque_api.service.ToolEntityService;
+import com.example.estoque_api.service.ToolService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,36 +17,36 @@ import java.util.List;
 @RequestMapping("api/v1/tool")
 public class ToolEntityController {
 
-    private final ToolEntityService service;
+    private final ToolService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ToolEntityResponseDTO save(@RequestBody @Valid ToolEntityDTO dto) {
+    public ToolResponseDTO save(@RequestBody @Valid ToolDTO dto) {
         return service.save(dto);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ToolEntityResponseDTO> findAllIsActive() {
+    public List<ToolResponseDTO> findAllIsActive() {
         return service.findAllisActive();
     }
 
     @GetMapping("findAllIsNotActive")
     @ResponseStatus(HttpStatus.OK)
-    public List<ToolEntityResponseDTO> findAllIsNotActive() {
+    public List<ToolResponseDTO> findAllIsNotActive() {
         return service.findAllisDisable();
     }
 
-    @PutMapping("/{idTool}")
-    @ResponseStatus(HttpStatus.OK)
-    public ToolEntityResponseDTO update(@PathVariable("idTool") Long id, @RequestBody @Valid ToolEntityDTO dto) {
-        return service.update(id, dto);
+    @PutMapping("/{toolId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ToolResponseDTO update(@PathVariable Long toolId, @RequestBody @Valid ToolDTO dto) {
+        return service.update(toolId, dto);
     }
 
-    @DeleteMapping("/{idTool}")
+    @PatchMapping("/{toolId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("idTool") Long id) {
-        service.disableById(id);
+    public void delete(@PathVariable Long toolId) {
+        service.disableById(toolId);
     }
 
     @GetMapping("filterByName")

@@ -1,11 +1,11 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.InventoryEntityDTO;
+import com.example.estoque_api.dto.request.InventoryDTO;
 import com.example.estoque_api.dto.request.TakeFromInventory;
-import com.example.estoque_api.dto.response.entity.InventoryEntityResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryEntityReturnResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryEntityTakeResponseDTO;
-import com.example.estoque_api.service.InventoryEntityService;
+import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
+import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
+import com.example.estoque_api.service.InventoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,11 +17,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -38,24 +36,24 @@ class InventoryEntityControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private InventoryEntityService service;
+    private InventoryService service;
 
-    private InventoryEntityResponseDTO responseDTO;
-    private InventoryEntityDTO requestDTO;
+    private InventoryResponseDTO responseDTO;
+    private InventoryDTO requestDTO;
     private TakeFromInventory takeRequest;
     private UUID inventoryId;
 
     @BeforeEach
     void setUp() {
-        requestDTO = new InventoryEntityDTO(10, 1L);
+        requestDTO = new InventoryDTO(10, 1L);
 
-        responseDTO = InventoryEntityResponseDTO.builder()
+        responseDTO = InventoryResponseDTO.builder()
                 .id(1L)
                 .inventoryId(inventoryId)
                 .quantityInitial(10)
                 .quantityCurrent(10)
-                .idTool(1L)
-                .createdAt(LocalDate.now())
+                .toolId(1L)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         takeRequest = new TakeFromInventory(1L, inventoryId, 5);
@@ -93,14 +91,14 @@ class InventoryEntityControllerTest {
         mockMvc.perform(put("/api/v1/inventory/{invenvoryId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
     @DisplayName("Take from inventory returns 200 OK")
     void takeFromInventory_Success() throws Exception {
-        var takeResponse = InventoryEntityTakeResponseDTO.builder()
+        var takeResponse = InventoryTakeResponseDTO.builder()
                 .inventoryId(inventoryId)
                 .quantityTaked(5)
                 .build();
@@ -117,7 +115,7 @@ class InventoryEntityControllerTest {
     @Test
     @DisplayName("Return to inventory returns 200 OK")
     void returnFromInventory_Success() throws Exception {
-        var returnResponse = InventoryEntityReturnResponseDTO.builder()
+        var returnResponse = InventoryReturnResponseDTO.builder()
                 .inventoryId(inventoryId)
                 .quantityReturned(5)
                 .build();
@@ -134,7 +132,7 @@ class InventoryEntityControllerTest {
     @Test
     @DisplayName("Filter by quantity returns paged data")
     void filterByQuantity_Success() throws Exception {
-        Page<InventoryEntityResponseDTO> page = new PageImpl<>(List.of(responseDTO));
+        Page<InventoryResponseDTO> page = new PageImpl<>(List.of(responseDTO));
         when(service.filterByQuantity(anyInt(), anyInt(), anyInt())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/inventory/filterByQuantity")

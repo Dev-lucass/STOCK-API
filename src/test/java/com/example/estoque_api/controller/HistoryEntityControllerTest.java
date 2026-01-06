@@ -1,8 +1,8 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.response.entity.HistoryEntityResponseDTO;
+import com.example.estoque_api.dto.response.entity.HistoryResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
-import com.example.estoque_api.service.HistoryEntityService;
+import com.example.estoque_api.service.HistoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +28,12 @@ class HistoryEntityControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private HistoryEntityService service;
+    private HistoryService service;
 
     @Test
     @DisplayName("Get all history success")
     void getAllHistory_Success() throws Exception {
-        HistoryEntityResponseDTO response = HistoryEntityResponseDTO.builder().build();
+        HistoryResponseDTO response = HistoryResponseDTO.builder().build();
         when(service.findAll()).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/v1/history")
@@ -45,8 +45,8 @@ class HistoryEntityControllerTest {
     @Test
     @DisplayName("Filter history with parameters success")
     void filterHistory_WithParams_Success() throws Exception {
-        HistoryEntityResponseDTO response = HistoryEntityResponseDTO.builder().build();
-        Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of(response));
+        HistoryResponseDTO response = HistoryResponseDTO.builder().build();
+        Page<HistoryResponseDTO> page = new PageImpl<>(List.of(response));
 
         when(service.filterHistory(anyString(),any(InventoryAction.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(page);
@@ -67,7 +67,7 @@ class HistoryEntityControllerTest {
     @Test
     @DisplayName("Filter history with empty parameters success")
     void filterHistory_EmptyParams_Success() throws Exception {
-        Page<HistoryEntityResponseDTO> page = new PageImpl<>(List.of());
+        Page<HistoryResponseDTO> page = new PageImpl<>(List.of());
 
         when(service.filterHistory(null, null, null,null, null, 0, 10))
                 .thenReturn(page);
