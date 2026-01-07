@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -66,10 +65,17 @@ class ToolServiceTest {
 
     @Test
     void save_ShouldReturnResponse_WhenSuccess() {
-        when(repository.existsByName(anyString())).thenReturn(false);
-        when(mapper.toEntityTool(any())).thenReturn(tool);
-        when(repository.save(any())).thenReturn(tool);
-        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolResponseDTO.class));
+        when(repository.existsByName(anyString()))
+                .thenReturn(false);
+
+        when(mapper.toEntityTool(any()))
+                .thenReturn(tool);
+
+        when(repository.save(any()))
+                .thenReturn(tool);
+
+        when(mapper.toResponseEntityTool(any())).
+                thenReturn(mock(ToolResponseDTO.class));
 
         var result = toolService.save(toolDTO);
 
@@ -79,15 +85,19 @@ class ToolServiceTest {
 
     @Test
     void save_ShouldThrowException_WhenNameExists() {
-        when(repository.existsByName(anyString())).thenReturn(true);
+        when(repository.existsByName(anyString()))
+                .thenReturn(true);
 
         assertThrows(DuplicateResouceException.class, () -> toolService.save(toolDTO));
     }
 
     @Test
     void findAllisActive_ShouldReturnList() {
-        when(repository.findAllByActiveTrue()).thenReturn(List.of(tool));
-        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolResponseDTO.class));
+        when(repository.findAllByActiveTrue())
+                .thenReturn(List.of(tool));
+
+        when(mapper.toResponseEntityTool(any()))
+                .thenReturn(mock(ToolResponseDTO.class));
 
         var result = toolService.findAllisActive();
 
@@ -97,10 +107,17 @@ class ToolServiceTest {
 
     @Test
     void update_ShouldReturnUpdatedResponse_WhenSuccess() {
-        when(repository.findById(1L)).thenReturn(Optional.of(tool));
-        when(repository.existsByNameAndIdNot(anyString(), anyLong())).thenReturn(false);
-        when(repository.save(any())).thenReturn(tool);
-        when(mapper.toResponseEntityTool(any())).thenReturn(mock(ToolResponseDTO.class));
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(tool));
+
+        when(repository.existsByNameAndIdNot(anyString(), anyLong()))
+                .thenReturn(false);
+
+        when(repository.save(any()))
+                .thenReturn(tool);
+
+        when(mapper.toResponseEntityTool(any()))
+                .thenReturn(mock(ToolResponseDTO.class));
 
         var result = toolService.update(1L, toolDTO);
 
@@ -110,7 +127,8 @@ class ToolServiceTest {
 
     @Test
     void disableById_ShouldSetInactive_WhenFound() {
-        when(repository.findById(1L)).thenReturn(Optional.of(tool));
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(tool));
 
         toolService.disableById(1L);
 
@@ -130,14 +148,15 @@ class ToolServiceTest {
     @Test
     void startUsage_ShouldThrowException_WhenLifeCycleIsLow() {
         tool.setCurrentLifeCycle(5.0);
-
         assertThrows(DamagedToolException.class, () -> toolService.startUsage(tool));
     }
 
     @Test
     void returnTool_ShouldResetUsageTime_WhenDebtIsZero() {
         tool.setUsageTime(LocalTime.now());
-        when(historyService.currentDebt(user)).thenReturn(0);
+
+        when(historyService.currentDebt(user))
+                .thenReturn(0);
 
         toolService.returnTool(tool, user);
 
@@ -146,9 +165,11 @@ class ToolServiceTest {
 
     @Test
     void returnTool_ShouldNotResetUsageTime_WhenDebtExists() {
-        LocalTime startTime = LocalTime.now();
+        var startTime = LocalTime.now();
         tool.setUsageTime(startTime);
-        when(historyService.currentDebt(user)).thenReturn(5);
+
+        when(historyService.currentDebt(user))
+                .thenReturn(5);
 
         toolService.returnTool(tool, user);
 
@@ -157,19 +178,23 @@ class ToolServiceTest {
 
     @Test
     void validateToolIsInactive_ShouldReturnTrue_WhenInactive() {
-        when(repository.existsByIdAndActiveFalse(1L)).thenReturn(true);
+        when(repository.existsByIdAndActiveFalse(1L))
+                .thenReturn(true);
 
-        boolean result = toolService.validateToolIsInactive(1L);
-
+        var result = toolService.validateToolIsInactive(1L);
         assertTrue(result);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void filterByNamePageable_ShouldReturnPagedResults() {
-        Page<ToolEntity> page = new PageImpl<>(List.of(tool));
-        when(repository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
+        var page = new PageImpl<>(List.of(tool));
 
-        var result = toolService.filterByNamePageable("Hammer", 0, 10);
+        when(repository.findAll(any(Specification.class), any(PageRequest.class)))
+                .thenReturn(page);
+
+        var result = toolService
+                .filterByNamePageable("Hammer", 0, 10);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -179,14 +204,15 @@ class ToolServiceTest {
     void calculateUsageTime_ShouldReturnCorrectDuration() {
         tool.setUsageTime(LocalTime.now().minusHours(2));
 
-        LocalTime result = toolService.calculateUsageTime(tool);
+        var result = toolService.calculateUsageTime(tool);
 
         assertTrue(result.getHour() >= 2);
     }
 
     @Test
     void findToolByIdOrElseThrow_ShouldThrowException_WhenNotFound() {
-        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+        when(repository.findById(anyLong()))
+                .thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> toolService.findToolByIdOrElseThrow(1L));
     }

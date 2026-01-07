@@ -25,7 +25,7 @@ class ResponseErrorReturnToInventoryTest {
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateResponseErrorReturnToInventoryAndReturnCorrectValues() {
-        ResponseErrorReturnToInventory dto = new ResponseErrorReturnToInventory(statusCode, message, dateError);
+        var dto = new ResponseErrorReturnToInventory(statusCode, message, dateError);
 
         assertAll(
                 () -> assertEquals(statusCode, dto.statusCode()),
@@ -36,10 +36,10 @@ class ResponseErrorReturnToInventoryTest {
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        ResponseErrorReturnToInventory dto1 = new ResponseErrorReturnToInventory(statusCode, message, dateError);
-        ResponseErrorReturnToInventory dto2 = new ResponseErrorReturnToInventory(statusCode, message, dateError);
-        ResponseErrorReturnToInventory dto3 = new ResponseErrorReturnToInventory(409, "Different error", dateError);
+    void should_Verify_Equality() {
+        var dto1 = new ResponseErrorReturnToInventory(statusCode, message, dateError);
+        var dto2 = new ResponseErrorReturnToInventory(statusCode, message, dateError);
+        var dto3 = new ResponseErrorReturnToInventory(409, "Different error", dateError);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -50,9 +50,9 @@ class ResponseErrorReturnToInventoryTest {
 
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        ResponseErrorReturnToInventory dto = new ResponseErrorReturnToInventory(statusCode, message, dateError);
-        String toString = dto.toString();
+    void should_Verify_ToString() {
+        var dto = new ResponseErrorReturnToInventory(statusCode, message, dateError);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("statusCode=" + statusCode)),

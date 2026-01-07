@@ -25,7 +25,7 @@ class UserResponseDTOTest {
     @Test
     @DisplayName("Should successfully instantiate the record using builder and return correct values")
     void shouldCreateUserEntityResponseDTOUsingBuilder() {
-        UserResponseDTO dto = UserResponseDTO.builder()
+        var dto = UserResponseDTO.builder()
                 .id(id)
                 .username(username)
                 .createdAt(createdAt)
@@ -40,10 +40,10 @@ class UserResponseDTOTest {
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        UserResponseDTO dto1 = new UserResponseDTO(id, username, createdAt);
-        UserResponseDTO dto2 = new UserResponseDTO(id, username, createdAt);
-        UserResponseDTO dto3 = new UserResponseDTO(2L, "other_user", createdAt);
+    void should_Verify_Equality() {
+        var dto1 = new UserResponseDTO(id, username, createdAt);
+        var dto2 = new UserResponseDTO(id, username, createdAt);
+        var dto3 = new UserResponseDTO(2L, "other_user", createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -54,9 +54,9 @@ class UserResponseDTOTest {
 
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        UserResponseDTO dto = new UserResponseDTO(id, username, createdAt);
-        String toString = dto.toString();
+    void should_Verify_ToString() {
+        var dto = new UserResponseDTO(id, username, createdAt);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("id=" + id)),

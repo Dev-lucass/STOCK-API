@@ -1,7 +1,6 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.request.ToolDTO;
-import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
 import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,7 @@ class ToolMapperTest {
     @Test
     @DisplayName("Should map ToolDTO to ToolEntity successfully")
     void shouldMapDtoToEntityTool() {
-        ToolEntity result = mapper.toEntityTool(toolDTO);
+        var result = mapper.toEntityTool(toolDTO);
 
         assertAll(
                 () -> assertNotNull(result),
@@ -43,7 +42,8 @@ class ToolMapperTest {
     @Test
     @DisplayName("Should map ToolEntity to ToolResponseDTO successfully")
     void shouldMapEntityToResponseEntityTool() {
-        ToolResponseDTO result = mapper.toResponseEntityTool(toolEntity);
+        var result = mapper
+                .toResponseEntityTool(toolEntity);
 
         assertAll(
                 () -> assertNotNull(result),

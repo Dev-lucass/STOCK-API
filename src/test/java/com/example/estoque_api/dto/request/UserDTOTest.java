@@ -12,11 +12,11 @@ class UserDTOTest {
     @Test
     @DisplayName("Should successfully instantiate the record using builder and return correct values")
     void shouldCreateUserEntityDTOUsingBuilder() {
-        String expectedUsername = "John Doe";
-        String expectedCpf = "12345678901";
-        String expectedAddress = "123 Main Street, NY";
+        var expectedUsername = "John Doe";
+        var expectedCpf = "12345678901";
+        var expectedAddress = "123 Main Street, NY";
 
-        UserDTO dto = UserDTO.builder()
+        var dto = UserDTO.builder()
                 .username(expectedUsername)
                 .cpf(expectedCpf)
                 .address(expectedAddress)
@@ -32,9 +32,9 @@ class UserDTOTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        UserDTO dto1 = new UserDTO("User", "123", "Street A");
-        UserDTO dto2 = new UserDTO("User", "123", "Street A");
-        UserDTO dto3 = new UserDTO("Other", "456", "Street B");
+        var dto1 = new UserDTO("User", "123", "Street A");
+        var dto2 = new UserDTO("User", "123", "Street A");
+        var dto3 = new UserDTO("Other", "456", "Street B");
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -46,8 +46,8 @@ class UserDTOTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        UserDTO dto = new UserDTO("Jane Doe", "98765432100", "Avenue 5");
-        String toString = dto.toString();
+        var dto = new UserDTO("Jane Doe", "98765432100", "Avenue 5");
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("username=Jane Doe")),

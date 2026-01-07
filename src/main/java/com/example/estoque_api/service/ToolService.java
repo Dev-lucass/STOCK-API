@@ -9,7 +9,6 @@ import com.example.estoque_api.mapper.ToolMapper;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.ToolRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
@@ -57,9 +57,9 @@ public class ToolService {
         return mapper.toResponseEntityTool(repository.save(entity));
     }
 
-
+    @Transactional(noRollbackFor = DamagedToolException.class)
     public void startUsage(ToolEntity tool) {
-        validateIfTheToolIsDamaged(tool);
+        throwIfToolIsDamaged(tool);
         applyDegradation(tool);
         tool.setUsageCount(tool.getUsageCount() + 1);
         tool.setUsageTime(LocalTime.now());
@@ -86,7 +86,6 @@ public class ToolService {
         return historyService.currentDebt(user);
     }
 
-    @Transactional
     public LocalTime calculateUsageTime(ToolEntity tool) {
 
         var usageTime = Duration
@@ -98,25 +97,33 @@ public class ToolService {
         return LocalTime.MIDNIGHT.plus(usageTime);
     }
 
-    @Transactional
-    public void applyDegradation(ToolEntity tool) {
-        double updatedLife = tool.getCurrentLifeCycle() - tool.getDegradationRate();
-        tool.setCurrentLifeCycle(updatedLife);
-
-        throwIfToolDamaged(tool);
+    private void applyDegradation(ToolEntity tool) {
+        var lifeDegrated = calculateLifeDegrated(tool);
+        tool.setCurrentLifeCycle(lifeDegrated);
+        disableToolIfIsDamaged(tool);
     }
 
-    private void throwIfToolDamaged(ToolEntity tool) {
-        if (tool.getCurrentLifeCycle() < tool.getMinimumViableLife()) {
+    private void disableToolIfIsDamaged(ToolEntity tool) {
+        if (validateIfToolIsDamaged(tool)) {
             tool.setActive(false);
-            repository.save(tool);
-            throw new DamagedToolException("The tool has reached the end of its useful life");
+            damagedToolException(tool);
         }
     }
 
-    public void validateIfTheToolIsDamaged(ToolEntity tool) {
-        if (tool.getCurrentLifeCycle() < tool.getMinimumViableLife())
-            throw new DamagedToolException("Tool " + tool.getName() + " reached end of life cycle.");
+    private void damagedToolException(ToolEntity tool) {
+        throw new DamagedToolException("Tool " + tool.getName() + " reached end of life cycle.");
+    }
+
+    private boolean validateIfToolIsDamaged(ToolEntity tool) {
+        return tool.getCurrentLifeCycle() < tool.getMinimumViableLife();
+    }
+
+    private double calculateLifeDegrated(ToolEntity tool) {
+        return tool.getCurrentLifeCycle() - tool.getDegradationRate();
+    }
+
+    public void throwIfToolIsDamaged(ToolEntity tool) {
+        if (validateIfToolIsDamaged(tool)) damagedToolException(tool);
     }
 
     public ToolEntity findToolByIdOrElseThrow(Long id) {

@@ -25,7 +25,7 @@ class ResponseErrorConflictValueTest {
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateResponseErrorConflictValueAndReturnCorrectValues() {
-        ResponseErrorConflictValue dto = new ResponseErrorConflictValue(statusCode, message, dateError);
+        var dto = new ResponseErrorConflictValue(statusCode, message, dateError);
 
         assertAll(
                 () -> assertEquals(statusCode, dto.statusCode()),
@@ -36,10 +36,10 @@ class ResponseErrorConflictValueTest {
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        ResponseErrorConflictValue dto1 = new ResponseErrorConflictValue(statusCode, message, dateError);
-        ResponseErrorConflictValue dto2 = new ResponseErrorConflictValue(statusCode, message, dateError);
-        ResponseErrorConflictValue dto3 = new ResponseErrorConflictValue(400, "Bad Request", dateError);
+    void should_Verify_Equality() {
+        var dto1 = new ResponseErrorConflictValue(statusCode, message, dateError);
+        var dto2 = new ResponseErrorConflictValue(statusCode, message, dateError);
+        var dto3 = new ResponseErrorConflictValue(400, "Bad Request", dateError);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -50,9 +50,9 @@ class ResponseErrorConflictValueTest {
 
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        ResponseErrorConflictValue dto = new ResponseErrorConflictValue(statusCode, message, dateError);
-        String toString = dto.toString();
+    void should_Verify_ToString() {
+        var dto = new ResponseErrorConflictValue(statusCode, message, dateError);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("statusCode=" + statusCode)),

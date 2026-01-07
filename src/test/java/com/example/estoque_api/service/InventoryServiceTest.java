@@ -132,7 +132,7 @@ class InventoryServiceTest {
 
         assertEquals(40, inventory.getQuantityCurrent());
         verify(userService).validateUserIsActive(user);
-        verify(toolService).validateIfTheToolIsDamaged(tool);
+        verify(toolService).throwIfToolIsDamaged(tool);
         verify(repository).save(inventory);
         verify(historyService).save(any());
         verify(toolService).startUsage(tool);

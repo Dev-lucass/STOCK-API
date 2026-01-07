@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -62,7 +61,8 @@ class InventoryEntityControllerTest {
     @Test
     @DisplayName("Save inventory returns 201 created")
     void save_Success() throws Exception {
-        when(service.save(any())).thenReturn(responseDTO);
+        when(service.save(any()))
+                .thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/inventory")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +74,8 @@ class InventoryEntityControllerTest {
     @Test
     @DisplayName("Find all active tools returns 200 OK")
     void findAll_Success() throws Exception {
-        when(service.findAllByToolIsActive()).thenReturn(List.of(responseDTO));
+        when(service.findAllByToolIsActive())
+                .thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/inventory")
                         .accept(MediaType.APPLICATION_JSON))
@@ -86,7 +87,8 @@ class InventoryEntityControllerTest {
     @Test
     @DisplayName("Update inventory returns 200 OK")
     void update_Success() throws Exception {
-        when(service.update(anyLong(), any())).thenReturn(responseDTO);
+        when(service.update(anyLong(), any()))
+                .thenReturn(responseDTO);
 
         mockMvc.perform(put("/api/v1/inventory/{invenvoryId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,26 +101,36 @@ class InventoryEntityControllerTest {
     @DisplayName("Take from inventory returns 200 OK")
     void takeFromInventory_Success() throws Exception {
         var takeResponse = InventoryTakeResponseDTO.builder()
-                .inventoryId(inventoryId)
-                .quantityTaked(5)
-                .build();
+                                        .inventoryId(inventoryId)
+                                        .quantityTaked(5)
+                                        .quantityCurrent(2)
+                                        .quantityInitial(10)
+                                        .usageCount(2)
+                                        .build();
 
-        when(service.takeFromInventory(any())).thenReturn(takeResponse);
+        when(service.takeFromInventory(any()))
+                .thenReturn(takeResponse);
 
         mockMvc.perform(put("/api/v1/inventory/takeFromInventory")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(takeRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.quantityTaked").value(5));
+                .andExpect(jsonPath("$.quantityTaked").value(5))
+                .andExpect(jsonPath("$.quantityCurrent").value(2))
+                .andExpect(jsonPath("$.quantityInitial").value(10))
+                .andExpect(jsonPath("$.usageCount").value(2));
     }
 
     @Test
     @DisplayName("Return to inventory returns 200 OK")
     void returnFromInventory_Success() throws Exception {
         var returnResponse = InventoryReturnResponseDTO.builder()
-                .inventoryId(inventoryId)
-                .quantityReturned(5)
-                .build();
+                                        .inventoryId(inventoryId)
+                                        .quantityReturned(5)
+                                        .quantityInitial(10)
+                                        .quantityCurrent(2)
+                                        .usageCount(1)
+                                        .build();
 
         when(service.returnFromInventory(any())).thenReturn(returnResponse);
 
@@ -126,14 +138,19 @@ class InventoryEntityControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(takeRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.quantityReturned").value(5));
+                .andExpect(jsonPath("$.quantityReturned").value(5))
+                .andExpect(jsonPath("$.quantityInitial").value(10))
+                .andExpect(jsonPath("$.quantityCurrent").value(2))
+                .andExpect(jsonPath("$.usageCount").value(1));
     }
 
     @Test
     @DisplayName("Filter by quantity returns paged data")
     void filterByQuantity_Success() throws Exception {
-        Page<InventoryResponseDTO> page = new PageImpl<>(List.of(responseDTO));
-        when(service.filterByQuantity(anyInt(), anyInt(), anyInt())).thenReturn(page);
+        var page = new PageImpl<>(List.of(responseDTO));
+
+        when(service.filterByQuantity(anyInt(), anyInt(), anyInt()))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/inventory/filterByQuantity")
                         .param("quantity", "10")

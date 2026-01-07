@@ -10,14 +10,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -44,10 +41,12 @@ class UserEntityControllerTest {
     @BeforeEach
     void setUp() {
         requestDTO = new UserDTO("joao_silva", "11144477735", "rua madeireira");
+
         responseDTO = UserResponseDTO.builder()
                 .id(1L)
                 .username("joao_silva")
                 .build();
+
         user = UserEntity.builder()
                 .id(1L)
                 .username("joao_silva")
@@ -58,7 +57,8 @@ class UserEntityControllerTest {
     @Test
     @DisplayName("Save user returns 201 created")
     void save_Success() throws Exception {
-        when(service.save(any(UserDTO.class))).thenReturn(responseDTO);
+        when(service.save(any(UserDTO.class)))
+                .thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +70,8 @@ class UserEntityControllerTest {
     @Test
     @DisplayName("Find all active users returns 200 OK")
     void findAll_Success() throws Exception {
-        when(service.findAll()).thenReturn(List.of(responseDTO));
+        when(service.findAll())
+                .thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/user")
                         .accept(MediaType.APPLICATION_JSON))
@@ -82,7 +83,8 @@ class UserEntityControllerTest {
     @Test
     @DisplayName("Update user returns 200 OK")
     void update_Success() throws Exception {
-        when(service.update(anyLong(), any(UserDTO.class))).thenReturn(responseDTO);
+        when(service.update(anyLong(), any(UserDTO.class)))
+                .thenReturn(responseDTO);
 
         mockMvc.perform(put("/api/v1/user/{userId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,8 +105,10 @@ class UserEntityControllerTest {
     @Test
     @DisplayName("Filter users by username returns paged data")
     void filterByUsername_Success() throws Exception {
-        Page<UserEntity> page = new PageImpl<>(List.of(user));
-        when(service.filterByUsernamePageable(anyString(), anyInt(), anyInt())).thenReturn(page);
+        var page = new PageImpl<>(List.of(user));
+
+        when(service.filterByUsernamePageable(anyString(), anyInt(), anyInt()))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/user/filterByUsername")
                         .param("username", "joao")

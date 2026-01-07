@@ -1,7 +1,6 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.request.UserDTO;
-import com.example.estoque_api.dto.response.entity.UserResponseDTO;
 import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +36,7 @@ class UserMapperTest {
     @Test
     @DisplayName("Should map UserDTO to UserEntity successfully")
     void shouldMapDtoToEntityUser() {
-        UserEntity result = mapper.toEntityUser(userDTO);
+        var result = mapper.toEntityUser(userDTO);
 
         assertAll(
                 () -> assertNotNull(result),
@@ -50,7 +49,8 @@ class UserMapperTest {
     @Test
     @DisplayName("Should map UserEntity to UserResponseDTO successfully")
     void shouldMapEntityToResponseEntityUser() {
-        UserResponseDTO result = mapper.toResponseEntityUser(userEntity);
+        var result = mapper
+                .toResponseEntityUser(userEntity);
 
         assertAll(
                 () -> assertNotNull(result),

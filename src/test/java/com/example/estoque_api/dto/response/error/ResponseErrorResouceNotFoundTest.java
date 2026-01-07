@@ -25,7 +25,7 @@ class ResponseErrorResouceNotFoundTest {
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateResponseErrorResouceNotFoundAndReturnCorrectValues() {
-        ResponseErrorResouceNotFound dto = new ResponseErrorResouceNotFound(statusCode, message, dateError);
+        var dto = new ResponseErrorResouceNotFound(statusCode, message, dateError);
 
         assertAll(
                 () -> assertEquals(statusCode, dto.statusCode()),
@@ -36,10 +36,10 @@ class ResponseErrorResouceNotFoundTest {
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        ResponseErrorResouceNotFound dto1 = new ResponseErrorResouceNotFound(statusCode, message, dateError);
-        ResponseErrorResouceNotFound dto2 = new ResponseErrorResouceNotFound(statusCode, message, dateError);
-        ResponseErrorResouceNotFound dto3 = new ResponseErrorResouceNotFound(404, "Different message", dateError);
+    void should_Verify_Equality() {
+        var dto1 = new ResponseErrorResouceNotFound(statusCode, message, dateError);
+        var dto2 = new ResponseErrorResouceNotFound(statusCode, message, dateError);
+        var dto3 = new ResponseErrorResouceNotFound(404, "Different message", dateError);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -50,9 +50,9 @@ class ResponseErrorResouceNotFoundTest {
 
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        ResponseErrorResouceNotFound dto = new ResponseErrorResouceNotFound(statusCode, message, dateError);
-        String toString = dto.toString();
+    void should_Verify_ToString() {
+        var dto = new ResponseErrorResouceNotFound(statusCode, message, dateError);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("statusCode=" + statusCode)),

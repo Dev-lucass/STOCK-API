@@ -4,23 +4,15 @@ import com.example.estoque_api.enums.InventoryAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class HistoryResponseDTOTest {
 
-    private Long historyId;
+    private Long historyId, userId, toolId;
     private UUID inventoryId;
-    private Long userId;
-    private Long toolId;
-    private InventoryAction takeAction;
-    private InventoryAction returnAction;
+    private InventoryAction takeAction, returnAction;
     private int quantity;
     private LocalDateTime createdAt;
     private String tool;
@@ -41,7 +33,7 @@ class HistoryResponseDTOTest {
     @Test
     @DisplayName("Should successfully instantiate the record using builder and return correct values")
     void shouldCreateHistoryEntityResponseDTOUsingBuilder() {
-        HistoryResponseDTO dto = HistoryResponseDTO.builder()
+        var dto = HistoryResponseDTO.builder()
                 .historyId(historyId)
                 .inventoryId(inventoryId)
                 .userId(userId)
@@ -64,10 +56,10 @@ class HistoryResponseDTOTest {
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        HistoryResponseDTO dto1 = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, returnAction, quantity, createdAt);
-        HistoryResponseDTO dto2 = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, returnAction, quantity, createdAt);
-        HistoryResponseDTO dto3 = new HistoryResponseDTO(99L, UUID.randomUUID(), 2L,2L, "makita", takeAction, 10, createdAt);
+    void should_Verify_Equality() {
+        var dto1 = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, returnAction, quantity, createdAt);
+        var dto2 = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, returnAction, quantity, createdAt);
+        var dto3 = new HistoryResponseDTO(99L, UUID.randomUUID(), 2L, 2L, "makita", takeAction, 10, createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -78,9 +70,9 @@ class HistoryResponseDTOTest {
 
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        HistoryResponseDTO dto = new HistoryResponseDTO(historyId,inventoryId,userId, toolId,tool,InventoryAction.TAKE,quantity,createdAt);
-        String toString = dto.toString();
+    void should_Verify_ToString() {
+        var dto = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, InventoryAction.TAKE, quantity, createdAt);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("historyId=" + historyId)),

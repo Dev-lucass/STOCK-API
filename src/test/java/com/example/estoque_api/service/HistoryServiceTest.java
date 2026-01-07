@@ -15,13 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,14 +43,21 @@ class HistoryServiceTest {
     @BeforeEach
     void setUp() {
         user = UserEntity.builder().id(1L).username("admin").build();
-        historyEntity = HistoryEntity.builder().id(1L).action(InventoryAction.TAKE).build();
+
+        historyEntity = HistoryEntity.builder()
+                .id(1L)
+                .action(InventoryAction.TAKE)
+                .quantityTaken(50)
+                .build();
+
         historyDTO = mock(HistoryDTO.class);
     }
 
     @Test
     @DisplayName("Should save history entity successfully")
     void save_Success() {
-        when(mapper.toEntityHistory(any(HistoryDTO.class))).thenReturn(historyEntity);
+        when(mapper.toEntityHistory(any(HistoryDTO.class)))
+                .thenReturn(historyEntity);
 
         service.save(historyDTO);
 
@@ -63,9 +67,11 @@ class HistoryServiceTest {
     @Test
     @DisplayName("Should return true when user has history with specific action")
     void validateUserTakedFromInventory_True() {
-        when(repository.existsByUserAndAction(user, InventoryAction.TAKE)).thenReturn(true);
+        when(repository.existsByUserAndAction(user, InventoryAction.TAKE))
+                .thenReturn(true);
 
-        boolean result = service.validateUserTakedFromInventory(user, InventoryAction.TAKE);
+        var result = service
+                .validateUserTakedFromInventory(user, InventoryAction.TAKE);
 
         assertThat(result).isTrue();
     }
@@ -73,10 +79,13 @@ class HistoryServiceTest {
     @Test
     @DisplayName("Should find all histories and map to response DTOs")
     void findAll_Success() {
-        when(repository.findAll()).thenReturn(List.of(historyEntity));
-        when(mapper.toResponseEntityHistory(any(HistoryEntity.class))).thenReturn(mock(HistoryResponseDTO.class));
+        when(repository.findAll())
+                .thenReturn(List.of(historyEntity));
 
-        List<HistoryResponseDTO> result = service.findAll();
+        when(mapper.toResponseEntityHistory(any(HistoryEntity.class)))
+                .thenReturn(mock(HistoryResponseDTO.class));
+
+        var result = service.findAll();
 
         assertThat(result).hasSize(1);
         verify(repository).findAll();
@@ -86,11 +95,15 @@ class HistoryServiceTest {
     @DisplayName("Should filter history with pagination and return page of DTOs")
     @SuppressWarnings("unchecked")
     void filterHistory_Success() {
-        Page<HistoryEntity> page = new PageImpl<>(List.of(historyEntity));
-        when(repository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
-        when(mapper.toResponseEntityHistory(any())).thenReturn(mock(HistoryResponseDTO.class));
+        var page = new PageImpl<>(List.of(historyEntity));
 
-        Page<HistoryResponseDTO> result = service.filterHistory(
+        when(repository.findAll(any(Specification.class), any(PageRequest.class)))
+                .thenReturn(page);
+
+        when(mapper.toResponseEntityHistory(any()))
+                .thenReturn(mock(HistoryResponseDTO.class));
+
+        var result = service.filterHistory(
                 "makita", InventoryAction.TAKE, 10, 5, 15, 0, 10);
 
         assertThat(result).isNotNull();
@@ -109,15 +122,6 @@ class HistoryServiceTest {
     @DisplayName("Should pass when minQuantity is lower than maxQuantity")
     void validateMinAndMaxQuantity_Success() {
         service.validateMinAndMaxQuantity(5, 10); // Should not throw exception
-    }
-
-    @Test
-    @DisplayName("Should throw ResourceNotFoundException for unsupported actions")
-    void validateAction_Invalid() {
-        // Assuming there is a default or other action not handled in the switch
-        // For testing purposes, we can simulate an action that doesn't exist in the switch cases provided
-        // Since InventoryAction only has TAKE/RETURN, we check null (pass) vs invalid if the enum were larger.
-        // If InventoryAction has other types, use them here.
     }
 
     @Test

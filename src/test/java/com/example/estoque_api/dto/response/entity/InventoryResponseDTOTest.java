@@ -3,18 +3,15 @@ package com.example.estoque_api.dto.response.entity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryResponseDTOTest {
 
-    private Long id;
+    private Long id, idTool;
     private UUID inventoryId;
-    private int quantityInitial;
-    private int quantityCurrent;
-    private Long idTool;
+    private int quantityInitial,quantityCurrent;
     private LocalDateTime createdAt;
 
     @BeforeEach
@@ -30,7 +27,7 @@ class InventoryResponseDTOTest {
     @Test
     @DisplayName("Should create Response DTO with all fields correctly mapped")
     void shouldCreateDtoWithCompleteData() {
-        InventoryResponseDTO response = InventoryResponseDTO.builder()
+        var response = InventoryResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
                 .quantityInitial(quantityInitial)
@@ -50,15 +47,19 @@ class InventoryResponseDTOTest {
 
     @Test
     @DisplayName("Should verify record equality for identical data")
-    void shouldVerifyEquality() {
-        InventoryResponseDTO dto1 = InventoryResponseDTO.builder()
+    void should_Verify_Equality() {
+        var dto1 = InventoryResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
+                .quantityInitial(10)
+                .quantityCurrent(2)
                 .build();
 
-        InventoryResponseDTO dto2 = InventoryResponseDTO.builder()
+        var dto2 = InventoryResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
+                .quantityInitial(10)
+                .quantityCurrent(2)
                 .build();
 
         assertThat(dto1).isEqualTo(dto2);
@@ -67,12 +68,15 @@ class InventoryResponseDTOTest {
 
     @Test
     @DisplayName("Should verify record field accessors return correct values")
-    void shouldAccessFields() {
-        InventoryResponseDTO response = new InventoryResponseDTO(
+    void should_Access_Fields() {
+        var response = new InventoryResponseDTO(
                 id, inventoryId, quantityInitial, quantityCurrent, idTool, createdAt
         );
 
-        assertThat(response.quantityInitial()).isEqualTo(100);
-        assertThat(response.quantityCurrent()).isEqualTo(85);
+        assertThat(response.quantityInitial())
+                .isEqualTo(100);
+
+        assertThat(response.quantityCurrent())
+                .isEqualTo(85);
     }
 }

@@ -7,9 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,55 +34,62 @@ class UserRepositoryTest {
                 .build();
 
         entityManager.persist(activeUser);
-        entityManager.flush();
     }
 
     @Test
     @DisplayName("Should return true when a user exists with the given CPF")
     void shouldReturnTrueWhenCpfExists() {
-        Boolean exists = repository.existsByCpf(VALID_CPF);
+        var exists = repository
+                .existsByCpf(VALID_CPF);
+
         assertTrue(exists);
     }
 
     @Test
     @DisplayName("Should return true when another user exists with the same CPF excluding current ID")
     void shouldReturnTrueWhenCpfExistsAndIdNot() {
-        UserEntity anotherUser = UserEntity.builder()
+        var anotherUser = UserEntity.builder()
                 .username("jane_doe")
                 .cpf("22255588846")
                 .address("456 Avenue")
                 .active(true)
                 .build();
+
         entityManager.persist(anotherUser);
 
-        Boolean exists = repository.existsByCpfAndIdNot(VALID_CPF, anotherUser.getId());
+        var exists = repository
+                .existsByCpfAndIdNot(VALID_CPF, anotherUser.getId());
+
         assertTrue(exists);
     }
 
     @Test
     @DisplayName("Should return false when checking CPF existence against its own ID")
     void shouldReturnFalseWhenCpfExistsButIsTheSameId() {
-        Boolean exists = repository.existsByCpfAndIdNot(VALID_CPF, activeUser.getId());
+        var exists = repository
+                .existsByCpfAndIdNot(VALID_CPF, activeUser.getId());
+
         assertFalse(exists);
     }
 
     @Test
     @DisplayName("Should return a list of all active users")
     void shouldFindAllByActiveTrue() {
-        UserEntity inactiveUser = UserEntity.builder()
+        var inactiveUser = UserEntity.builder()
                 .username("ghost_user")
                 .cpf("33366699957")
                 .address("789 Blvd")
                 .active(false)
                 .build();
+
         entityManager.persist(inactiveUser);
 
-        List<UserEntity> actives = repository.findAllByActiveTrue();
+        var actives = repository.findAllByActiveTrue();
 
         assertAll(
                 () -> assertEquals(1, actives.size()),
-                () -> assertEquals("john_doe", actives.get(0).getUsername()),
-                () -> assertTrue(actives.get(0).getActive())
+                () -> assertEquals("john_doe", actives.getFirst().getUsername()),
+                () -> assertTrue(actives.getFirst().getActive())
         );
     }
 }

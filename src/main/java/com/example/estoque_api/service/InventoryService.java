@@ -271,7 +271,7 @@ public class InventoryService {
         if (toolService.validateToolIsInactive(tool.getId()) && tool.getCurrentLifeCycle() > 40)
             throw new DuplicateResouceException("Tool is inactive.");
 
-        toolService.validateIfTheToolIsDamaged(tool);
+        toolService.throwIfToolIsDamaged(tool);
     }
 
     private void validateInventoryTooltIsDuplicatedOnUpdate(ToolEntity Tool, Long id) {

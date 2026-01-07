@@ -42,23 +42,25 @@ class HistoryRepositoryTest {
                 .name("Test Tool")
                 .active(true)
                 .build();
+
         entityManager.persist(tool);
     }
 
     @Test
     @DisplayName("Should return true when a history record exists for the user and action")
     void shouldReturnTrueWhenHistoryExists() {
-        HistoryEntity history = HistoryEntity.builder()
+        var history = HistoryEntity.builder()
                 .user(user)
                 .tool(tool)
                 .inventoryId(inventoryId)
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
                 .build();
-        entityManager.persist(history);
-        entityManager.flush();
 
-        Boolean exists = repository.existsByUserAndAction(user, InventoryAction.TAKE);
+        entityManager.persist(history);
+
+        var exists = repository
+                .existsByUserAndAction(user, InventoryAction.TAKE);
 
         assertTrue(exists);
     }
@@ -66,7 +68,8 @@ class HistoryRepositoryTest {
     @Test
     @DisplayName("Should return false when no history record exists for the user and action")
     void shouldReturnFalseWhenHistoryDoesNotExist() {
-        Boolean exists = repository.existsByUserAndAction(user, InventoryAction.RETURN);
+        var exists = repository.
+                existsByUserAndAction(user, InventoryAction.RETURN);
 
         assertFalse(exists);
     }
@@ -74,17 +77,18 @@ class HistoryRepositoryTest {
     @Test
     @DisplayName("Should return false when record exists for the user but with a different action")
     void shouldReturnFalseWhenActionDiffers() {
-        HistoryEntity history = HistoryEntity.builder()
+        var history = HistoryEntity.builder()
                 .user(user)
                 .tool(tool)
                 .inventoryId(inventoryId)
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
                 .build();
-        entityManager.persist(history);
-        entityManager.flush();
 
-        Boolean exists = repository.existsByUserAndAction(user, InventoryAction.RETURN);
+        entityManager.persist(history);
+
+        var exists = repository
+                .existsByUserAndAction(user, InventoryAction.RETURN);
 
         assertFalse(exists);
     }

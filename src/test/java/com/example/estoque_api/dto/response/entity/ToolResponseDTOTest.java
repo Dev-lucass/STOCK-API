@@ -27,7 +27,7 @@ class ToolResponseDTOTest {
     @Test
     @DisplayName("Should successfully instantiate the record using builder and return correct values")
     void shouldCreateToolEntityResponseDTOUsingBuilder() {
-        ToolResponseDTO dto = ToolResponseDTO.builder()
+        var dto = ToolResponseDTO.builder()
                 .id(id)
                 .name(name)
                 .active(active)
@@ -44,10 +44,10 @@ class ToolResponseDTOTest {
 
     @Test
     @DisplayName("Should verify equality between two instances with same values")
-    void shouldVerifyEquality() {
-        ToolResponseDTO dto1 = new ToolResponseDTO(id, name, active, createdAt);
-        ToolResponseDTO dto2 = new ToolResponseDTO(id, name, active, createdAt);
-        ToolResponseDTO dto3 = new ToolResponseDTO(2L, "Tablet", false, createdAt);
+    void should_Verify_Equality() {
+        var dto1 = new ToolResponseDTO(id, name, active, createdAt);
+        var dto2 = new ToolResponseDTO(id, name, active, createdAt);
+        var dto3 = new ToolResponseDTO(2L, "Tablet", false, createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -58,9 +58,9 @@ class ToolResponseDTOTest {
 
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
-    void shouldVerifyToString() {
-        ToolResponseDTO dto = new ToolResponseDTO(id, name, active, createdAt);
-        String toString = dto.toString();
+    void should_Verify_ToString() {
+        var dto = new ToolResponseDTO(id, name, active, createdAt);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("id=" + id)),

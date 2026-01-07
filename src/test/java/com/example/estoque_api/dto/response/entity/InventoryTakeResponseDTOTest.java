@@ -9,14 +9,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryTakeResponseDTOTest {
 
-    private Long id;
+    private Long id, idTool;
     private UUID inventoryId;
-    private int quantityTaked;
-    private int quantityCurrent;
-    private int quantityInitial;
-    private Long idTool;
-    private Double currentLifeCycle;
-    private int usageCount;
+    private int quantityTaked, quantityCurrent, quantityInitial, usageCount;
+    private double currentLifeCycle;
     private LocalDateTime createdAt;
 
     @BeforeEach
@@ -35,7 +31,7 @@ class InventoryTakeResponseDTOTest {
     @Test
     @DisplayName("Should successfully instantiate TakeResponseDTO via builder")
     void shouldCreateDtoWithAllFields() {
-        InventoryTakeResponseDTO response = InventoryTakeResponseDTO.builder()
+        var response = InventoryTakeResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
                 .quantityTaked(quantityTaked)
@@ -62,14 +58,22 @@ class InventoryTakeResponseDTOTest {
     @Test
     @DisplayName("Should verify record immutability and equality logic")
     void shouldMaintainEquality() {
-        InventoryTakeResponseDTO firstInstance = InventoryTakeResponseDTO.builder()
+        var firstInstance = InventoryTakeResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
+                .quantityTaked(200)
+                .quantityCurrent(100)
+                .quantityInitial(300)
+                .usageCount(50)
                 .build();
 
-        InventoryTakeResponseDTO secondInstance = InventoryTakeResponseDTO.builder()
+        var secondInstance = InventoryTakeResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
+                .quantityTaked(200)
+                .quantityCurrent(100)
+                .quantityInitial(300)
+                .usageCount(50)
                 .build();
 
         assertThat(firstInstance).isEqualTo(secondInstance);

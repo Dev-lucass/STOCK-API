@@ -10,11 +10,11 @@ class TakeFromInventoryTest {
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateTakeFromInventoryAndReturnCorrectValues() {
-        Long expectedUserId = 1L;
-        UUID expectedInventoryId = UUID.randomUUID();
-        int expectedQuantityTaken = 5;
+        var expectedUserId = 1L;
+        var expectedInventoryId = UUID.randomUUID();
+        var expectedQuantityTaken = 5;
 
-        TakeFromInventory dto = new TakeFromInventory(
+        var dto = new TakeFromInventory(
                 expectedUserId,
                 expectedInventoryId,
                 expectedQuantityTaken
@@ -30,10 +30,10 @@ class TakeFromInventoryTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        UUID inventoryId = UUID.randomUUID();
-        TakeFromInventory dto1 = new TakeFromInventory(1L, inventoryId, 10);
-        TakeFromInventory dto2 = new TakeFromInventory(1L, inventoryId, 10);
-        TakeFromInventory dto3 = new TakeFromInventory(2L, inventoryId, 5);
+        var inventoryId = UUID.randomUUID();
+        var dto1 = new TakeFromInventory(1L, inventoryId, 10);
+        var dto2 = new TakeFromInventory(1L, inventoryId, 10);
+        var dto3 = new TakeFromInventory(2L, inventoryId, 5);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -45,9 +45,9 @@ class TakeFromInventoryTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        UUID inventoryId = UUID.randomUUID();
-        TakeFromInventory dto = new TakeFromInventory(1L, inventoryId, 10);
-        String toString = dto.toString();
+        var inventoryId = UUID.randomUUID();
+        var dto = new TakeFromInventory(1L, inventoryId, 10);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("userId=1")),

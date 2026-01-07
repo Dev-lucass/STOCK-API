@@ -32,12 +32,13 @@ class HistoryDTOTest {
     @Test
     @DisplayName("Should successfully create an instance of HistoryEntityDTO via Builder")
     void shouldCreateHistoryEntityDTOViaBuilder() {
-        HistoryDTO dto = HistoryDTO.builder()
+        var dto = HistoryDTO.builder()
                 .user(user)
                 .inventoryId(inventoryId)
                 .tool(tool)
                 .action(action)
                 .quantityTaken(quantity)
+                .currentLifeCycle(60.0)
                 .build();
 
         assertAll(
@@ -45,14 +46,15 @@ class HistoryDTOTest {
                 () -> assertEquals(inventoryId, dto.inventoryId()),
                 () -> assertEquals(tool, dto.tool()),
                 () -> assertEquals(action, dto.action()),
-                () -> assertEquals(quantity, dto.quantityTaken())
+                () -> assertEquals(quantity, dto.quantityTaken()),
+                () -> assertEquals(currentLifeCycle, dto.currentLifeCycle())
         );
     }
 
     @Test
     @DisplayName("Should ensure data integrity within the Record")
     void shouldEnsureDataIntegrity() {
-        HistoryDTO dto = new HistoryDTO(
+        var dto = new HistoryDTO(
                 user,
                 inventoryId,
                 tool,
@@ -62,9 +64,12 @@ class HistoryDTOTest {
         );
 
         assertAll(
+                () -> assertEquals(user, dto.user()),
                 () -> assertEquals(inventoryId, dto.inventoryId()),
+                () -> assertEquals(tool, dto.tool()),
+                () -> assertEquals(action, dto.action()),
                 () -> assertEquals(quantity, dto.quantityTaken()),
-                () -> assertEquals(user, dto.user())
+                () -> assertEquals(currentLifeCycle, dto.currentLifeCycle())
         );
     }
 }

@@ -12,10 +12,10 @@ class InventoryDTOTest {
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateInventoryEntityDTOAndReturnCorrectValues() {
-        int expectedQuantity = 100;
-        Long expectedIdTool = 500L;
+        var expectedQuantity = 100;
+        var expectedIdTool = 500L;
 
-        InventoryDTO dto = new InventoryDTO(expectedQuantity, expectedIdTool);
+        var dto = new InventoryDTO(expectedQuantity, expectedIdTool);
 
         assertAll(
                 () -> assertEquals(expectedQuantity, dto.quantity()),
@@ -26,9 +26,9 @@ class InventoryDTOTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        InventoryDTO dto1 = new InventoryDTO(10, 1L);
-        InventoryDTO dto2 = new InventoryDTO(10, 1L);
-        InventoryDTO dto3 = new InventoryDTO(20, 2L);
+        var dto1 = new InventoryDTO(10, 1L);
+        var dto2 = new InventoryDTO(10, 1L);
+        var dto3 = new InventoryDTO(20, 2L);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -40,8 +40,8 @@ class InventoryDTOTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        InventoryDTO dto = new InventoryDTO(10, 1L);
-        String toString = dto.toString();
+        var dto = new InventoryDTO(10, 1L);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("quantity=10")),

@@ -10,12 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryReturnResponseDTOTest {
 
-    private Long id;
+    private Long id,idTool;
     private UUID inventoryId;
-    private Long idTool;
-    private int quantityReturned;
     private LocalTime usageTime;
     private LocalDateTime createdAt;
+    private int quantityReturned, quantityInitial,quantityCurrent;
 
     @BeforeEach
     void setUp() {
@@ -25,18 +24,23 @@ class InventoryReturnResponseDTOTest {
         quantityReturned = 2;
         usageTime = LocalTime.of(10, 0, 0);
         createdAt = LocalDateTime.now();
+        quantityCurrent = 50;
+        quantityInitial = 100;
     }
 
     @Test
     @DisplayName("Should verify all fields are correctly mapped through builder")
     void shouldBuildDtoWithCompleteData() {
-        InventoryReturnResponseDTO response = InventoryReturnResponseDTO.builder()
+        var response = InventoryReturnResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
                 .toolId(idTool)
                 .quantityReturned(quantityReturned)
                 .usageTime(usageTime)
                 .returnToolAt(createdAt)
+                .quantityInitial(100)
+                .quantityCurrent(50)
+                .usageCount(1)
                 .build();
 
         assertThat(response).isNotNull();
@@ -44,6 +48,8 @@ class InventoryReturnResponseDTOTest {
         assertThat(response.inventoryId()).isEqualTo(inventoryId);
         assertThat(response.toolId()).isEqualTo(idTool);
         assertThat(response.quantityReturned()).isEqualTo(quantityReturned);
+        assertThat(response.quantityCurrent()).isEqualTo(quantityCurrent);
+        assertThat(response.quantityInitial()).isEqualTo(quantityInitial);
         assertThat(response.usageTime()).isEqualTo(usageTime);
         assertThat(response.returnToolAt()).isEqualTo(createdAt);
     }
@@ -51,17 +57,21 @@ class InventoryReturnResponseDTOTest {
     @Test
     @DisplayName("Should validate that two instances with same data are equal")
     void shouldVerifyValueEquality() {
-        InventoryReturnResponseDTO dtoA = createDefaultInstance();
-        InventoryReturnResponseDTO dtoB = createDefaultInstance();
+        var dto1 = createDefaultInstance();
+        var dto2 = createDefaultInstance();
 
-        assertThat(dtoA).isEqualTo(dtoB);
-        assertThat(dtoA.hashCode()).isEqualTo(dtoB.hashCode());
+        assertThat(dto1).isEqualTo(dto2);
+        assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
     }
 
     private InventoryReturnResponseDTO createDefaultInstance() {
         return InventoryReturnResponseDTO.builder()
                 .id(id)
                 .inventoryId(inventoryId)
+                .quantityReturned(2)
+                .quantityInitial(200)
+                .quantityCurrent(120)
+                .usageCount(50)
                 .build();
     }
 }

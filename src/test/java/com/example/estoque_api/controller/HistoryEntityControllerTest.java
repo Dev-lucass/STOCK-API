@@ -12,9 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,8 +31,12 @@ class HistoryEntityControllerTest {
     @Test
     @DisplayName("Get all history success")
     void getAllHistory_Success() throws Exception {
-        HistoryResponseDTO response = HistoryResponseDTO.builder().build();
-        when(service.findAll()).thenReturn(List.of(response));
+        var response = HistoryResponseDTO.builder()
+                .quantityTaken(50)
+                .build();
+
+        when(service.findAll())
+                .thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/v1/history")
                         .accept(MediaType.APPLICATION_JSON))
@@ -45,11 +47,20 @@ class HistoryEntityControllerTest {
     @Test
     @DisplayName("Filter history with parameters success")
     void filterHistory_WithParams_Success() throws Exception {
-        HistoryResponseDTO response = HistoryResponseDTO.builder().build();
-        Page<HistoryResponseDTO> page = new PageImpl<>(List.of(response));
+        var response = HistoryResponseDTO.builder()
+                .quantityTaken(50)
+                .build();
 
-        when(service.filterHistory(anyString(),any(InventoryAction.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(page);
+        var page = new PageImpl<>(List.of(response));
+
+        when(service.filterHistory(anyString(),
+                                    any(InventoryAction.class),
+                                    anyInt(),
+                                    anyInt(),
+                                    anyInt(),
+                                    anyInt(),
+                                    anyInt()))
+                                    .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/history/filterHistory")
                         .param("nameTool", "makita")

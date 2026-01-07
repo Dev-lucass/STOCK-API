@@ -10,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -42,11 +41,13 @@ class ToolEntityControllerTest {
     @BeforeEach
     void setUp() {
         requestDTO = new ToolDTO("Martelo", true);
+
         responseDTO = ToolResponseDTO.builder()
                 .id(1L)
                 .name("Martelo")
                 .active(true)
                 .build();
+
         tool = ToolEntity.builder()
                 .id(1L)
                 .name("Martelo")
@@ -57,7 +58,8 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Save tool returns 201 created")
     void save_Success() throws Exception {
-        when(service.save(any(ToolDTO.class))).thenReturn(responseDTO);
+        when(service.save(any(ToolDTO.class)))
+                .thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/tool")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -69,7 +71,8 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Find all active tools returns 200 OK")
     void findAllIsActive_Success() throws Exception {
-        when(service.findAllisActive()).thenReturn(List.of(responseDTO));
+        when(service.findAllisActive())
+                .thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/tool")
                         .accept(MediaType.APPLICATION_JSON))
@@ -81,8 +84,14 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Find all inactive tools returns 200 OK")
     void findAllIsNotActive_Success() throws Exception {
-        responseDTO = ToolResponseDTO.builder().id(2L).name("Serra").active(false).build();
-        when(service.findAllisDisable()).thenReturn(List.of(responseDTO));
+        responseDTO = ToolResponseDTO.builder()
+                .id(2L)
+                .name("Serra")
+                .active(false)
+                .build();
+
+        when(service.findAllisDisable())
+                .thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/api/v1/tool/findAllIsNotActive")
                         .accept(MediaType.APPLICATION_JSON))
@@ -94,7 +103,8 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Update tool returns 200 OK")
     void update_Success() throws Exception {
-        when(service.update(anyLong(), any(ToolDTO.class))).thenReturn(responseDTO);
+        when(service.update(anyLong(), any(ToolDTO.class)))
+                .thenReturn(responseDTO);
 
         mockMvc.perform(put("/api/v1/tool/{toolId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,8 +125,10 @@ class ToolEntityControllerTest {
     @Test
     @DisplayName("Filter tools by name returns paged data")
     void filterByName_Success() throws Exception {
-        Page<ToolEntity> page = new PageImpl<>(List.of(tool));
-        when(service.filterByNamePageable(anyString(), anyInt(), anyInt())).thenReturn(page);
+        var page = new PageImpl<>(List.of(tool));
+
+        when(service.filterByNamePageable(anyString(), anyInt(), anyInt()))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/tool/filterByName")
                         .param("name", "Martelo")

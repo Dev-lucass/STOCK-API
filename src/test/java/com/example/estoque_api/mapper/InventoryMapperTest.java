@@ -1,9 +1,6 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.request.InventoryDTO;
-import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
-import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,21 +9,20 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 class InventoryMapperTest {
 
     private InventoryMapper mapper;
     private ToolEntity tool;
     private InventoryEntity entity;
-    private UUID inventoryId;
 
     @BeforeEach
     void setUp() {
         mapper = new InventoryMapper();
-        inventoryId = UUID.randomUUID();
+        var inventoryId = UUID.randomUUID();
 
         tool = ToolEntity.builder()
                 .id(100L)
@@ -46,9 +42,10 @@ class InventoryMapperTest {
     @Test
     @DisplayName("Should map request DTO to entity correctly")
     void shouldMapToEntityInventory() {
-        InventoryDTO dto = new InventoryDTO(20, 1L);
+        var dto = new InventoryDTO(20, 1L);
 
-        InventoryEntity result = mapper.toEntityInventory(dto, tool);
+        var result = mapper
+                .toEntityInventory(dto, tool);
 
         assertThat(result).isNotNull();
         assertThat(result.getQuantityInitial()).isEqualTo(20);
@@ -58,7 +55,8 @@ class InventoryMapperTest {
     @Test
     @DisplayName("Should map entity to standard response DTO")
     void shouldMapToResponseEntityInventory() {
-        InventoryResponseDTO response = mapper.toResponseEntityInventory(entity);
+        var response = mapper
+                .toResponseEntityInventory(entity);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(entity.getId());
@@ -72,10 +70,11 @@ class InventoryMapperTest {
     @Test
     @DisplayName("Should map entity to take-action response DTO")
     void shouldMapToTakeInventoryResponse() {
-        int quantityTaken = 2;
-        int usageCount = 5;
+        var quantityTaken = 2;
+        var usageCount = 5;
 
-        InventoryTakeResponseDTO response = mapper.toTakeInventoryResponse(entity, quantityTaken, usageCount);
+        var response = mapper
+                .toTakeInventoryResponse(entity, quantityTaken, usageCount);
 
         assertThat(response).isNotNull();
         assertThat(response.quantityTaked()).isEqualTo(quantityTaken);
@@ -88,11 +87,12 @@ class InventoryMapperTest {
     @Test
     @DisplayName("Should map entity to return-action response DTO")
     void shouldMapToReturnedInventoryResponse() {
-        int quantityReturned = 1;
-        int usageCount = 6;
-        LocalTime usageTime = LocalTime.of(1, 30);
+        var quantityReturned = 1;
+        var usageCount = 6;
+        var usageTime = LocalTime.of(1, 30);
 
-        InventoryReturnResponseDTO response = mapper.toReturnedInventoryResponse(entity, quantityReturned, usageCount, usageTime);
+        var response = mapper
+                .toReturnedInventoryResponse(entity, quantityReturned, usageCount, usageTime);
 
         assertThat(response).isNotNull();
         assertThat(response.quantityReturned()).isEqualTo(quantityReturned);
@@ -105,9 +105,9 @@ class InventoryMapperTest {
     @Test
     @DisplayName("Should update existing entity fields")
     void shouldUpdateEntity() {
-        ToolEntity newTool = ToolEntity.builder().id(200L).build();
-        int newCurrent = 15;
-        int newInitial = 30;
+        var newTool = ToolEntity.builder().id(200L).build();
+        var newCurrent = 15;
+        var newInitial = 30;
 
         mapper.updateEntity(newCurrent, newInitial, newTool, entity);
 

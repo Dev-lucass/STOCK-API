@@ -1,7 +1,6 @@
 package com.example.estoque_api.mapper;
 
 import com.example.estoque_api.dto.internal.HistoryDTO;
-import com.example.estoque_api.dto.response.entity.HistoryResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.model.HistoryEntity;
 import com.example.estoque_api.model.ToolEntity;
@@ -38,15 +37,16 @@ class HistoryMapperTest {
     @Test
     @DisplayName("Should map HistoryDTO to HistoryEntity successfully")
     void shouldMapDtoToEntity() {
-        HistoryDTO dto = HistoryDTO.builder()
+        var dto = HistoryDTO.builder()
                 .user(user)
                 .inventoryId(uuid)
                 .tool(tool)
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
+                .currentLifeCycle(100.0)
                 .build();
 
-        HistoryEntity entity = mapper.toEntityHistory(dto);
+        var entity = mapper.toEntityHistory(dto);
 
         assertAll(
                 () -> assertNotNull(entity),
@@ -61,7 +61,7 @@ class HistoryMapperTest {
     @Test
     @DisplayName("Should map HistoryEntity to HistoryResponseDTO successfully")
     void shouldMapEntityToResponseDto() {
-        HistoryEntity entity = HistoryEntity.builder()
+        var entity = HistoryEntity.builder()
                 .id(1L)
                 .user(user)
                 .inventoryId(uuid)
@@ -70,7 +70,8 @@ class HistoryMapperTest {
                 .action(InventoryAction.RETURN)
                 .build();
 
-        HistoryResponseDTO response = mapper.toResponseEntityHistory(entity);
+        var response = mapper
+                .toResponseEntityHistory(entity);
 
         assertAll(
                 () -> assertNotNull(response),

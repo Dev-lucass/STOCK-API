@@ -2,7 +2,6 @@ package com.example.estoque_api.dto.request;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -13,10 +12,10 @@ class ToolDTOTest {
     @Test
     @DisplayName("Should successfully instantiate the record and return correct values")
     void shouldCreateToolEntityDTOAndReturnCorrectValues() {
-        String expectedName = "Laptop Gamer";
-        Boolean expectedActive = true;
+        var expectedName = "Laptop Gamer";
+        var expectedActive = true;
 
-        ToolDTO dto = new ToolDTO(expectedName, expectedActive);
+        var dto = new ToolDTO(expectedName, expectedActive);
 
         assertAll(
                 () -> assertEquals(expectedName, dto.name()),
@@ -27,9 +26,9 @@ class ToolDTOTest {
     @Test
     @DisplayName("Should verify equality between two instances with same values")
     void shouldVerifyEquality() {
-        ToolDTO dto1 = new ToolDTO("Tool A", true);
-        ToolDTO dto2 = new ToolDTO("Tool A", true);
-        ToolDTO dto3 = new ToolDTO("Tool B", false);
+        var dto1 = new ToolDTO("Tool A", true);
+        var dto2 = new ToolDTO("Tool A", true);
+        var dto3 = new ToolDTO("Tool B", false);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -41,8 +40,8 @@ class ToolDTOTest {
     @Test
     @DisplayName("Should verify if toString method contains all record fields")
     void shouldVerifyToString() {
-        ToolDTO dto = new ToolDTO("Monitor 4K", false);
-        String toString = dto.toString();
+        var dto = new ToolDTO("Monitor 4K", false);
+        var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("name=Monitor 4K")),
