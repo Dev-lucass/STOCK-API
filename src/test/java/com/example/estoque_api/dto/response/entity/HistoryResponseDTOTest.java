@@ -4,14 +4,14 @@ import com.example.estoque_api.enums.InventoryAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
-import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class HistoryResponseDTOTest {
 
-    private Long historyId, userId, toolId;
-    private UUID inventoryId;
+    private long historyId, userId, toolId,inventoryId;
     private InventoryAction takeAction, returnAction;
     private int quantity;
     private LocalDateTime createdAt;
@@ -20,7 +20,7 @@ class HistoryResponseDTOTest {
     @BeforeEach
     void setUp() {
         historyId = 1L;
-        inventoryId = UUID.randomUUID();
+        inventoryId = 1L;
         userId = 10L;
         toolId = 50L;
         tool = "martelo";
@@ -59,7 +59,7 @@ class HistoryResponseDTOTest {
     void should_Verify_Equality() {
         var dto1 = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, returnAction, quantity, createdAt);
         var dto2 = new HistoryResponseDTO(historyId, inventoryId, userId, toolId, tool, returnAction, quantity, createdAt);
-        var dto3 = new HistoryResponseDTO(99L, UUID.randomUUID(), 2L, 2L, "makita", takeAction, 10, createdAt);
+        var dto3 = new HistoryResponseDTO(99L, 2L, 2L, 2L, "makita", takeAction, 10, createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),

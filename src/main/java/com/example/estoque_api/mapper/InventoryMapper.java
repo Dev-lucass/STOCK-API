@@ -7,7 +7,6 @@ import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import org.springframework.stereotype.Component;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -18,13 +17,14 @@ public class InventoryMapper {
         return InventoryEntity.builder()
                 .quantityInitial(dto.quantity())
                 .tool(tool)
+                .quantityCurrent(dto.quantity())
                 .build();
     }
 
     public InventoryResponseDTO toResponseEntityInventory(InventoryEntity entity) {
         return InventoryResponseDTO.builder()
                 .id(entity.getId())
-                .inventoryId(entity.getInventoryId())
+                .inventoryId(entity.getId())
                 .quantityInitial(entity.getQuantityInitial())
                 .quantityCurrent(entity.getQuantityCurrent())
                 .toolId(entity.getTool().getId())
@@ -35,7 +35,7 @@ public class InventoryMapper {
     public InventoryTakeResponseDTO toTakeInventoryResponse(InventoryEntity entity, int quantityTaked, int usageCount) {
         return InventoryTakeResponseDTO.builder()
                 .id(entity.getId())
-                .inventoryId(entity.getInventoryId())
+                .inventoryId(entity.getId())
                 .quantityTaked(quantityTaked)
                 .quantityCurrent(entity.getQuantityCurrent())
                 .quantityInitial(entity.getQuantityInitial())
@@ -50,7 +50,7 @@ public class InventoryMapper {
     public InventoryReturnResponseDTO toReturnedInventoryResponse(InventoryEntity entity, int quantityReturned, int usageCount, LocalTime usageTime) {
         return InventoryReturnResponseDTO.builder()
                 .id(entity.getId())
-                .inventoryId(entity.getInventoryId())
+                .inventoryId(entity.getId())
                 .quantityReturned(quantityReturned)
                 .quantityInitial(entity.getQuantityInitial())
                 .currentLifeCycle(entity.getTool().getCurrentLifeCycle())

@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Entity
 @Builder
 @AllArgsConstructor
@@ -33,7 +31,7 @@ public class HistoryEntity {
     private InventoryAction action;
 
     @Column(nullable = false)
-    private UUID inventoryId;
+    private long inventoryId;
 
     @Column(nullable = false)
     private int quantityTaken;

@@ -8,7 +8,6 @@ import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Component
 public class HistoryMapper {
@@ -23,7 +22,7 @@ public class HistoryMapper {
                 .build();
     }
 
-    public HistoryDTO buildHistoryDto(int quantity, InventoryAction action, ToolEntity tool, UserEntity user, UUID inventoryId, double currentLlfeCycle) {
+    public HistoryDTO buildHistoryDto(int quantity, InventoryAction action, ToolEntity tool, UserEntity user, long inventoryId, double currentLlfeCycle) {
         return HistoryDTO.builder()
                 .quantityTaken(quantity)
                 .action(action)

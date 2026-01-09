@@ -3,21 +3,21 @@ package com.example.estoque_api.dto.response.entity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
-import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InventoryResponseDTOTest {
 
-    private Long id, idTool;
-    private UUID inventoryId;
-    private int quantityInitial,quantityCurrent;
+    private long id, idTool,inventoryId;
+    private int quantityInitial, quantityCurrent;
     private LocalDateTime createdAt;
 
     @BeforeEach
     void setUp() {
         id = 1L;
-        inventoryId = UUID.randomUUID();
+        inventoryId = 1L;
         quantityInitial = 100;
         quantityCurrent = 85;
         idTool = 50L;
@@ -53,6 +53,7 @@ class InventoryResponseDTOTest {
                 .inventoryId(inventoryId)
                 .quantityInitial(10)
                 .quantityCurrent(2)
+                .toolId(1L)
                 .build();
 
         var dto2 = InventoryResponseDTO.builder()
@@ -60,6 +61,7 @@ class InventoryResponseDTOTest {
                 .inventoryId(inventoryId)
                 .quantityInitial(10)
                 .quantityCurrent(2)
+                .toolId(1L)
                 .build();
 
         assertThat(dto1).isEqualTo(dto2);

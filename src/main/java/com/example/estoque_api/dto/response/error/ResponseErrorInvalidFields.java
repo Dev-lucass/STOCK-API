@@ -4,4 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record ResponseErrorInvalidFields(String message,
-                                                                            String field){}
+                                         String field){}

@@ -5,8 +5,8 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record ToolResponseDTO(Long id,
+public record ToolResponseDTO(long id,
                               String name,
-                              Boolean active,
+                              boolean active,
                               @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
                               LocalDateTime createdAt) {}
