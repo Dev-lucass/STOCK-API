@@ -4,13 +4,12 @@ import com.example.estoque_api.enums.InventoryAction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Builder
-public record HistoryResponseDTO(Long historyId,
-                                 UUID inventoryId,
-                                 Long userId,
-                                 Long toolId,
+public record HistoryResponseDTO(long historyId,
+                                 long inventoryId,
+                                 long userId,
+                                 long toolId,
                                  String tool,
                                  InventoryAction action,
                                  int quantityTaken,

@@ -8,17 +8,15 @@ import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import java.util.UUID;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class HistoryMapperTest {
 
     private HistoryMapper mapper;
     private UserEntity user;
     private ToolEntity tool;
-    private UUID uuid;
+    private long inventoryId;
 
     @BeforeEach
     void setUp() {
@@ -31,7 +29,7 @@ class HistoryMapperTest {
         tool.setId(50L);
         tool.setName("Hammer");
 
-        uuid = UUID.randomUUID();
+        inventoryId = 1L;
     }
 
     @Test
@@ -39,7 +37,7 @@ class HistoryMapperTest {
     void shouldMapDtoToEntity() {
         var dto = HistoryDTO.builder()
                 .user(user)
-                .inventoryId(uuid)
+                .inventoryId(inventoryId)
                 .tool(tool)
                 .quantityTaken(10)
                 .action(InventoryAction.TAKE)
@@ -64,7 +62,7 @@ class HistoryMapperTest {
         var entity = HistoryEntity.builder()
                 .id(1L)
                 .user(user)
-                .inventoryId(uuid)
+                .inventoryId(inventoryId)
                 .tool(tool)
                 .quantityTaken(5)
                 .action(InventoryAction.RETURN)

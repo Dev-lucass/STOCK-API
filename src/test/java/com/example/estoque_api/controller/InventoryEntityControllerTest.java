@@ -16,9 +16,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -40,10 +41,11 @@ class InventoryEntityControllerTest {
     private InventoryResponseDTO responseDTO;
     private InventoryDTO requestDTO;
     private TakeFromInventory takeRequest;
-    private UUID inventoryId;
+    private long inventoryId;
 
     @BeforeEach
     void setUp() {
+        inventoryId = 1L;
         requestDTO = new InventoryDTO(10, 1L);
 
         responseDTO = InventoryResponseDTO.builder()
@@ -101,12 +103,15 @@ class InventoryEntityControllerTest {
     @DisplayName("Take from inventory returns 200 OK")
     void takeFromInventory_Success() throws Exception {
         var takeResponse = InventoryTakeResponseDTO.builder()
-                                        .inventoryId(inventoryId)
-                                        .quantityTaked(5)
-                                        .quantityCurrent(2)
-                                        .quantityInitial(10)
-                                        .usageCount(2)
-                                        .build();
+                .inventoryId(inventoryId)
+                .quantityTaked(5)
+                .quantityCurrent(2)
+                .quantityInitial(10)
+                .usageCount(2)
+                .id(1L)
+                .toolId(1L)
+                .currentLifeCycle(60.0)
+                .build();
 
         when(service.takeFromInventory(any()))
                 .thenReturn(takeResponse);
@@ -125,12 +130,15 @@ class InventoryEntityControllerTest {
     @DisplayName("Return to inventory returns 200 OK")
     void returnFromInventory_Success() throws Exception {
         var returnResponse = InventoryReturnResponseDTO.builder()
-                                        .inventoryId(inventoryId)
-                                        .quantityReturned(5)
-                                        .quantityInitial(10)
-                                        .quantityCurrent(2)
-                                        .usageCount(1)
-                                        .build();
+                .inventoryId(inventoryId)
+                .quantityReturned(5)
+                .quantityInitial(10)
+                .quantityCurrent(2)
+                .usageCount(1)
+                .id(1L)
+                .toolId(1L)
+                .currentLifeCycle(60.0)
+                .build();
 
         when(service.returnFromInventory(any())).thenReturn(returnResponse);
 

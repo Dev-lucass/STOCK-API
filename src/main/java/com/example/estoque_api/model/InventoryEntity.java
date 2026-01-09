@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Entity
 @Builder
 @AllArgsConstructor
@@ -24,9 +22,6 @@ public class InventoryEntity {
 
     @Column(nullable = false)
     private int quantityCurrent;
-
-    @Column(nullable = false)
-    private UUID inventoryId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tool_id", nullable = false, unique = true)

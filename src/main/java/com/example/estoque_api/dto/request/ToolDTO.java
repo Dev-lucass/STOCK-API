@@ -5,4 +5,4 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record ToolDTO(@NotBlank @Size(min = 2, max = 255) String name,
-                                          @NotNull Boolean active) {}
+                      @NotNull boolean active) {}

@@ -5,6 +5,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ResponseErrorInvalidArguments( int statusCode,
-                                                                                     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-                                                                                      LocalDate dateError,
-                                                                                      List<ResponseErrorInvalidFields> invalidFields){}
+                                             @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+                                             LocalDate dateError,
+                                             List<ResponseErrorInvalidFields> invalidFields){}

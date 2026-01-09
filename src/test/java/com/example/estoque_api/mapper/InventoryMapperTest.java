@@ -6,9 +6,10 @@ import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
+
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -22,7 +23,6 @@ class InventoryMapperTest {
     @BeforeEach
     void setUp() {
         mapper = new InventoryMapper();
-        var inventoryId = UUID.randomUUID();
 
         tool = ToolEntity.builder()
                 .id(100L)
@@ -32,7 +32,6 @@ class InventoryMapperTest {
 
         entity = InventoryEntity.builder()
                 .id(1L)
-                .inventoryId(inventoryId)
                 .quantityInitial(10)
                 .quantityCurrent(8)
                 .tool(tool)
@@ -60,7 +59,7 @@ class InventoryMapperTest {
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(entity.getId());
-        assertThat(response.inventoryId()).isEqualTo(entity.getInventoryId());
+        assertThat(response.inventoryId()).isEqualTo(entity.getId());
         assertThat(response.quantityInitial()).isEqualTo(entity.getQuantityInitial());
         assertThat(response.quantityCurrent()).isEqualTo(entity.getQuantityCurrent());
         assertThat(response.toolId()).isEqualTo(tool.getId());

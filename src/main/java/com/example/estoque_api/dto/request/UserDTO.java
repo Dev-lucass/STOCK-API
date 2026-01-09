@@ -7,5 +7,5 @@ import org.hibernate.validator.constraints.br.CPF;
 
 @Builder
 public record UserDTO(@NotBlank @Size(min = 2, max = 120) String username,
-                                           @NotBlank @CPF String cpf,
-                                           @NotBlank @Size(min = 5, max = 255) String address) {}
+                      @NotBlank @CPF String cpf,
+                      @NotBlank @Size(min = 5, max = 255) String address) {}

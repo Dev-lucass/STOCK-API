@@ -26,7 +26,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.UUID;
 import static com.example.estoque_api.repository.specs.InventorySpec.equalsQuantity;
 
 @Service
@@ -48,8 +47,6 @@ public class InventoryService {
 
         var inventoryEntityMapped = mapper
                 .toEntityInventory(dto, tool);
-
-        randomInventoryIdAndSet(inventoryEntityMapped);
 
         var inventorySaved = repository.save(inventoryEntityMapped);
         return mapper.toResponseEntityInventory(inventorySaved);
@@ -94,13 +91,9 @@ public class InventoryService {
         return inventory.getQuantityInitial() + dto.quantity();
     }
 
-    private void randomInventoryIdAndSet(InventoryEntity inventory) {
-        inventory.setInventoryId(UUID.randomUUID());
-    }
-
     public InventoryTakeResponseDTO takeFromInventory(TakeFromInventory fromInventory) {
 
-        var inventory = findByInventoryId(fromInventory.inventoryId());
+        var inventory = findInventoryByIdOrElseThrow(fromInventory.inventoryId());
         var user = findByUser(fromInventory.userId());
 
         validateUserIsActive(user);
@@ -134,7 +127,7 @@ public class InventoryService {
 
     public InventoryReturnResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
 
-        var inventory = findByInventoryId(fromInventory.inventoryId());
+        var inventory = findInventoryByIdOrElseThrow(fromInventory.inventoryId());
         var tool = inventory.getTool();
         var user = findByUser(fromInventory.userId());
 
@@ -144,7 +137,7 @@ public class InventoryService {
         var durationUsed = calculateUsageTimeTool(tool);
 
         updateInventoryStock(inventory, fromInventory.quantityTaken());
-        createAndSaveHistory(fromInventory, inventory, user, InventoryAction.RETURN);
+        createAndSaveHistory(fromInventory, inventory, user);
         returnTool(tool, user);
 
         return mapper.toReturnedInventoryResponse(
@@ -170,7 +163,6 @@ public class InventoryService {
         historyService.validateTotalAmountThatTheUserMustAndResetTimeUsage(user, inventory.getTool(), quantity);
     }
 
-
     private void validateUserIsActive(UserEntity user) {
         userService.validateUserIsActive(user);
     }
@@ -186,10 +178,10 @@ public class InventoryService {
         repository.save(inventory);
     }
 
-    private void createAndSaveHistory(TakeFromInventory dto, InventoryEntity inventory, UserEntity user, InventoryAction action) {
+    private void createAndSaveHistory(TakeFromInventory dto, InventoryEntity inventory, UserEntity user) {
         var historyDto = historyMapper.buildHistoryDto(
                 dto.quantityTaken(),
-                action,
+                InventoryAction.RETURN,
                 inventory.getTool(),
                 user,
                 dto.inventoryId(),
@@ -233,10 +225,6 @@ public class InventoryService {
 
         if (quantityToReturn > availableQuantity)
             throw new InvalidQuantityException("The Quantity requested must be less than available quantity");
-    }
-
-    private InventoryEntity findByInventoryId(UUID inventoryId) {
-        return repository.findByInventoryId(inventoryId).orElseThrow(() -> new ResourceNotFoundException("InventoryId not found"));
     }
 
     private void saveHistory(HistoryDTO dto) {

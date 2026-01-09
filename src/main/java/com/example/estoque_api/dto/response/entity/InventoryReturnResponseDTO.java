@@ -4,16 +4,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @Builder
-public record InventoryReturnResponseDTO(Long id,
-                                         UUID inventoryId,
-                                         Long toolId,
+public record InventoryReturnResponseDTO(long id,
+                                         long inventoryId,
+                                         long toolId,
                                          int quantityReturned,
                                          int quantityInitial,
                                          int quantityCurrent,
-                                         Double currentLifeCycle,
+                                         double currentLifeCycle,
                                          int usageCount,
                                          @JsonFormat(pattern = "HH:mm:ss")
                                          LocalTime usageTime,
