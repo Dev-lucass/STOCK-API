@@ -1,33 +1,36 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.internal.HistoryDTO;
-import com.example.estoque_api.dto.response.entity.HistoryResponseDTO;
+import com.example.estoque_api.dto.request.filter.HistoryFilterDTO;
+import com.example.estoque_api.dto.response.filter.HistoryFilterResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.InvalidQuantityException;
+import com.example.estoque_api.exceptions.userMustStillReturnBeforeBeingDeactivated;
 import com.example.estoque_api.mapper.HistoryMapper;
 import com.example.estoque_api.model.HistoryEntity;
+import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.HistoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HistoryServiceTest {
+
+    @InjectMocks
+    private HistoryService service;
 
     @Mock
     private HistoryRepository repository;
@@ -35,63 +38,110 @@ class HistoryServiceTest {
     @Mock
     private HistoryMapper mapper;
 
-    @InjectMocks
-    private HistoryService service;
+    @Test
+    void save_ShouldPersistHistory() {
+        var dto = HistoryDTO.builder().build();
+        var entity = new HistoryEntity();
 
-    private UserEntity user;
-    private HistoryEntity historyEntity;
-    private HistoryDTO historyDTO;
+        when(mapper.toEntityHistory(dto))
+                .thenReturn(entity);
 
-    @BeforeEach
-    void setUp() {
-        user = UserEntity.builder().id(1L).username("admin").build();
+        service.save(dto);
 
-        historyEntity = HistoryEntity.builder()
-                .id(1L)
-                .action(InventoryAction.TAKE)
-                .quantityTaken(50)
-                .inventoryId(1L)
-                .build();
-
-        historyDTO = mock(HistoryDTO.class);
+        verify(repository, times(1)).save(entity);
     }
 
     @Test
-    @DisplayName("Should save history entity successfully")
-    void save_Success() {
-        when(mapper.toEntityHistory(any(HistoryDTO.class)))
-                .thenReturn(historyEntity);
+    void validateTotalAmount_WhenQuantityIsInvalid_ShouldThrowException() {
+        var user = new UserEntity();
+        var tool = new ToolEntity();
+        var histories = List.of(
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(10).build(),
+                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(2).build()
+        );
 
-        service.save(historyDTO);
+        when(repository.findByUser(user))
+                .thenReturn(histories);
 
-        verify(repository, times(1)).save(historyEntity);
+        assertThrows(InvalidQuantityException.class, () ->
+                service.validateTotalAmountThatTheUserMustAndResetTimeUsage(user, tool, 9));
     }
 
     @Test
-    @DisplayName("Should return true when user has history with specific action")
-    void validateUserTakedFromInventory_True() {
-        when(repository.existsByUserAndAction(user, InventoryAction.TAKE))
+    void currentDebt_ShouldCalculateCorrectValue() {
+        var user = new UserEntity();
+        var histories = List.of(
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(15).build(),
+                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(5).build()
+        );
+
+        when(repository.findByUser(user))
+                .thenReturn(histories);
+
+        var debt = service.currentDebt(user);
+
+        assertEquals(10, debt);
+    }
+
+    @Test
+    void validateUserWhetherUserOwes_WhenDebtExists_ShouldThrowException() {
+        var user = new UserEntity();
+        var histories = List.of(
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(5).build()
+        );
+
+        when(repository.findByUser(user))
+                .thenReturn(histories);
+
+        assertThrows(userMustStillReturnBeforeBeingDeactivated.class, () ->
+                service.validateUserWhetherUserOwes(user));
+    }
+
+    @Test
+    void validateUserWhetherUserOwes_WhenNoDebt_ShouldNotThrowException() {
+        var user = new UserEntity();
+        var histories = List.of(
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(5).build(),
+                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(5).build()
+        );
+
+        when(repository.findByUser(user))
+                .thenReturn(histories);
+
+        assertDoesNotThrow(() -> service.validateUserWhetherUserOwes(user));
+    }
+
+    @Test
+    void findAll_WithFilter_ShouldReturnPagedResponse() {
+        var filter = HistoryFilterDTO.builder().build();
+        var pageable = mock(Pageable.class);
+        var entity = new HistoryEntity();
+        var page = new PageImpl<>(List.of(entity));
+        var response = HistoryFilterResponseDTO.builder().build();
+
+        when(repository.findAll(any(Predicate.class), any(Pageable.class)))
+                .thenReturn(page);
+        when(mapper.toFilterResponse(entity))
+                .thenReturn(response);
+
+        var result = service.findAll(filter, pageable);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(1, result.getTotalElements())
+        );
+    }
+
+    @Test
+    void validateUserTakedFromInventory_ShouldCallRepository() {
+        var user = new UserEntity();
+        var action = InventoryAction.TAKE;
+
+        when(repository.existsByUserAndAction(user, action))
                 .thenReturn(true);
 
-        var result = service
-                .validateUserTakedFromInventory(user, InventoryAction.TAKE);
+        var result = service.validateUserTakedFromInventory(user, action);
 
-        assertThat(result).isTrue();
+        assertTrue(result);
     }
-
-    @Test
-    @DisplayName("Should find all histories and map to response DTOs")
-    void findAll_Success() {
-        when(repository.findAll())
-                .thenReturn(List.of(historyEntity));
-
-        when(mapper.toResponseEntityHistory(any(HistoryEntity.class)))
-                .thenReturn(mock(HistoryResponseDTO.class));
-
-        var result = service.findAll();
-
-        assertThat(result).hasSize(1);
-        verify(repository).findAll();
-    }
-
 }

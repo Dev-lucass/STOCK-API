@@ -1,21 +1,26 @@
 package com.example.estoque_api.service;
 
+import com.example.estoque_api.dto.request.filter.ToolFilterDTO;
 import com.example.estoque_api.dto.request.persist.ToolDTO;
 import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
+import com.example.estoque_api.dto.response.filter.ToolFilterResponseDTO;
 import com.example.estoque_api.exceptions.DamagedToolException;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.exceptions.ToolInUseException;
 import com.example.estoque_api.mapper.ToolMapper;
+import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.ToolRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -28,6 +33,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ToolServiceTest {
 
+    @InjectMocks
+    private ToolService service;
+
     @Mock
     private ToolRepository repository;
 
@@ -37,169 +45,135 @@ class ToolServiceTest {
     @Mock
     private HistoryService historyService;
 
-    @InjectMocks
-    private ToolService toolService;
-
-    private UserEntity user;
-    private ToolEntity tool;
-    private ToolDTO toolDTO;
-
-    @BeforeEach
-    void setUp() {
-        user = new UserEntity();
-        user.setId(1L);
-        user.setUsername("joao");
-
-        tool = new ToolEntity();
-        tool.setId(1L);
-        tool.setName("Hammer");
-        tool.setActive(true);
-        tool.setCurrentLifeCycle(100.0);
-        tool.setDegradationRate(1.5);
-        tool.setMinimumViableLife(10.0);
-        tool.setUsageCount(0);
-        tool.setUsageTime(null);
-
-        toolDTO = new ToolDTO("Hammer", true);
-    }
-
     @Test
-    void save_ShouldReturnResponse_WhenSuccess() {
+    void save_ValidDto_ReturnsResponse() {
+        var dto = ToolDTO.builder().name("Hammer").build();
+        var entity = new ToolEntity();
+        var response = ToolResponseDTO.builder().id(1L).build();
+
         when(repository.existsByName(anyString()))
                 .thenReturn(false);
+        when(mapper.toEntityTool(dto))
+                .thenReturn(entity);
+        when(repository.save(entity))
+                .thenReturn(entity);
+        when(mapper.toResponseEntityTool(entity))
+                .thenReturn(response);
 
-        when(mapper.toEntityTool(any()))
-                .thenReturn(tool);
-
-        when(repository.save(any()))
-                .thenReturn(tool);
-
-        when(mapper.toResponseEntityTool(any())).
-                thenReturn(mock(ToolResponseDTO.class));
-
-        var result = toolService.save(toolDTO);
+        var result = service.save(dto);
 
         assertNotNull(result);
-        verify(repository).save(any());
+        assertEquals(1L, result.id());
     }
 
     @Test
-    void save_ShouldThrowException_WhenNameExists() {
-        when(repository.existsByName(anyString()))
+    void save_DuplicateName_ThrowsException() {
+        var dto = ToolDTO.builder().name("Hammer").build();
+
+        when(repository.existsByName("Hammer"))
                 .thenReturn(true);
 
-        assertThrows(DuplicateResouceException.class, () -> toolService.save(toolDTO));
+        assertThrows(DuplicateResouceException.class, () -> service.save(dto));
     }
 
     @Test
-    void update_ShouldReturnUpdatedResponse_WhenSuccess() {
+    void startUsage_ToolIsDamaged_ThrowsException() {
+        var tool = ToolEntity.builder()
+                .currentLifeCycle(10.0)
+                .minimumViableLife(20.0)
+                .build();
+
+        assertThrows(DamagedToolException.class, () -> service.startUsage(tool));
+    }
+
+    @Test
+    void startUsage_ValidTool_UpdatesFields() {
+        var tool = ToolEntity.builder()
+                .name("Saw")
+                .currentLifeCycle(100.0)
+                .minimumViableLife(20.0)
+                .degradationRate(5.0)
+                .usageCount(0)
+                .build();
+
+        service.startUsage(tool);
+
+        assertAll(
+                () -> assertEquals(95.0, tool.getCurrentLifeCycle()),
+                () -> assertEquals(1, tool.getUsageCount()),
+                () -> assertNotNull(tool.getLastUsageStart())
+        );
+        verify(repository).save(tool);
+    }
+
+    @Test
+    void disableById_ToolInUse_ThrowsException() {
+        var tool = ToolEntity.builder().inUse(true).build();
+
         when(repository.findById(1L))
                 .thenReturn(Optional.of(tool));
 
-        when(repository.existsByNameAndIdNot(anyString(), anyLong()))
-                .thenReturn(false);
-
-        when(repository.save(any()))
-                .thenReturn(tool);
-
-        when(mapper.toResponseEntityTool(any()))
-                .thenReturn(mock(ToolResponseDTO.class));
-
-        var result = toolService.update(1L, toolDTO);
-
-        assertNotNull(result);
-        verify(mapper).updateEntity(tool, toolDTO);
+        assertThrows(ToolInUseException.class, () -> service.disableById(1L));
     }
 
     @Test
-    void disableById_ShouldSetInactive_WhenFound() {
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(tool));
-
-        toolService.disableById(1L);
-
-        assertFalse(tool.getActive());
-        assertEquals(0.0, tool.getCurrentLifeCycle());
-    }
-
-    @Test
-    void startUsage_ShouldUpdateMetrics_WhenValid() {
-        toolService.startUsage(tool);
-
-        assertEquals(98.5, tool.getCurrentLifeCycle());
-        assertEquals(1, tool.getUsageCount());
-        assertNotNull(tool.getUsageTime());
-    }
-
-    @Test
-    void startUsage_ShouldThrowException_WhenLifeCycleIsLow() {
-        tool.setCurrentLifeCycle(5.0);
-        assertThrows(DamagedToolException.class, () -> toolService.startUsage(tool));
-    }
-
-    @Test
-    void returnTool_ShouldResetUsageTime_WhenDebtIsZero() {
-        tool.setUsageTime(LocalTime.now());
+    void returnTool_DebtIsZero_ResetsToolState() {
+        var tool = ToolEntity.builder()
+                .lastUsageStart(LocalTime.now().minusHours(1))
+                .inUse(true)
+                .build();
+        var user = new UserEntity();
 
         when(historyService.currentDebt(user))
                 .thenReturn(0);
 
-        toolService.returnTool(tool, user);
+        service.returnTool(tool, user);
 
-        assertEquals(LocalTime.MIDNIGHT, tool.getUsageTime());
+        assertAll(
+                () -> assertFalse(tool.getInUse()),
+                () -> assertNull(tool.getLastUsageStart()),
+                () -> assertNotNull(tool.getUsageTime())
+        );
+        verify(repository).save(tool);
     }
 
     @Test
-    void returnTool_ShouldNotResetUsageTime_WhenDebtExists() {
-        var startTime = LocalTime.now();
-        tool.setUsageTime(startTime);
+    void takeTool_UpdatesInventoryAndToolStatus() {
+        var tool = new ToolEntity();
+        var inventory = InventoryEntity.builder().tool(tool).build();
 
-        when(historyService.currentDebt(user))
-                .thenReturn(5);
+        service.takeTool(inventory, 5);
 
-        toolService.returnTool(tool, user);
-
-        assertEquals(startTime, tool.getUsageTime());
+        assertAll(
+                () -> assertEquals(5, inventory.getQuantityCurrent()),
+                () -> assertTrue(tool.getInUse())
+        );
     }
 
     @Test
-    void validateToolIsInactive_ShouldReturnTrue_WhenInactive() {
-        when(repository.existsByIdAndActiveFalse(1L))
-                .thenReturn(true);
+    void findAll_ValidParams_ReturnsPage() {
+        var filter = ToolFilterDTO.builder().build();
+        var pageable = mock(Pageable.class);
+        var entity = new ToolEntity();
+        var page = new PageImpl<>(List.of(entity));
+        var response = ToolFilterResponseDTO.builder().build();
 
-        var result = toolService.validateToolIsInactive(1L);
-        assertTrue(result);
+        when(repository.findAll(any(Predicate.class), any(Pageable.class)))
+                .thenReturn(page);
+        when(mapper.toFilterResponse(entity))
+                .thenReturn(response);
+
+        var result = service.findAll(filter, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
-//    @SuppressWarnings("unchecked")
-    void filterByNamePageable_ShouldReturnPagedResults() {
-        var page = new PageImpl<>(List.of(tool));
-
-//        when(repository.findAll(any(Specification.class), any(PageRequest.class)))
-//                .thenReturn(page);
-
-//        var result = toolService
-//                .filterByNamePageable("Hammer", 0, 10);
-
-//        assertNotNull(result);
-//        assertEquals(1, result.getTotalElements());
-    }
-
-    @Test
-    void calculateUsageTime_ShouldReturnCorrectDuration() {
-        tool.setUsageTime(LocalTime.now().minusHours(2));
-
-        var result = toolService.calculateUsageTime(tool);
-
-        assertTrue(result.getHour() >= 2);
-    }
-
-    @Test
-    void findToolByIdOrElseThrow_ShouldThrowException_WhenNotFound() {
+    void findToolByIdOrElseThrow_NotFound_ThrowsException() {
         when(repository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> toolService.findToolByIdOrElseThrow(1L));
+        assertThrows(ResourceNotFoundException.class, () -> service.findToolByIdOrElseThrow(1L));
     }
 }

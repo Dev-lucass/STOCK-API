@@ -1,7 +1,9 @@
 package com.example.estoque_api.dto.request.filter;
 
 import com.example.estoque_api.enums.InventoryAction;
+import lombok.Builder;
 
+@Builder
 public record HistoryFilterDTO(Long inventoryId,
                                InventoryAction action,
                                String username,

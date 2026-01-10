@@ -8,7 +8,6 @@ import com.example.estoque_api.model.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class HistoryMapperTest {
@@ -20,7 +19,8 @@ class HistoryMapperTest {
 
     @BeforeEach
     void setUp() {
-        mapper = new HistoryMapper();
+        mapper = new HistoryMapper(new UserMapper(),
+                                   new ToolMapper());
 
         user = new UserEntity();
         user.setId(10L);

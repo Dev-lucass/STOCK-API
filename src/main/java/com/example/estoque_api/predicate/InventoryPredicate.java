@@ -8,10 +8,9 @@ import java.util.Optional;
 
 public class InventoryPredicate {
 
-    private static final BooleanBuilder builder = new BooleanBuilder();
-    private static final QInventoryEntity qInventory = QInventoryEntity.inventoryEntity;
-
     public static Predicate build(InventoryFilterDTO filter) {
+        var builder = new BooleanBuilder();
+        var qInventory = QInventoryEntity.inventoryEntity;
 
         if (filter == null) return builder;
 
@@ -32,6 +31,9 @@ public class InventoryPredicate {
     }
 
     public static Predicate buildOnlyId(Long id) {
+        var builder = new BooleanBuilder();
+        var qInventory = QInventoryEntity.inventoryEntity;
+
         Optional.ofNullable(id)
                 .ifPresent(i -> builder.and(qInventory.tool.id.eq(i)));
         return builder;

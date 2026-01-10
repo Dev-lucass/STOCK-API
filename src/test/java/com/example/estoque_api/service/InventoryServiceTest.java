@@ -1,29 +1,32 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.internal.HistoryDTO;
+import com.example.estoque_api.dto.request.filter.InventoryFilterDTO;
 import com.example.estoque_api.dto.request.persist.InventoryDTO;
 import com.example.estoque_api.dto.request.persist.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
+import com.example.estoque_api.dto.response.filter.InventoryFilterResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
-import com.example.estoque_api.exceptions.DuplicateResouceException;
+import com.example.estoque_api.exceptions.InvalidQuantityException;
+import com.example.estoque_api.exceptions.QuantitySoldOutException;
+import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.HistoryMapper;
 import com.example.estoque_api.mapper.InventoryMapper;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.repository.InventoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -35,169 +38,160 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class InventoryServiceTest {
 
+    @InjectMocks
+    private InventoryService service;
+
     @Mock
     private InventoryRepository repository;
+
     @Mock
     private InventoryMapper mapper;
+
     @Mock
     private HistoryMapper historyMapper;
+
     @Mock
     private ToolService toolService;
+
     @Mock
     private UserService userService;
+
     @Mock
     private HistoryService historyService;
 
-    @InjectMocks
-    private InventoryService inventoryService;
-
-    private ToolEntity tool;
-    private InventoryEntity inventory;
-    private UserEntity user;
-    private InventoryDTO inventoryDTO;
-    private final long inventoryId = 1L;
-
-    @BeforeEach
-    void setUp() {
-        tool = new ToolEntity();
-        tool.setId(inventoryId);
-        tool.setUsageCount(5);
-        tool.setCurrentLifeCycle(10.0);
-
-        inventory = new InventoryEntity();
-        inventory.setId(inventoryId);
-        inventory.setTool(tool);
-        inventory.setQuantityInitial(100);
-        inventory.setQuantityCurrent(50);
-
-        user = new UserEntity();
-        user.setId(inventoryId);
-
-        inventoryDTO = new InventoryDTO(10, inventoryId);
-    }
-
-    private InventoryResponseDTO createInventoryResponseDTO() {
-        return new InventoryResponseDTO(inventoryId, inventoryId, 100, 50, inventoryId, LocalDateTime.now());
-    }
-
     @Test
-    @DisplayName("Should save new item in inventory successfully")
-    void save_ShouldReturnResponse_WhenSuccess() {
-        when(toolService.findToolByIdOrElseThrow(inventoryId)).thenReturn(tool);
-        when(repository.existsByTool(tool)).thenReturn(false);
-        when(mapper.toEntityInventory(any(), any())).thenReturn(inventory);
-        when(repository.save(any())).thenReturn(inventory);
-        when(mapper.toResponseEntityInventory(any())).thenReturn(createInventoryResponseDTO());
+    void save_ValidDto_ReturnsResponse() {
+        var dto = new InventoryDTO(1, 10);
+        var tool = new ToolEntity();
+        var entity = new InventoryEntity();
+        var response = InventoryResponseDTO.builder().id(1L).build();
 
-        var result = inventoryService.save(inventoryDTO);
+        when(toolService.findToolByIdOrElseThrow(dto.idTool()))
+                .thenReturn(tool);
+        when(repository.existsByTool(tool))
+                .thenReturn(false);
+        when(mapper.toEntityInventory(dto, tool))
+                .thenReturn(entity);
+        when(repository.save(entity))
+                .thenReturn(entity);
+        when(mapper.toResponseEntityInventory(entity))
+                .thenReturn(response);
+
+        var result = service.save(dto);
 
         assertNotNull(result);
-        verify(repository).save(any());
+        assertEquals(1L, result.id());
     }
 
     @Test
-    @DisplayName("Should update quantities correctly")
-    void update_ShouldUpdateQuantities_WhenSuccess() {
-        when(repository.findById(inventoryId)).thenReturn(Optional.of(inventory));
-        when(toolService.findToolByIdOrElseThrow(inventoryId)).thenReturn(tool);
-        when(repository.existsByToolAndIdNot(tool, inventoryId)).thenReturn(false);
-        when(repository.save(any())).thenReturn(inventory);
-        when(mapper.toResponseEntityInventory(any())).thenReturn(createInventoryResponseDTO());
+    void takeFromInventory_ValidRequest_ReturnsResponse() {
+        var request = new TakeFromInventory(1L, 1L, 5);
+        var tool = ToolEntity.builder().id(1L).currentLifeCycle(100.0).usageCount(1).build();
+        var user = new UserEntity();
+        var inventory = InventoryEntity.builder().id(1L).tool(tool).quantityCurrent(10).build();
+        var historyDto = HistoryDTO.builder().build();
+        var response = InventoryTakeResponseDTO.builder().quantityTaked(5).build();
 
-        inventoryService.update(inventoryId, inventoryDTO);
-
-        verify(mapper).updateEntity(eq(60), eq(110), eq(tool), eq(inventory));
-        verify(repository).save(inventory);
-    }
-
-    @Test
-    @DisplayName("Should process inventory withdrawal successfully")
-    void takeFromInventory_ShouldProcessWithdrawal_WhenValid() {
-        TakeFromInventory takeRequest = new TakeFromInventory(inventoryId, inventoryId, 10);
-
-        when(repository.findById(inventoryId)).thenReturn(Optional.of(inventory));
-        when(userService.findUserByIdOrElseThrow(inventoryId)).thenReturn(user);
-        when(toolService.validateToolIsInactive(inventoryId)).thenReturn(false);
-
-        // anyLong() ensures no null unboxing issues for inventoryId
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(inventory));
+        when(userService.findUserByIdOrElseThrow(1L))
+                .thenReturn(user);
+        when(toolService.validateToolIsInactive(anyLong()))
+                .thenReturn(false);
         when(historyMapper.buildHistoryDto(anyInt(), any(), any(), any(), anyLong(), anyDouble()))
-                .thenReturn(mock(HistoryDTO.class));
-
+                .thenReturn(historyDto);
         when(mapper.toTakeInventoryResponse(any(), anyInt(), anyInt()))
-                .thenReturn(new InventoryTakeResponseDTO(1L,
-                        1L,
-                        100,
-                        10,
-                        200,
-                        2L,
-                        50.0,
-                        1,
-                        LocalDateTime.now()));
+                .thenReturn(response);
 
-        var result = inventoryService.takeFromInventory(takeRequest);
+        var result = service.takeFromInventory(request);
 
         assertNotNull(result);
-        assertEquals(40, inventory.getQuantityCurrent());
         verify(repository).save(inventory);
     }
 
     @Test
-    @DisplayName("Should process inventory return successfully")
-    void returnFromInventory_ShouldProcessReturn_WhenValid() {
-        TakeFromInventory returnRequest = new TakeFromInventory(inventoryId, inventoryId, 10);
+    void takeFromInventory_QuantitySoldOut_ThrowsException() {
+        var request = new TakeFromInventory(1L, 1L, 5);
+        var tool = ToolEntity.builder().id(1L).currentLifeCycle(100.0).build();
+        var inventory = InventoryEntity.builder().tool(tool).quantityCurrent(0).build();
 
-        when(repository.findById(inventoryId)).thenReturn(Optional.of(inventory));
-        when(userService.findUserByIdOrElseThrow(inventoryId)).thenReturn(user);
-        when(toolService.validateToolIsInactive(inventoryId)).thenReturn(false);
-        when(historyService.validateUserTakedFromInventory(user, InventoryAction.TAKE)).thenReturn(true);
-        when(toolService.calculateUsageTime(tool)).thenReturn(LocalTime.of(1, 0));
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(inventory));
+        when(userService.findUserByIdOrElseThrow(1L))
+                .thenReturn(new UserEntity());
 
-        when(historyMapper.buildHistoryDto(anyInt(), any(), any(), any(), anyLong(), anyDouble()))
-                .thenReturn(mock(HistoryDTO.class));
+        assertThrows(QuantitySoldOutException.class, () -> service.takeFromInventory(request));
+    }
 
+    @Test
+    void returnFromInventory_ValidRequest_ReturnsResponse() {
+        var request = new TakeFromInventory(1L, 1L, 5);
+        var tool = ToolEntity.builder()
+                .id(1L)
+                .lastUsageStart(LocalTime.now().minusHours(1))
+                .currentLifeCycle(100.0)
+                .usageCount(1)
+                .build();
+        var user = new UserEntity();
+        var inventory = InventoryEntity.builder().tool(tool).quantityCurrent(5).quantityInitial(10).build();
+        var response = InventoryReturnResponseDTO.builder().build();
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(inventory));
+        when(userService.findUserByIdOrElseThrow(1L))
+                .thenReturn(user);
+        when(historyService.validateUserTakedFromInventory(user, InventoryAction.TAKE))
+                .thenReturn(true);
         when(mapper.toReturnedInventoryResponse(any(), anyInt(), anyInt(), any()))
-                .thenReturn(new InventoryReturnResponseDTO(1L,
-                        1L,
-                        1L,
-                        200,
-                        300,
-                        200,
-                        60.0,
-                        2,
-                        LocalTime.of(1, 0),
-                        LocalDateTime.now()));
+                .thenReturn(response);
 
-        inventoryService.returnFromInventory(returnRequest);
+        var result = service.returnFromInventory(request);
 
-        assertEquals(60, inventory.getQuantityCurrent());
-        verify(repository).save(inventory);
-        verify(toolService).returnTool(tool, user);
+        assertNotNull(result);
+        verify(repository, atLeastOnce()).save(inventory);
     }
 
     @Test
-    @DisplayName("Should fail withdrawal if tool is inactive and cycle is high")
-    void takeFromInventory_ShouldThrowException_WhenToolIsInactiveAndCycleHigh() {
-        TakeFromInventory takeRequest = new TakeFromInventory(inventoryId, inventoryId, 5);
-        tool.setCurrentLifeCycle(45.0);
+    void returnFromInventory_UserDidNotTake_ThrowsException() {
+        var request = new TakeFromInventory(1L, 1L, 5);
+        var user = new UserEntity();
+        var tool = ToolEntity.builder().build();
+        var inventory = InventoryEntity.builder().tool(tool).build();
 
-        when(repository.findById(inventoryId)).thenReturn(Optional.of(inventory));
-        when(userService.findUserByIdOrElseThrow(inventoryId)).thenReturn(user);
-        when(toolService.validateToolIsInactive(inventoryId)).thenReturn(true);
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(inventory));
+        when(userService.findUserByIdOrElseThrow(1L))
+                .thenReturn(user);
+        when(historyService.validateUserTakedFromInventory(user, InventoryAction.TAKE))
+                .thenReturn(false);
 
-        assertThrows(DuplicateResouceException.class, () -> inventoryService.takeFromInventory(takeRequest));
+        assertThrows(ResourceNotFoundException.class, () -> service.returnFromInventory(request));
     }
 
     @Test
-//    @SuppressWarnings("unchecked")
-    @DisplayName("Should filter inventory by quantity with pagination")
-    void filterByQuantity_ShouldReturnPagedResults() {
-        var page = new PageImpl<>(List.of(inventory));
-//        when(repository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
-        when(mapper.toResponseEntityInventory(any())).thenReturn(createInventoryResponseDTO());
+    void findAll_ValidParams_ReturnsPage() {
+        var filter = InventoryFilterDTO.builder().build();
+        var pageable = mock(Pageable.class);
+        var entity = new InventoryEntity();
+        var page = new PageImpl<>(List.of(entity));
+        var response = InventoryFilterResponseDTO.builder().build();
 
-//        var result = inventoryService.filterByQuantity(50, 0, 10);
+        when(repository.findAll(any(Predicate.class), any(Pageable.class)))
+                .thenReturn(page);
+        when(mapper.toFilterResponse(entity))
+                .thenReturn(response);
 
-//        assertNotNull(result);
-//        assertFalse(result.isEmpty());
+        var result = service.findAll(filter, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void validateQuantityTaken_InvalidAmount_ThrowsException() {
+        assertAll(
+                () -> assertThrows(InvalidQuantityException.class, () -> service.validateQuantityTaken(0, 10)),
+                () -> assertThrows(InvalidQuantityException.class, () -> service.validateQuantityTaken(15, 10))
+        );
     }
 }

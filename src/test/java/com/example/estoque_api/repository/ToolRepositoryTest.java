@@ -2,13 +2,15 @@ package com.example.estoque_api.repository;
 
 import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class ToolRepositoryTest {
@@ -26,11 +28,15 @@ class ToolRepositoryTest {
         activeTool = ToolEntity.builder()
                 .name("Smartphone")
                 .active(true)
+                .createdIn(LocalDateTime.now())
+                .currentLifeCycle(100.0)
                 .build();
 
         var inactiveTool = ToolEntity.builder()
                 .name("Notebook")
                 .active(false)
+                .createdIn(LocalDateTime.now())
+                .currentLifeCycle(100.0)
                 .build();
 
         entityManager.persist(activeTool);
@@ -38,35 +44,42 @@ class ToolRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should return true when a tool exists with the given toolName")
-    void shouldReturnTrueWhenNameExists() {
-        var exists = repository
-                .existsByName("Smartphone");
-
+    void existsByName_RecordExists_ReturnsTrue() {
+        var exists = repository.existsByName("Smartphone");
         assertTrue(exists);
     }
 
     @Test
-    @DisplayName("Should return true when another tool exists with the same toolName excluding current ID")
-    void shouldReturnTrueWhenNameExistsAndIdNot() {
+    void existsByNameAndIdNot_AnotherToolExistsWithSameName_ReturnsTrue() {
         var anotherTool = ToolEntity.builder()
                 .name("Monitor")
                 .active(true)
+                .createdIn(LocalDateTime.now())
                 .build();
 
         entityManager.persist(anotherTool);
 
-        var exists = repository
-                .existsByNameAndIdNot("Smartphone", anotherTool.getId());
+        var exists = repository.existsByNameAndIdNot("Smartphone", anotherTool.getId());
         assertTrue(exists);
     }
 
     @Test
-    @DisplayName("Should return false when checking toolName existence against its own ID")
-    void shouldReturnFalseWhenNameExistsButIsTheSameId() {
-        var exists = repository
-                .existsByNameAndIdNot("Smartphone", activeTool.getId());
-
+    void existsByNameAndIdNot_CheckingAgainstSameId_ReturnsFalse() {
+        var exists = repository.existsByNameAndIdNot("Smartphone", activeTool.getId());
         assertFalse(exists);
+    }
+
+    @Test
+    void existsByIdAndActiveFalse_ToolIsInactive_ReturnsTrue() {
+        var inactive = ToolEntity.builder()
+                .name("Tablet")
+                .active(false)
+                .createdIn(LocalDateTime.now())
+                .build();
+
+        var saved = entityManager.persist(inactive);
+
+        var exists = repository.existsByIdAndActiveFalse(saved.getId());
+        assertTrue(exists);
     }
 }

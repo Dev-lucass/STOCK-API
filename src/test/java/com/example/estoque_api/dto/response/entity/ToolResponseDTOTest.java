@@ -1,17 +1,15 @@
 package com.example.estoque_api.dto.response.entity;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class ToolResponseDTOTest {
 
-    private Long id;
+    private long id;
     private String name;
     private boolean active;
     private LocalDateTime createdAt;
@@ -19,14 +17,13 @@ class ToolResponseDTOTest {
     @BeforeEach
     void setUp() {
         id = 1L;
-        name = "Smartphone";
+        name = "Hammer";
         active = true;
         createdAt = LocalDateTime.now();
     }
 
     @Test
-    @DisplayName("Should successfully instantiate the record using builder and return correct values")
-    void shouldCreateToolEntityResponseDTOUsingBuilder() {
+    void shouldCreateToolResponseDTOUsingBuilder() {
         var dto = ToolResponseDTO.builder()
                 .id(id)
                 .name(name)
@@ -43,11 +40,10 @@ class ToolResponseDTOTest {
     }
 
     @Test
-    @DisplayName("Should verify equality between two instances with same values")
-    void should_Verify_Equality() {
+    void shouldVerifyEquality() {
         var dto1 = new ToolResponseDTO(id, name, active, createdAt);
         var dto2 = new ToolResponseDTO(id, name, active, createdAt);
-        var dto3 = new ToolResponseDTO(2L, "Tablet", false, createdAt);
+        var dto3 = new ToolResponseDTO(2L, "Screwdriver", false, createdAt);
 
         assertAll(
                 () -> assertEquals(dto1, dto2),
@@ -57,16 +53,15 @@ class ToolResponseDTOTest {
     }
 
     @Test
-    @DisplayName("Should verify if toString method contains all record fields")
-    void should_Verify_ToString() {
+    void shouldVerifyToString() {
         var dto = new ToolResponseDTO(id, name, active, createdAt);
         var toString = dto.toString();
 
         assertAll(
                 () -> assertTrue(toString.contains("id=" + id)),
-                () -> assertTrue(toString.contains("toolName=" + name)),
-                () -> assertTrue(toString.contains("userActive=" + active)),
-                () -> assertTrue(toString.contains("usageTime=" + createdAt))
+                () -> assertTrue(toString.contains("name=" + name)),
+                () -> assertTrue(toString.contains("active=" + active)),
+                () -> assertTrue(toString.contains("createdAt=" + createdAt))
         );
     }
 }

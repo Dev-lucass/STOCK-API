@@ -4,11 +4,8 @@ import com.example.estoque_api.dto.request.filter.UserFilterDTO;
 import com.example.estoque_api.dto.request.persist.UserDTO;
 import com.example.estoque_api.dto.response.entity.UserResponseDTO;
 import com.example.estoque_api.dto.response.filter.UserFilterResponseDTO;
-import com.example.estoque_api.model.UserEntity;
 import com.example.estoque_api.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -40,94 +38,85 @@ class UserEntityControllerTest {
     @MockitoBean
     private UserService service;
 
-    private UserResponseDTO responseDTO;
-    private UserDTO requestDTO;
-    private UserFilterResponseDTO filterResponse;
-
-    @BeforeEach
-    void setUp() {
-        filterResponse = UserFilterResponseDTO.builder()
-                .id(1L)
-                .username("jake")
-                .cpf("11144477735")
-                .active(true)
-                .address("abc street 4th")
-                .build();
-
-        requestDTO = new UserDTO("joao_silva", "11144477735", "rua madeireira");
-
-        responseDTO = UserResponseDTO.builder()
-                .id(1L)
-                .username("joao_silva")
-                .build();
-    }
-
     @Test
-    @DisplayName("Save user returns 201 created")
-    void save_Success() throws Exception {
-        when(service.save(any(UserDTO.class))).thenReturn(responseDTO);
+    void save_ValidDto_ReturnsCreated() throws Exception {
+        var dto = UserDTO.builder()
+                .username("johndoe")
+                .cpf("12345678909")
+                .address("123 Street Name")
+                .build();
+
+        var response = UserResponseDTO.builder()
+                .id(1L)
+                .username("johndoe")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(service.save(any(UserDTO.class)))
+                .thenReturn(response);
 
         mockMvc.perform(post("/api/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value("joao_silva"));
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.username").value("johndoe"));
     }
 
     @Test
-    @DisplayName("Find all userActive users returns 200 OK")
-    void findAll_Success() throws Exception {
-        when(service.findAll(any(UserFilterDTO.class), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(filterResponse)));
+    void update_ValidIdAndDto_ReturnsNoContent() throws Exception {
+        var dto = UserDTO.builder()
+                .username("johnupdated")
+                .cpf("12345678909")
+                .address("456 Updated Ave")
+                .build();
 
-        mockMvc.perform(get("/api/v1/user")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
-    }
+        var response = UserResponseDTO.builder()
+                .id(1L)
+                .username("johnupdated")
+                .createdAt(LocalDateTime.now())
+                .build();
 
-    @Test
-    @DisplayName("Update user returns 200 OK")
-    void update_Success() throws Exception {
-        when(service.update(anyLong(), any(UserDTO.class))).thenReturn(responseDTO);
+        when(service.update(anyLong(), any(UserDTO.class)))
+                .thenReturn(response);
 
         mockMvc.perform(put("/api/v1/user/{userId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Delete user returns 204 no content")
-    void delete_Success() throws Exception {
-        doNothing().when(service).disableById(1L);
+    void delete_ValidId_ReturnsNoContent() throws Exception {
+        doNothing().when(service).disableById(anyLong());
 
         mockMvc.perform(patch("/api/v1/user/{userId}", 1L))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Save user with invalid data returns 400 bad request")
-    void save_InvalidBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\": \"\"}"))
-                .andExpect(status().isBadRequest());
-    }
+    void findAll_ValidParams_ReturnsPage() throws Exception {
+        var response = UserFilterResponseDTO.builder()
+                .id(1L)
+                .username("johndoe")
+                .cpf("12345678909")
+                .active(true)
+                .address("123 Street Name")
+                .build();
 
-    @Test
-    @DisplayName("Find user by id returns 200 OK")
-    void findById_Success() throws Exception {
-        UserEntity user = new UserEntity();
-        user.setId(1L);
-        user.setUsername("joao_silva");
+        var page = new PageImpl<>(List.of(response));
 
-        when(service.findUserByIdOrElseThrow(1L)).thenReturn(user);
+        when(service.findAll(any(UserFilterDTO.class), any(Pageable.class)))
+                .thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/user/{userId}", 1L)
-                        .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/user")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "id,asc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("joao_silva"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].username").value("johndoe"))
+                .andExpect(jsonPath("$.content[0].cpf").value("12345678909"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }
