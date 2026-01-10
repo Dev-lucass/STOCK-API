@@ -61,7 +61,7 @@ class UserResponseDTOTest {
         assertAll(
                 () -> assertTrue(toString.contains("id=" + id)),
                 () -> assertTrue(toString.contains("username=" + username)),
-                () -> assertTrue(toString.contains("createdAt=" + createdAt))
+                () -> assertTrue(toString.contains("usageTime=" + createdAt))
         );
     }
 }

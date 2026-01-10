@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -115,6 +116,16 @@ public class GlobalHandlerException {
     @ExceptionHandler(userMustStillReturnBeforeBeingDeactivated.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseErrorInvalidQuantity userMustStillReturnBeforeBeingDeactivated(userMustStillReturnBeforeBeingDeactivated ex) {
+        return new ResponseErrorInvalidQuantity(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler(ToolInUseException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseErrorInvalidQuantity ToolInUse(ToolInUseException ex) {
         return new ResponseErrorInvalidQuantity(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),

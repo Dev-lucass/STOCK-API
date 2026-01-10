@@ -1,4 +1,4 @@
-package com.example.estoque_api.dto.request;
+package com.example.estoque_api.dto.request.persist;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

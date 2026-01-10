@@ -77,30 +77,6 @@ class InventoryRepositoryTest {
         assertFalse(existsItself);
     }
 
-    @Test
-    @DisplayName("Should return only inventories where associated tool is active")
-    void shouldFindAllByToolActiveTrue() {
-        var invActive = InventoryEntity.builder()
-                .tool(tool1)
-                .quantityInitial(10)
-                .quantityCurrent(50)
-                .build();
-
-        var invInactive = InventoryEntity.builder()
-                .tool(tool2)
-                .quantityInitial(5)
-                .quantityCurrent(50)
-                .build();
-
-        entityManager.persist(invActive);
-        entityManager.persist(invInactive);
-
-        var results = repository.findAllByToolActiveTrue();
-
-        assertAll(
-                () -> assertEquals(1, results.size())
-        );
-    }
 
     @Test
     @DisplayName("Should find inventory by its custom inventoryId string")

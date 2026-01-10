@@ -1,6 +1,6 @@
 package com.example.estoque_api.mapper;
 
-import com.example.estoque_api.dto.request.InventoryDTO;
+import com.example.estoque_api.dto.request.persist.InventoryDTO;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import org.junit.jupiter.api.BeforeEach;

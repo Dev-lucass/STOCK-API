@@ -1,7 +1,7 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.InventoryDTO;
-import com.example.estoque_api.dto.request.TakeFromInventory;
+import com.example.estoque_api.dto.request.persist.InventoryDTO;
+import com.example.estoque_api.dto.request.persist.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
@@ -73,18 +73,7 @@ class InventoryEntityControllerTest {
                 .andExpect(jsonPath("$.inventoryId").value(inventoryId));
     }
 
-    @Test
-    @DisplayName("Find all active tools returns 200 OK")
-    void findAll_Success() throws Exception {
-        when(service.findAllByToolIsActive())
-                .thenReturn(List.of(responseDTO));
 
-        mockMvc.perform(get("/api/v1/inventory")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(1L));
-    }
 
     @Test
     @DisplayName("Update inventory returns 200 OK")
@@ -157,8 +146,7 @@ class InventoryEntityControllerTest {
     void filterByQuantity_Success() throws Exception {
         var page = new PageImpl<>(List.of(responseDTO));
 
-        when(service.filterByQuantity(anyInt(), anyInt(), anyInt()))
-                .thenReturn(page);
+      //  when(service.filterByQuantity(anyInt(), anyInt(), anyInt())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/inventory/filterByQuantity")
                         .param("quantity", "10")

@@ -21,7 +21,7 @@ class ResponseErrorInvalidArgumentsTest {
         statusCode = 400;
         dateError = LocalDate.now();
         invalidFields = List.of(
-                new ResponseErrorInvalidFields("name", "Name is required"),
+                new ResponseErrorInvalidFields("toolName", "Name is required"),
                 new ResponseErrorInvalidFields("cpf", "Invalid CPF format")
         );
     }

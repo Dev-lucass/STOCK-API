@@ -1,5 +1,6 @@
 package com.example.estoque_api.dto.request;
 
+import com.example.estoque_api.dto.request.persist.ToolDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -44,8 +45,8 @@ class ToolDTOTest {
         var toString = dto.toString();
 
         assertAll(
-                () -> assertTrue(toString.contains("name=Monitor 4K")),
-                () -> assertTrue(toString.contains("active=false"))
+                () -> assertTrue(toString.contains("toolName=Monitor 4K")),
+                () -> assertTrue(toString.contains("userActive=false"))
         );
     }
 }

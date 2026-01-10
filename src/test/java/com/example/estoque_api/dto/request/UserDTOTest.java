@@ -1,5 +1,6 @@
 package com.example.estoque_api.dto.request;
 
+import com.example.estoque_api.dto.request.persist.UserDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertAll;
