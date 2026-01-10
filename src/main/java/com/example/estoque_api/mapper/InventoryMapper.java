@@ -1,12 +1,14 @@
 package com.example.estoque_api.mapper;
 
-import com.example.estoque_api.dto.request.InventoryDTO;
+import com.example.estoque_api.dto.request.persist.InventoryDTO;
 import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
+import com.example.estoque_api.dto.response.filter.InventoryFilterResponseDTO;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -47,7 +49,7 @@ public class InventoryMapper {
                 .build();
     }
 
-    public InventoryReturnResponseDTO toReturnedInventoryResponse(InventoryEntity entity, int quantityReturned, int usageCount, LocalTime usageTime) {
+    public InventoryReturnResponseDTO toReturnedInventoryResponse(InventoryEntity entity, int quantityReturned, int usageCount, LocalTime takedIn) {
         return InventoryReturnResponseDTO.builder()
                 .id(entity.getId())
                 .inventoryId(entity.getId())
@@ -55,7 +57,7 @@ public class InventoryMapper {
                 .quantityInitial(entity.getQuantityInitial())
                 .currentLifeCycle(entity.getTool().getCurrentLifeCycle())
                 .usageCount(usageCount)
-                .usageTime(usageTime)
+                .usageTime(takedIn)
                 .quantityCurrent(entity.getQuantityCurrent())
                 .toolId(entity.getTool().getId())
                 .returnToolAt(LocalDateTime.now())
@@ -66,5 +68,15 @@ public class InventoryMapper {
         inventory.setQuantityInitial(quantityInitial);
         inventory.setQuantityCurrent(currentQuantity);
         inventory.setTool(tool);
+    }
+
+    public InventoryFilterResponseDTO toFilterResponse(InventoryEntity inventory) {
+        return InventoryFilterResponseDTO.builder()
+                .id(inventory.getId())
+                .quantityInitial(inventory.getQuantityInitial())
+                .quantityCurrent(inventory.getQuantityCurrent())
+                .toolId(inventory.getTool().getId())
+                .nameTool(inventory.getTool().getName())
+                .build();
     }
 }

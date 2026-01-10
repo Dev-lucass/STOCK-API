@@ -1,18 +1,20 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.InventoryDTO;
-import com.example.estoque_api.dto.request.TakeFromInventory;
+import com.example.estoque_api.dto.request.filter.InventoryFilterDTO;
+import com.example.estoque_api.dto.request.persist.InventoryDTO;
+import com.example.estoque_api.dto.request.persist.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
+import com.example.estoque_api.dto.response.filter.InventoryFilterResponseDTO;
 import com.example.estoque_api.service.InventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,12 +27,6 @@ public class InventoryEntityController {
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponseDTO save(@RequestBody @Valid InventoryDTO dto) {
         return service.save(dto);
-    }
-
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<InventoryResponseDTO> findAllByToolIsActive() {
-        return service.findAllByToolIsActive();
     }
 
     @PutMapping("/{invenvoryId}")
@@ -51,17 +47,10 @@ public class InventoryEntityController {
         return service.returnFromInventory(returneFromInventory);
     }
 
-    @GetMapping("filterByQuantity")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<InventoryResponseDTO> filterByQuantity(
-            @RequestParam(value = "quantity", required = false) Integer quantity,
-            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize
-    ) {
-        return service.filterByQuantity(
-                quantity,
-                pageNumber,
-                pageSize
-        );
+    public Page<InventoryFilterResponseDTO> findAll(@ModelAttribute InventoryFilterDTO filter,
+                                                    @PageableDefault(sort = "id") Pageable pageable) {
+        return service.findAll(filter, pageable);
     }
 }

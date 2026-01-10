@@ -1,26 +1,28 @@
 package com.example.estoque_api.service;
 
-import com.example.estoque_api.dto.request.ToolDTO;
+import com.example.estoque_api.dto.request.filter.ToolFilterDTO;
+import com.example.estoque_api.dto.request.persist.ToolDTO;
 import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
+import com.example.estoque_api.dto.response.filter.ToolFilterResponseDTO;
 import com.example.estoque_api.exceptions.DamagedToolException;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
+import com.example.estoque_api.exceptions.ToolInUseException;
 import com.example.estoque_api.mapper.ToolMapper;
+import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
+import com.example.estoque_api.predicate.ToolPredicate;
 import com.example.estoque_api.repository.ToolRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.List;
-import static com.example.estoque_api.repository.specs.ToolSpec.likeName;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -36,20 +38,6 @@ public class ToolService {
         return mapper.toResponseEntityTool(repository.save(entity));
     }
 
-    public List<ToolResponseDTO> findAllisActive() {
-        return repository.findAllByActiveTrue()
-                .stream()
-                .map(mapper::toResponseEntityTool)
-                .toList();
-    }
-
-    public List<ToolResponseDTO> findAllisDisable() {
-        return repository.findAllByActiveFalse()
-                .stream()
-                .map(mapper::toResponseEntityTool)
-                .toList();
-    }
-
     public ToolResponseDTO update(Long id, ToolDTO dto) {
         ToolEntity entity = findToolByIdOrElseThrow(id);
         validateDuplicateOnUpdate(dto.name(), id);
@@ -62,14 +50,19 @@ public class ToolService {
         throwIfToolIsDamaged(tool);
         applyDegradation(tool);
         tool.setUsageCount(tool.getUsageCount() + 1);
-        tool.setUsageTime(LocalTime.now());
+        tool.setLastUsageStart(LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
+        repository.save(tool);
     }
 
     @Transactional
     public void disableById(Long id) {
-        var entity = findToolByIdOrElseThrow(id);
-        entity.setActive(false);
-        entity.setCurrentLifeCycle(0.0);
+        var tool = findToolByIdOrElseThrow(id);
+        validateWhetherCanDeactivateTool(tool);
+        tool.setActive(false);
+    }
+
+    private void validateWhetherCanDeactivateTool(ToolEntity tool) {
+        if (tool.getInUse()) throw new ToolInUseException("You cannot deactivate a tool because it is being used");
     }
 
     @Transactional
@@ -78,23 +71,36 @@ public class ToolService {
         resetTimeUsageToolIfCurrentDebtIsZero(tool, currentDebt);
     }
 
+    public void takeTool(InventoryEntity inventory, int subtractQuantity) {
+        inventory.setQuantityCurrent(subtractQuantity);
+        inventory.getTool().setInUse(true);
+    }
+
     private void resetTimeUsageToolIfCurrentDebtIsZero(ToolEntity tool, int currentDebt) {
-        if (currentDebt == 0) tool.setUsageTime(LocalTime.MIDNIGHT);
+        if (currentDebt == 0) {
+            LocalTime tempoCalculado = calculateUsageTime(tool);
+            tool.setUsageTime(tempoCalculado);
+            tool.setLastUsageStart(null);
+            tool.setInUse(false);
+            repository.save(tool);
+        }
     }
 
     private int currentDebt(UserEntity user) {
         return historyService.currentDebt(user);
     }
 
-    public LocalTime calculateUsageTime(ToolEntity tool) {
+    public static LocalTime calculateUsageTime(ToolEntity tool) {
 
-        var usageTime = Duration
-                .between(tool.getUsageTime(), LocalTime.now());
+        var duration = Duration.between(
+                tool.getLastUsageStart().truncatedTo(ChronoUnit.SECONDS),
+                LocalTime.now().truncatedTo(ChronoUnit.SECONDS)
+        );
 
-        if (usageTime.isNegative())
-            usageTime = usageTime.plusDays(1);
+        if (duration.isNegative())
+            duration = duration.plusDays(1);
 
-        return LocalTime.MIDNIGHT.plus(usageTime);
+        return LocalTime.MIDNIGHT.plus(duration);
     }
 
     private void applyDegradation(ToolEntity tool) {
@@ -142,18 +148,12 @@ public class ToolService {
 
     private void validateDuplicateOnUpdate(String name, Long id) {
         if (repository.existsByNameAndIdNot(name, id))
-            throw new DuplicateResouceException("Tool name already in use");
+            throw new DuplicateResouceException("Tool toolName already in use");
     }
 
-    public Page<ToolEntity> filterByNamePageable(String name, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("name").ascending());
-        var spec = buildSpecification(name);
-        return repository.findAll(spec, pageable);
-    }
-
-    private Specification<ToolEntity> buildSpecification(String name) {
-        Specification<ToolEntity> specification = null;
-        if (name != null) specification = likeName(name);
-        return specification;
+    public Page<ToolFilterResponseDTO> findAll(ToolFilterDTO filter, Pageable pageable) {
+        var build = ToolPredicate.build(filter);
+        var page = repository.findAll(build, pageable);
+        return page.map(mapper::toFilterResponse);
     }
 }

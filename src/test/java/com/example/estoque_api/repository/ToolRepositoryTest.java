@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -37,7 +38,7 @@ class ToolRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should return true when a tool exists with the given name")
+    @DisplayName("Should return true when a tool exists with the given toolName")
     void shouldReturnTrueWhenNameExists() {
         var exists = repository
                 .existsByName("Smartphone");
@@ -46,7 +47,7 @@ class ToolRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should return true when another tool exists with the same name excluding current ID")
+    @DisplayName("Should return true when another tool exists with the same toolName excluding current ID")
     void shouldReturnTrueWhenNameExistsAndIdNot() {
         var anotherTool = ToolEntity.builder()
                 .name("Monitor")
@@ -61,37 +62,11 @@ class ToolRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should return false when checking name existence against its own ID")
+    @DisplayName("Should return false when checking toolName existence against its own ID")
     void shouldReturnFalseWhenNameExistsButIsTheSameId() {
         var exists = repository
                 .existsByNameAndIdNot("Smartphone", activeTool.getId());
 
         assertFalse(exists);
-    }
-
-    @Test
-    @DisplayName("Should return a list of all active tools")
-    void shouldFindAllByActiveTrue() {
-        var actives = repository
-                .findAllByActiveTrue();
-
-        assertAll(
-                () -> assertEquals(1, actives.size()),
-                () -> assertEquals("Smartphone", actives.getFirst().getName()),
-                () -> assertTrue(actives.getFirst().getActive())
-        );
-    }
-
-    @Test
-    @DisplayName("Should return a list of all inactive tools")
-    void shouldFindAllByActiveFalse() {
-        var inactives = repository
-                .findAllByActiveFalse();
-
-        assertAll(
-                () -> assertEquals(1, inactives.size()),
-                () -> assertEquals("Notebook", inactives.getFirst().getName()),
-                () -> assertFalse(inactives.getFirst().getActive())
-        );
     }
 }

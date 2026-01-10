@@ -1,15 +1,17 @@
 package com.example.estoque_api.mapper;
 
-import com.example.estoque_api.dto.request.UserDTO;
+import com.example.estoque_api.dto.request.persist.UserDTO;
 import com.example.estoque_api.dto.response.entity.UserResponseDTO;
+import com.example.estoque_api.dto.response.filter.UserFilterResponseDTO;
 import com.example.estoque_api.model.UserEntity;
 import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 
 @Component
 public class UserMapper {
 
-    public UserEntity toEntityUser (UserDTO dto) {
+    public UserEntity toEntityUser(UserDTO dto) {
         return UserEntity.builder()
                 .username(dto.username())
                 .cpf(dto.cpf())
@@ -17,7 +19,7 @@ public class UserMapper {
                 .build();
     }
 
-    public UserResponseDTO toResponseEntityUser (UserEntity entity) {
+    public UserResponseDTO toResponseEntityUser(UserEntity entity) {
         return UserResponseDTO.builder()
                 .id(entity.getId())
                 .username(entity.getUsername())
@@ -29,5 +31,15 @@ public class UserMapper {
         entity.setUsername(dto.username());
         entity.setCpf(dto.cpf());
         entity.setAddress(dto.address());
+    }
+
+    public UserFilterResponseDTO toFilterResponse(UserEntity user) {
+        return UserFilterResponseDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .cpf(user.getCpf())
+                .active(user.getActive())
+                .address(user.getAddress())
+                .build();
     }
 }

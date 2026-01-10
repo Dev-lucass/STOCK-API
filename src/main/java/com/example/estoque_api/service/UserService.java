@@ -1,24 +1,20 @@
 package com.example.estoque_api.service;
 
-import com.example.estoque_api.dto.request.UserDTO;
+import com.example.estoque_api.dto.request.filter.UserFilterDTO;
+import com.example.estoque_api.dto.request.persist.UserDTO;
 import com.example.estoque_api.dto.response.entity.UserResponseDTO;
+import com.example.estoque_api.dto.response.filter.UserFilterResponseDTO;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.UserMapper;
 import com.example.estoque_api.model.UserEntity;
+import com.example.estoque_api.predicate.UserPredicate;
 import com.example.estoque_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.example.estoque_api.repository.specs.UserSpec.likeUsername;
 
 @Service
 @RequiredArgsConstructor
@@ -33,13 +29,6 @@ public class UserService {
         var userEntityMapped = mapper.toEntityUser(dto);
         var userSaved = repository.save(userEntityMapped);
         return mapper.toResponseEntityUser(userSaved);
-    }
-
-    public List<UserResponseDTO> findAll() {
-        return repository.findAllByActiveTrue()
-                .stream()
-                .map(mapper::toResponseEntityUser)
-                .toList();
     }
 
     public UserResponseDTO update(Long id, UserDTO dto) {
@@ -63,26 +52,14 @@ public class UserService {
         user.setActive(false);
     }
 
-    private void validateUserWhetherUserOwes(UserEntity user) {
+    public void validateUserWhetherUserOwes(UserEntity user) {
         historyService.validateUserWhetherUserOwes(user);
     }
 
-    public Page<UserEntity> filterByUsernamePageable(String username, int pageNumber, int pageSize) {
-
-        var specification = buildSpecification(username);
-
-        Pageable pageable = PageRequest.of(
-                pageNumber,
-                pageSize,
-                Sort.by("username").ascending());
-
-        return repository.findAll(specification, pageable);
-    }
-
-    private Specification<UserEntity> buildSpecification(String username) {
-        Specification<UserEntity> specification = null;
-        if (username != null) specification = likeUsername(username);
-        return specification;
+    public Page<UserFilterResponseDTO> findAll(UserFilterDTO filter, Pageable pageable) {
+        var predicate = UserPredicate.build(filter);
+        var page = repository.findAll(predicate, pageable);
+        return page.map(mapper::toFilterResponse);
     }
 
     private void validateDuplicateOnCreate(String cpf) {

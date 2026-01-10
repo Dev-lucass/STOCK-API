@@ -72,24 +72,4 @@ class UserRepositoryTest {
         assertFalse(exists);
     }
 
-    @Test
-    @DisplayName("Should return a list of all active users")
-    void shouldFindAllByActiveTrue() {
-        var inactiveUser = UserEntity.builder()
-                .username("ghost_user")
-                .cpf("33366699957")
-                .address("789 Blvd")
-                .active(false)
-                .build();
-
-        entityManager.persist(inactiveUser);
-
-        var actives = repository.findAllByActiveTrue();
-
-        assertAll(
-                () -> assertEquals(1, actives.size()),
-                () -> assertEquals("john_doe", actives.getFirst().getUsername()),
-                () -> assertTrue(actives.getFirst().getActive())
-        );
-    }
 }

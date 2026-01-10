@@ -1,6 +1,6 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.ToolDTO;
+import com.example.estoque_api.dto.request.persist.ToolDTO;
 import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.service.ToolService;
@@ -14,7 +14,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.util.List;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -65,39 +67,7 @@ class ToolEntityControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("Martelo"));
-    }
-
-    @Test
-    @DisplayName("Find all active tools returns 200 OK")
-    void findAllIsActive_Success() throws Exception {
-        when(service.findAllisActive())
-                .thenReturn(List.of(responseDTO));
-
-        mockMvc.perform(get("/api/v1/tool")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].active").value(true));
-    }
-
-    @Test
-    @DisplayName("Find all inactive tools returns 200 OK")
-    void findAllIsNotActive_Success() throws Exception {
-        responseDTO = ToolResponseDTO.builder()
-                .id(2L)
-                .name("Serra")
-                .active(false)
-                .build();
-
-        when(service.findAllisDisable())
-                .thenReturn(List.of(responseDTO));
-
-        mockMvc.perform(get("/api/v1/tool/findAllIsNotActive")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].active").value(false));
+                .andExpect(jsonPath("$.toolName").value("Martelo"));
     }
 
     @Test
@@ -123,29 +93,29 @@ class ToolEntityControllerTest {
     }
 
     @Test
-    @DisplayName("Filter tools by name returns paged data")
+    @DisplayName("Filter tools by toolName returns paged data")
     void filterByName_Success() throws Exception {
         var page = new PageImpl<>(List.of(tool));
 
-        when(service.filterByNamePageable(anyString(), anyInt(), anyInt()))
-                .thenReturn(page);
+//        when(service.filterByNamePageable(anyString(), anyInt(), anyInt()))
+//                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/tool/filterByName")
-                        .param("name", "Martelo")
+                        .param("toolName", "Martelo")
                         .param("pageNumber", "0")
                         .param("pageSize", "10")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].name").value("Martelo"));
+                .andExpect(jsonPath("$.content[0].toolName").value("Martelo"));
     }
 
     @Test
-    @DisplayName("Save tool with invalid name returns 400 bad request")
+    @DisplayName("Save tool with invalid toolName returns 400 bad request")
     void save_InvalidBody_BadRequest() throws Exception {
         mockMvc.perform(post("/api/v1/tool")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\": \"\"}"))
+                        .content("{\"toolName\": \"\"}"))
                 .andExpect(status().isBadRequest());
     }
 }

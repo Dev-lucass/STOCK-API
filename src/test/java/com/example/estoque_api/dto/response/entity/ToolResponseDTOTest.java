@@ -64,9 +64,9 @@ class ToolResponseDTOTest {
 
         assertAll(
                 () -> assertTrue(toString.contains("id=" + id)),
-                () -> assertTrue(toString.contains("name=" + name)),
-                () -> assertTrue(toString.contains("active=" + active)),
-                () -> assertTrue(toString.contains("createdAt=" + createdAt))
+                () -> assertTrue(toString.contains("toolName=" + name)),
+                () -> assertTrue(toString.contains("userActive=" + active)),
+                () -> assertTrue(toString.contains("usageTime=" + createdAt))
         );
     }
 }

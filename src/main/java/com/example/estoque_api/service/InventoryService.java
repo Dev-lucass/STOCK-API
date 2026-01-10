@@ -1,11 +1,13 @@
 package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.internal.HistoryDTO;
-import com.example.estoque_api.dto.request.InventoryDTO;
-import com.example.estoque_api.dto.request.TakeFromInventory;
+import com.example.estoque_api.dto.request.filter.InventoryFilterDTO;
+import com.example.estoque_api.dto.request.persist.InventoryDTO;
+import com.example.estoque_api.dto.request.persist.TakeFromInventory;
 import com.example.estoque_api.dto.response.entity.InventoryResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryReturnResponseDTO;
 import com.example.estoque_api.dto.response.entity.InventoryTakeResponseDTO;
+import com.example.estoque_api.dto.response.filter.InventoryFilterResponseDTO;
 import com.example.estoque_api.enums.InventoryAction;
 import com.example.estoque_api.exceptions.DuplicateResouceException;
 import com.example.estoque_api.exceptions.InvalidQuantityException;
@@ -16,17 +18,14 @@ import com.example.estoque_api.mapper.InventoryMapper;
 import com.example.estoque_api.model.InventoryEntity;
 import com.example.estoque_api.model.ToolEntity;
 import com.example.estoque_api.model.UserEntity;
+import com.example.estoque_api.predicate.InventoryPredicate;
 import com.example.estoque_api.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalTime;
-import java.util.List;
-import static com.example.estoque_api.repository.specs.InventorySpec.equalsQuantity;
 
 @Service
 @RequiredArgsConstructor
@@ -56,12 +55,6 @@ public class InventoryService {
         return toolService.findToolByIdOrElseThrow(dto.idTool());
     }
 
-    public List<InventoryResponseDTO> findAllByToolIsActive() {
-        return repository.findAllByToolActiveTrue()
-                .stream()
-                .map(mapper::toResponseEntityInventory)
-                .toList();
-    }
 
     public InventoryResponseDTO update(Long id, InventoryDTO dto) {
         var inventory = findInventoryByIdOrElseThrow(id);
@@ -97,17 +90,14 @@ public class InventoryService {
         var user = findByUser(fromInventory.userId());
 
         validateUserIsActive(user);
-
         validateIfTheToolIsInactiveOrDamaged(inventory.getTool());
         validateQuantityTaken(fromInventory.quantityTaken(), inventory.getQuantityCurrent());
-
         startUsageTool(inventory.getTool());
 
         var subtracted = subtractQuantity(inventory.getQuantityCurrent(),
                 fromInventory.quantityTaken());
 
-        inventory.setQuantityCurrent(subtracted);
-
+        takeTool(inventory, subtracted);
         repository.save(inventory);
 
         var history = historyMapper.buildHistoryDto(
@@ -123,6 +113,10 @@ public class InventoryService {
         return mapper.toTakeInventoryResponse(inventory,
                 fromInventory.quantityTaken(),
                 inventory.getTool().getUsageCount());
+    }
+
+    private void takeTool(InventoryEntity inventory, int subtracted) {
+        toolService.takeTool(inventory, subtracted);
     }
 
     public InventoryReturnResponseDTO returnFromInventory(TakeFromInventory fromInventory) {
@@ -149,7 +143,7 @@ public class InventoryService {
     }
 
     private LocalTime calculateUsageTimeTool(ToolEntity tool) {
-        return toolService.calculateUsageTime(tool);
+        return ToolService.calculateUsageTime(tool);
     }
 
     private void returnTool(ToolEntity tool, UserEntity user) {
@@ -231,23 +225,10 @@ public class InventoryService {
         historyService.save(dto);
     }
 
-    public Page<InventoryResponseDTO> filterByQuantity(Integer quantity, int pageNumber, int pageSize) {
-
-        var specification = buildSpecification(quantity);
-
-        Pageable pageable = PageRequest.of(pageNumber,
-                pageSize,
-                Sort.by(Sort.Order.asc("quantityInitial")));
-
-        return repository
-                .findAll(specification, pageable)
-                .map(mapper::toResponseEntityInventory);
-    }
-
-    private Specification<InventoryEntity> buildSpecification(Integer quantity) {
-        Specification<InventoryEntity> specification = null;
-        if (quantity != null) specification = equalsQuantity(quantity);
-        return specification;
+    public Page<InventoryFilterResponseDTO> findAll(InventoryFilterDTO filter, Pageable pageable) {
+        var build = InventoryPredicate.build(filter);
+        var page = repository.findAll(build, pageable);
+        return page.map(mapper::toFilterResponse);
     }
 
     private void validationInventoryToolIsDuplicatedOnCreate(ToolEntity Tool) {
