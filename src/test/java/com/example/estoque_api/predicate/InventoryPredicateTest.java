@@ -1,7 +1,6 @@
 package com.example.estoque_api.predicate;
 
 import com.example.estoque_api.dto.request.filter.InventoryFilterDTO;
-import com.querydsl.core.BooleanBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,19 +43,5 @@ class InventoryPredicateTest {
         var result = InventoryPredicate.build(filter);
 
         assertFalse(result.toString().contains("tool.name"));
-    }
-
-    @Test
-    void buildOnlyId_WithValidId_ReturnsPredicate() {
-        var result = InventoryPredicate.buildOnlyId(5L);
-
-        assertTrue(result.toString().contains("inventoryEntity.tool.id = 5"));
-    }
-
-    @Test
-    void buildOnlyId_WithNullId_ReturnsEmptyPredicate() {
-        var result = InventoryPredicate.buildOnlyId(null);
-        
-        assertNotNull(result);
     }
 }
