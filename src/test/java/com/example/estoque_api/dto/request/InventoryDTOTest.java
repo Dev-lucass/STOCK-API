@@ -20,7 +20,7 @@ class InventoryDTOTest {
 
         assertAll(
                 () -> assertEquals(expectedQuantity, dto.quantity()),
-                () -> assertEquals(expectedIdTool, dto.idTool())
+                () -> assertEquals(expectedIdTool, dto.toolId())
         );
     }
 
@@ -46,7 +46,7 @@ class InventoryDTOTest {
 
         assertAll(
                 () -> assertTrue(toString.contains("quantity=10")),
-                () -> assertTrue(toString.contains("idTool=1"))
+                () -> assertTrue(toString.contains("toolId=1"))
         );
     }
 }

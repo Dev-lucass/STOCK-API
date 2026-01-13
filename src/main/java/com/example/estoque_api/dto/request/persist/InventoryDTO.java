@@ -6,4 +6,4 @@ import lombok.Builder;
 
 @Builder
 public record InventoryDTO(@NotNull @Min(1) int quantity,
-                           @NotNull @Min(1) long idTool) {}
+                           @NotNull @Min(1) long toolId) {}

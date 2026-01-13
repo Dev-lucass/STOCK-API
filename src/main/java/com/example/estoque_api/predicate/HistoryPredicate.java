@@ -43,9 +43,6 @@ public class HistoryPredicate {
                 .toolActive(filter.toolActive())
                 .inUse(filter.inUse())
                 .usageCount(filter.usageCount())
-                .hourUsage(filter.hourUsage())
-                .minutesUsage(filter.minutesUsage())
-                .secondsUsage(filter.secondsUsage())
                 .build();
     }
 }

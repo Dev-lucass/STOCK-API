@@ -40,7 +40,12 @@ class HistoryServiceTest {
 
     @Test
     void save_ShouldPersistHistory() {
-        var dto = HistoryDTO.builder().build();
+        var dto = HistoryDTO.builder()
+                .inventoryId(1L)
+                .quantityTaken(200)
+                .currentLifeCycle(50.5)
+                .build();
+
         var entity = new HistoryEntity();
 
         when(mapper.toEntityHistory(dto))
@@ -54,25 +59,41 @@ class HistoryServiceTest {
     @Test
     void validateTotalAmount_WhenQuantityIsInvalid_ShouldThrowException() {
         var user = new UserEntity();
+        user.setId(1L);
+
         var tool = new ToolEntity();
+        tool.setId(1L);
+
         var histories = List.of(
-                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(10).build(),
-                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(2).build()
+                HistoryEntity.builder()
+                        .action(InventoryAction.TAKE)
+                        .quantityTaken(10)
+                        .inventoryId(1L)
+                        .tool(tool)
+                        .user(user).build(),
+
+                HistoryEntity.builder()
+                        .action(InventoryAction.RETURN)
+                        .quantityTaken(22)
+                        .inventoryId(1L)
+                        .tool(tool)
+                        .user(user).build()
         );
 
         when(repository.findByUser(user))
                 .thenReturn(histories);
 
         assertThrows(InvalidQuantityException.class, () ->
-                service.validateTotalAmountThatTheUserMustAndResetTimeUsage(user, tool, 9));
+                service.validateTotalAmountThatTheUserMustAndResetTimeUsage(user, tool, 22)
+        );
     }
 
     @Test
     void currentDebt_ShouldCalculateCorrectValue() {
         var user = new UserEntity();
         var histories = List.of(
-                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(15).build(),
-                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(5).build()
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(15).inventoryId(1L).build(),
+                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(5).inventoryId(1L).build()
         );
 
         when(repository.findByUser(user))
@@ -87,7 +108,7 @@ class HistoryServiceTest {
     void validateUserWhetherUserOwes_WhenDebtExists_ShouldThrowException() {
         var user = new UserEntity();
         var histories = List.of(
-                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(5).build()
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(5).inventoryId(1L).build()
         );
 
         when(repository.findByUser(user))
@@ -101,8 +122,8 @@ class HistoryServiceTest {
     void validateUserWhetherUserOwes_WhenNoDebt_ShouldNotThrowException() {
         var user = new UserEntity();
         var histories = List.of(
-                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(5).build(),
-                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(5).build()
+                HistoryEntity.builder().action(InventoryAction.TAKE).quantityTaken(5).inventoryId(1L).build(),
+                HistoryEntity.builder().action(InventoryAction.RETURN).quantityTaken(5).inventoryId(1L).build()
         );
 
         when(repository.findByUser(user))
@@ -117,7 +138,10 @@ class HistoryServiceTest {
         var pageable = mock(Pageable.class);
         var entity = new HistoryEntity();
         var page = new PageImpl<>(List.of(entity));
-        var response = HistoryFilterResponseDTO.builder().build();
+        var response = HistoryFilterResponseDTO.builder()
+                .id(1L)
+                .inventoryId(1L)
+                .build();
 
         when(repository.findAll(any(Predicate.class), any(Pageable.class)))
                 .thenReturn(page);

@@ -7,6 +7,4 @@ public record ToolFilterDTO(String toolName,
                             Boolean toolActive,
                             Boolean inUse,
                             Integer usageCount,
-                            Integer hourUsage,
-                            Integer minutesUsage,
-                            Integer secondsUsage){}
+                            PeriodRequestDTO period){}

@@ -44,13 +44,12 @@ public class HistoryService {
     }
 
     public void validateTotalAmountThatTheUserMustAndResetTimeUsage(UserEntity user, ToolEntity tool, int quantityReturned) {
-
-        var totalTaken = calculateTotalTaken(user);
-        var totalReturned = calculateTotalReturned(user);
+        var totalTaken = calculateTotalTakenByTool(user, tool);
+        var totalReturned = calculateTotalReturnedByTool(user, tool);
         var currentDebt = totalTaken - totalReturned;
 
         if (quantityReturned > currentDebt) {
-            throw new InvalidQuantityException("You cannot return " + quantityReturned + ", you only have " + currentDebt + " pending.");
+            throw new InvalidQuantityException("You cannot return " + quantityReturned + ", you only have " + currentDebt + " pending for this tool.");
         }
     }
 
@@ -65,7 +64,6 @@ public class HistoryService {
     }
 
     public void validateUserWhetherUserOwes(UserEntity user) {
-
         var totalTaken = calculateTotalTaken(user);
         var totalReturned = calculateTotalReturned(user);
         var currentDebt = totalTaken - totalReturned;
@@ -83,6 +81,22 @@ public class HistoryService {
 
     private int calculateTotalReturned(UserEntity user) {
         return repository.findByUser(user).stream()
+                .filter(h -> h.getAction() == InventoryAction.RETURN)
+                .mapToInt(HistoryEntity::getQuantityTaken)
+                .sum();
+    }
+
+    private int calculateTotalTakenByTool(UserEntity user, ToolEntity tool) {
+        return repository.findByUser(user).stream()
+                .filter(h -> h.getTool().getId().equals(tool.getId()))
+                .filter(h -> h.getAction() == InventoryAction.TAKE)
+                .mapToInt(HistoryEntity::getQuantityTaken)
+                .sum();
+    }
+
+    private int calculateTotalReturnedByTool(UserEntity user, ToolEntity tool) {
+        return repository.findByUser(user).stream()
+                .filter(h -> h.getTool().getId().equals(tool.getId()))
                 .filter(h -> h.getAction() == InventoryAction.RETURN)
                 .mapToInt(HistoryEntity::getQuantityTaken)
                 .sum();

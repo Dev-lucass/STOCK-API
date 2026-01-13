@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Builder
 @AllArgsConstructor
@@ -18,12 +20,12 @@ public class HistoryEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tool_id", nullable = false)
     private ToolEntity tool;
 
     @Enumerated(EnumType.STRING)
@@ -35,4 +37,7 @@ public class HistoryEntity {
 
     @Column(nullable = false)
     private int quantityTaken;
+
+    @Column
+    private LocalDateTime createdAt;
 }

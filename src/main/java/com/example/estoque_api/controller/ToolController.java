@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/tool")
-public class ToolEntityController {
+public class ToolController {
 
     private final ToolService service;
 

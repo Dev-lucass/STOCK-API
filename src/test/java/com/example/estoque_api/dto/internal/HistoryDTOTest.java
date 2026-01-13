@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -60,7 +62,8 @@ class HistoryDTOTest {
                 tool,
                 action,
                 quantity,
-                currentLifeCycle
+                currentLifeCycle,
+                LocalDate.now()
         );
 
         assertAll(

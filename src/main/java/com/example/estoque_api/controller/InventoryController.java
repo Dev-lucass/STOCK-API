@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/inventory")
-public class InventoryEntityController {
+public class InventoryController {
 
     private final InventoryService service;
 
@@ -35,13 +35,13 @@ public class InventoryEntityController {
         return service.update(invenvoryId, dto);
     }
 
-    @PutMapping("takeFromInventory")
+    @PutMapping("take")
     @ResponseStatus(HttpStatus.OK)
     public InventoryTakeResponseDTO takeFromInventory(@RequestBody @Valid TakeFromInventory takeFromInventory) {
         return service.takeFromInventory(takeFromInventory);
     }
 
-    @PutMapping("returnFromInventory")
+    @PutMapping("return")
     @ResponseStatus(HttpStatus.OK)
     public InventoryReturnResponseDTO returnFromInventory(@RequestBody @Valid TakeFromInventory returneFromInventory) {
         return service.returnFromInventory(returneFromInventory);

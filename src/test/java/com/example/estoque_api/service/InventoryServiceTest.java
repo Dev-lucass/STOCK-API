@@ -66,7 +66,7 @@ class InventoryServiceTest {
         var entity = new InventoryEntity();
         var response = InventoryResponseDTO.builder().id(1L).build();
 
-        when(toolService.findToolByIdOrElseThrow(dto.idTool()))
+        when(toolService.findToolByIdOrElseThrow(dto.toolId()))
                 .thenReturn(tool);
         when(repository.existsByTool(tool))
                 .thenReturn(false);

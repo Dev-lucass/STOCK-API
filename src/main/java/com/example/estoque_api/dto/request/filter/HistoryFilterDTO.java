@@ -13,6 +13,4 @@ public record HistoryFilterDTO(Long inventoryId,
                                Boolean toolActive,
                                Boolean inUse,
                                Integer usageCount,
-                               Integer hourUsage,
-                               Integer minutesUsage,
-                               Integer secondsUsage){}
+                               PeriodRequestDTO period){}

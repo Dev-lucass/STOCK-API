@@ -5,4 +5,4 @@ spring:
     banner-mode: OFF
   profiles:
     active:
-        test
+        prod
