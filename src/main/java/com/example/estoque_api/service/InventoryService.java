@@ -52,17 +52,16 @@ public class InventoryService {
     }
 
     public ToolEntity findToolById(InventoryDTO dto) {
-        return toolService.findToolByIdOrElseThrow(dto.idTool());
+        return toolService.findToolByIdOrElseThrow(dto.toolId());
     }
 
 
     public InventoryResponseDTO update(Long id, InventoryDTO dto) {
+
         var inventory = findInventoryByIdOrElseThrow(id);
+        var tool = findToolByIdOrElseThrow(dto.toolId());
 
-        var tool = toolService
-                .findToolByIdOrElseThrow(dto.idTool());
-
-        validateInventoryTooltIsDuplicatedOnUpdate(tool, id);
+        validateInventoryToolIsDuplicatedOnUpdate(tool.getId(), id);
 
         var currentQuantity = calculateCurrentQuantity(inventory, dto);
         var initialQuantity = calculateInitialQuantity(inventory, dto);
@@ -74,6 +73,10 @@ public class InventoryService {
 
         var inventoryUpdated = repository.save(inventory);
         return mapper.toResponseEntityInventory(inventoryUpdated);
+    }
+
+    private ToolEntity findToolByIdOrElseThrow(Long toolId) {
+        return toolService.findToolByIdOrElseThrow(toolId);
     }
 
     private int calculateCurrentQuantity(InventoryEntity inventory, InventoryDTO dto) {
@@ -154,6 +157,10 @@ public class InventoryService {
         validateUserTakedFromInventory(user);
         validateQuantityReturn(quantity);
         validateIfTheToolIsInactiveOrDamaged(inventory.getTool());
+        validateTotalAmountThatTheUserMustAndResetTimeUsage(user, inventory, quantity);
+    }
+
+    private void validateTotalAmountThatTheUserMustAndResetTimeUsage(UserEntity user, InventoryEntity inventory, int quantity) {
         historyService.validateTotalAmountThatTheUserMustAndResetTimeUsage(user, inventory.getTool(), quantity);
     }
 
@@ -243,9 +250,10 @@ public class InventoryService {
         toolService.throwIfToolIsDamaged(tool);
     }
 
-    private void validateInventoryTooltIsDuplicatedOnUpdate(ToolEntity Tool, Long id) {
-        if (repository.existsByToolAndIdNot(Tool, id))
-            throw new DuplicateResouceException("Tool already registered in inventory");
+    private void validateInventoryToolIsDuplicatedOnUpdate(Long toolId, Long inventoryId) {
+        if (repository.existsByToolIdAndIdNot(toolId, inventoryId)) {
+            throw new DuplicateResouceException("This tool " + toolId + " already has a record in another inventory.");
+        }
     }
 
     private InventoryEntity findInventoryByIdOrElseThrow(Long id) {

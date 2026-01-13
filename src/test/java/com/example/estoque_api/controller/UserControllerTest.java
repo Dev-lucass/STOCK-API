@@ -1,10 +1,10 @@
 package com.example.estoque_api.controller;
 
-import com.example.estoque_api.dto.request.filter.ToolFilterDTO;
-import com.example.estoque_api.dto.request.persist.ToolDTO;
-import com.example.estoque_api.dto.response.entity.ToolResponseDTO;
-import com.example.estoque_api.dto.response.filter.ToolFilterResponseDTO;
-import com.example.estoque_api.service.ToolService;
+import com.example.estoque_api.dto.request.filter.UserFilterDTO;
+import com.example.estoque_api.dto.request.persist.UserDTO;
+import com.example.estoque_api.dto.response.entity.UserResponseDTO;
+import com.example.estoque_api.dto.response.filter.UserFilterResponseDTO;
+import com.example.estoque_api.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -25,8 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ToolEntityController.class)
-class ToolEntityControllerTest {
+@WebMvcTest(UserController.class)
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,75 +36,87 @@ class ToolEntityControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private ToolService service;
+    private UserService service;
 
     @Test
     void save_ValidDto_ReturnsCreated() throws Exception {
-        var dto = ToolDTO.builder()
-                .name("Hammer")
-                .active(true)
-                .build();
-        var response = ToolResponseDTO.builder()
-                .id(1L)
-                .name("Hammer")
+        var dto = UserDTO.builder()
+                .username("johndoe")
+                .cpf("12345678909")
+                .address("123 Street Name")
                 .build();
 
-        when(service.save(any(ToolDTO.class)))
+        var response = UserResponseDTO.builder()
+                .id(1L)
+                .username("johndoe")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(service.save(any(UserDTO.class)))
                 .thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/tool")
+        mockMvc.perform(post("/api/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("Hammer"));
+                .andExpect(jsonPath("$.username").value("johndoe"));
     }
 
     @Test
     void update_ValidIdAndDto_ReturnsNoContent() throws Exception {
-        var dto = ToolDTO.builder()
-                .name("Updated Hammer")
-                .active(true)
-                .build();
-        var response = ToolResponseDTO.builder()
-                .id(1L)
+        var dto = UserDTO.builder()
+                .username("johnupdated")
+                .cpf("12345678909")
+                .address("456 Updated Ave")
                 .build();
 
-        when(service.update(anyLong(), any(ToolDTO.class)))
+        var response = UserResponseDTO.builder()
+                .id(1L)
+                .username("johnupdated")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(service.update(anyLong(), any(UserDTO.class)))
                 .thenReturn(response);
 
-        mockMvc.perform(put("/api/v1/tool/{toolId}", 1L)
+        mockMvc.perform(put("/api/v1/user/{userId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void disable_ValidId_ReturnsNoContent() throws Exception {
+    void delete_ValidId_ReturnsNoContent() throws Exception {
         doNothing().when(service).disableById(anyLong());
 
-        mockMvc.perform(patch("/api/v1/tool/{toolId}", 1L))
+        mockMvc.perform(patch("/api/v1/user/{userId}", 1L))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void findAll_ValidParams_ReturnsPage() throws Exception {
-        var response = ToolFilterResponseDTO.builder()
+        var response = UserFilterResponseDTO.builder()
                 .id(1L)
-                .name("Screwdriver")
+                .username("johndoe")
+                .cpf("12345678909")
+                .active(true)
+                .address("123 Street Name")
                 .build();
+
         var page = new PageImpl<>(List.of(response));
 
-        when(service.findAll(any(ToolFilterDTO.class), any(Pageable.class)))
+        when(service.findAll(any(UserFilterDTO.class), any(Pageable.class)))
                 .thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/tool")
+        mockMvc.perform(get("/api/v1/user")
                         .param("page", "0")
                         .param("size", "10")
                         .param("sort", "id,asc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
-                .andExpect(jsonPath("$.content[0].name").value("Screwdriver"))
+                .andExpect(jsonPath("$.content[0].username").value("johndoe"))
+                .andExpect(jsonPath("$.content[0].cpf").value("12345678909"))
                 .andExpect(jsonPath("$.totalElements").value(1));
     }
 }

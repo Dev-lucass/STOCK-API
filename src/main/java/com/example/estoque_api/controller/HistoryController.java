@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/history")
-public class HistoryEntityController {
+public class HistoryController {
 
     private final HistoryService service;
 

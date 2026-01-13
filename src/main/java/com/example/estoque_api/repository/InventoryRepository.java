@@ -11,10 +11,10 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 
 public interface InventoryRepository extends JpaRepository<InventoryEntity, Long>, QuerydslPredicateExecutor<InventoryEntity>, QuerydslBinderCustomizer<QInventoryEntity> {
     boolean existsByTool(ToolEntity tool);
-    boolean existsByToolAndIdNot(ToolEntity tool, Long id);
+    boolean existsByToolIdAndIdNot(Long toolId, Long inventoryId);
 
     @Override
-    default void customize(QuerydslBindings bindings, QInventoryEntity inventory){
+    default void customize(QuerydslBindings bindings, QInventoryEntity inventory) {
         bindings.bind(inventory.tool.name).first(StringExpression::containsIgnoreCase);
     }
 }

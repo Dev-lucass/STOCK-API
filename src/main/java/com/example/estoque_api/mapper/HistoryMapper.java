@@ -10,6 +10,7 @@ import com.example.estoque_api.model.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Component
@@ -26,6 +27,7 @@ public class HistoryMapper {
                 .tool(dto.tool())
                 .quantityTaken(dto.quantityTaken())
                 .action(dto.action())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -37,6 +39,7 @@ public class HistoryMapper {
                 .user(user)
                 .inventoryId(inventoryId)
                 .currentLifeCycle(currentLlfeCycle)
+                .createdAt(LocalDate.now())
                 .build();
     }
 
@@ -49,7 +52,7 @@ public class HistoryMapper {
                 .quantityTaken(entity.getQuantityTaken())
                 .toolId(entity.getTool().getId())
                 .action(entity.getAction())
-                .createdAt(LocalDateTime.now())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 

@@ -69,7 +69,7 @@ class InventoryRepositoryTest {
 
         var saved = entityManager.persist(inventory);
 
-        var existsAnother = repository.existsByToolAndIdNot(tool1, saved.getId());
+        var existsAnother = repository.existsByToolIdAndIdNot(tool1.getId(), saved.getId());
 
         assertFalse(existsAnother);
     }
@@ -84,7 +84,7 @@ class InventoryRepositoryTest {
 
         var saved1 = entityManager.persist(inventory1);
 
-        var exists = repository.existsByToolAndIdNot(tool2, saved1.getId());
+        var exists = repository.existsByToolIdAndIdNot(tool2.getId(), saved1.getId());
 
         assertFalse(exists);
     }

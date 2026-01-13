@@ -19,9 +19,6 @@ class HistoryFilterDTOTest {
         var toolActive = true;
         var inUse = false;
         var usageCount = 10;
-        var hour = 2;
-        var minutes = 30;
-        var seconds = 15;
 
         var dto = HistoryFilterDTO.builder()
                 .inventoryId(inventoryId)
@@ -33,9 +30,6 @@ class HistoryFilterDTOTest {
                 .toolActive(toolActive)
                 .inUse(inUse)
                 .usageCount(usageCount)
-                .hourUsage(hour)
-                .minutesUsage(minutes)
-                .secondsUsage(seconds)
                 .build();
 
         assertAll(
@@ -47,10 +41,7 @@ class HistoryFilterDTOTest {
                 () -> assertEquals(toolName, dto.toolName()),
                 () -> assertEquals(toolActive, dto.toolActive()),
                 () -> assertEquals(inUse, dto.inUse()),
-                () -> assertEquals(usageCount, dto.usageCount()),
-                () -> assertEquals(hour, dto.hourUsage()),
-                () -> assertEquals(minutes, dto.minutesUsage()),
-                () -> assertEquals(seconds, dto.secondsUsage())
+                () -> assertEquals(usageCount, dto.usageCount())
         );
     }
 

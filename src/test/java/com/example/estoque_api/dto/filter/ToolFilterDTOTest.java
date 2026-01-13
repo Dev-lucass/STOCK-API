@@ -22,19 +22,13 @@ class ToolFilterDTOTest {
                 .toolActive(toolActive)
                 .inUse(inUse)
                 .usageCount(usageCount)
-                .hourUsage(hourUsage)
-                .minutesUsage(minutesUsage)
-                .secondsUsage(secondsUsage)
                 .build();
 
         assertAll(
                 () -> assertEquals(toolName, dto.toolName()),
                 () -> assertEquals(toolActive, dto.toolActive()),
                 () -> assertEquals(inUse, dto.inUse()),
-                () -> assertEquals(usageCount, dto.usageCount()),
-                () -> assertEquals(hourUsage, dto.hourUsage()),
-                () -> assertEquals(minutesUsage, dto.minutesUsage()),
-                () -> assertEquals(secondsUsage, dto.secondsUsage())
+                () -> assertEquals(usageCount, dto.usageCount())
         );
     }
 
