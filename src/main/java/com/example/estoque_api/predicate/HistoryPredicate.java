@@ -6,6 +6,7 @@ import com.example.estoque_api.dto.request.filter.UserFilterDTO;
 import com.example.estoque_api.model.QHistoryEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+
 import java.util.Optional;
 
 public class HistoryPredicate {
@@ -19,9 +20,12 @@ public class HistoryPredicate {
         var userFilter = buildUserFilter(filter);
         var toolFilter = buildToolFilter(filter);
 
+        if (filter.inventoryId() != null) {
+            builder.and(qHistory.inventoryId.eq(filter.inventoryId()));
+        }
+
         builder.and(UserPredicate.build(userFilter, qHistory.user));
         builder.and(ToolPredicate.build(toolFilter, qHistory.tool));
-        builder.and(InventoryPredicate.buildOnlyId(filter.inventoryId()));
 
         Optional.ofNullable(filter.action())
                 .ifPresent(a -> builder.and(qHistory.action.eq(a)));

@@ -2,13 +2,13 @@ package com.example.estoque_api.service;
 
 import com.example.estoque_api.dto.internal.MetricDTO;
 import com.example.estoque_api.dto.request.filter.PeriodRequestDTO;
-import com.example.estoque_api.exceptions.ResourceNotFoundException;
 import com.example.estoque_api.mapper.MetricMapper;
 import com.example.estoque_api.repository.custom.HistoryRepositoryCustomImpl;
 import com.example.estoque_api.repository.projection.MetricProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -21,7 +21,7 @@ public class MetricService {
 
     public List<MetricDTO> findTop10ForMetrics(PeriodRequestDTO period) {
         var filter = repositoryCustom.findTop10WithFilter(period);
-        validateQuantityTools(filter);
+        if (filter.size() < 10) return Collections.emptyList();
         return generateTopRank(filter, period);
     }
 
@@ -32,10 +32,5 @@ public class MetricService {
                         period,
                         i + 1
                 )).toList();
-    }
-
-    private void validateQuantityTools(List<MetricProjection> top) {
-        if (top.size() < 10)
-            throw new ResourceNotFoundException("To find the top 10, you need at least 10 registered and used tools");
     }
 }
